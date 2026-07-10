@@ -142,6 +142,37 @@ correct). A model that reads it *correctly* is charged a CER insertion. This is 
 made concrete on the very first test image: **raw CER = model error + label error**, and the gold set is
 what disentangles them.
 
+### 0.6 Gold reference set — `[VERIFY→FREEZE @ Stage 0]` RESOLVED: **2,437 instances**
+
+`scripts/gold_sample.py` seed 1234 · Gold ⊂ test-500 · disjoint strata, thresholds from the data
+(25th pct): small = height < 18 px, low-contrast = Michelson < 0.3593.
+
+| stratum | population | frac | **sampled** | π_incl |
+|---|---|---|---|---|
+| diacritic_dense (≥1 stacked char) | 2,342 | 0.50 | **1,171** | 0.5000 |
+| small (h < 18 px) | 2,086 | 0.30 | **626** | 0.3001 |
+| low_contrast | 1,258 | 0.30 | **377** | 0.2997 |
+| plain | 4,382 | 0.06 | **263** | 0.0600 |
+| **TOTAL** | 10,068 | | **2,437** | |
+
+Captures **50.0% of all stacked-diacritic characters in test-500** (1,171 / 2,342).
+
+**Two methodological points recorded (EVAL_PROTOCOL §13 E10):**
+
+1. **Inclusion probabilities are stored per instance.** Stratified over-sampling means gold is *not* a
+   uniform sample of test-500, so the raw disagreement rate estimates the **hard strata's** noise floor,
+   not the test set's. The Horvitz–Thompson reweighted rate (`1/π_incl`) estimates the whole test-500's.
+   Reporting the raw stratified rate as "the test set's noise floor" would overstate it ~5–8×.
+2. **No VinText instance carries two stacked-diacritic characters** — the distribution is exactly
+   `{0: 7,726, 1: 2,342}`. Vietnamese orthographic words are monosyllabic and VinText boxes are per-word.
+   23.3% of test instances carry the hardest glyph class.
+
+> ⚠ **The gold labels do not exist yet, and none were fabricated.** The script writes 2,437 crops and a
+> `transcription_sheet.tsv` with `gold_pass1` / `gold_pass2` **empty**. The codepoint-by-codepoint
+> double-pass is the user's manual work (§5). Until it is done, **no noise-floor number exists** and none
+> is claimed. (Row idx 2 of the sheet is the `VỰ` / `VỰC` instance found above — the human pass will
+> catch it independently.)
+
 ---
 
 ## Open `[VERIFY]` still outstanding at Stage 0
@@ -151,7 +182,7 @@ what disentangles them.
 | test-500 rec-only instance count | EVAL_PROTOCOL §4 | ✅ **FROZEN: 10,068 inst / 37,254 chars** | done (§13 E1/E6/E8) |
 | pbcquoc pretrain ⟂ VinText test | EVAL_PROTOCOL §6 | ✅ **RESOLVED as *not provable*; no contamination detected** | done (§13 E9) — 🧠 **brain to adjudicate** |
 | Gate-A noise floor (k=3 seed std) | EVAL_PROTOCOL §7 | run-to-run std of real-only baseline | ☐ Step 0.5 |
-| gold set exact instance count | EVAL_PROTOCOL §5 | after stratified sample is fixed | ☐ Step 0.6 |
+| gold set exact instance count | EVAL_PROTOCOL §5 | ✅ **FROZEN: 2,437 instances** (labels pending, manual) | done (§13 E10) |
 
 ---
 

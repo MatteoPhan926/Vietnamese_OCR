@@ -372,6 +372,49 @@ literally called `test_image` would report a **validation** number as the headli
   by 25 overall; the frozen test denominator is **37,254**, not 37,263 (the pre-strip value, which
   appeared in E1's first draft and is superseded).
 
+**[2026-07-10] E10 — §5 gold set MEASURED and FROZEN: 2,437 instances (resolves `[VERIFY→FREEZE @ Stage 0]`).**
+Script `scripts/gold_sample.py`, seed 1234. Parent set: the 10,068 scorable test-500 instances (Gold ⊂
+test-500, §5). Strata are **disjoint**, assigned in priority order; thresholds taken **from the data**
+(25th percentile), not the armchair: small = crop height < **18 px**; low-contrast = Michelson
+`(p95−p5)/(p95+p5)` < **0.3593**.
+
+| stratum | population | sampling fraction | **sampled** | π_incl |
+|---|---|---|---|---|
+| diacritic_dense (≥1 stacked char) | 2,342 | 0.50 | **1,171** | 0.5000 |
+| small (h < 18 px) | 2,086 | 0.30 | **626** | 0.3001 |
+| low_contrast | 1,258 | 0.30 | **377** | 0.2997 |
+| plain | 4,382 | 0.06 | **263** | 0.0600 |
+| **GOLD TOTAL** | 10,068 | — | **2,437** | — |
+
+- Captures **50.0% of every stacked-diacritic character in test-500** (1,171 / 2,342) and 2,088
+  diacritic-bearing chars.
+- **`[LOCKED]` Inclusion probabilities `π_incl` and Horvitz–Thompson weights `1/π_incl` are recorded
+  per instance.** §5 mandates stratified over-sampling, which means **gold is not a uniform sample of
+  test-500**. The raw gold-vs-public disagreement rate therefore estimates the noise floor **of the hard
+  strata**, not of the test set. Both are wanted, and they are different numbers:
+  - **per-stratum disagreement** → where the public labels are unreliable (a finding in itself);
+  - **HT-reweighted disagreement** (weight `1/π_incl`) → an unbiased estimate of the **whole test-500's**
+    label-noise floor.
+  Without `π_incl`, the stratification silently biases the very number the gold set exists to produce.
+  Reporting a raw stratified rate as "the test set's noise floor" would overstate it (hard strata are
+  over-represented ~5–8×).
+
+**Structural fact behind the `diacritic_dense` stratum (measured, and it is not obvious).** Across all
+10,068 scorable test-500 instances the stacked-diacritic count per instance is **exactly `{0: 7,726,
+1: 2,342}` — no instance carries two.** Vietnamese orthographic words are monosyllabic and VinText's
+boxes are per-word, so a word has at most one modifier+tone nucleus. Consequently "instances with a
+stacked char" and "stacked chars" are the **same number** here (2,342), and 23.3% of test instances carry
+the hardest glyph class. Any future code that assumes a per-instance stacked *count* > 1 is measuring
+something VinText does not contain.
+
+**Reminder of the two roles (§5), unchanged:** gold = noise-floor calibration + deploy decision; the
+**full test-500** carries the scaling curve. Gold is too small to carry the curve.
+
+> **The gold labels do not exist yet.** `scripts/gold_sample.py` writes the 2,437 crops and a
+> `transcription_sheet.tsv` with an empty `gold_pass1` / `gold_pass2` column. The codepoint-by-codepoint
+> double-pass is the **user's manual work** (§5) and was **not** fabricated. Until it is done, no
+> noise-floor number exists and none is claimed.
+
 **[2026-07-10] E8 — Degenerate GT quads are scored, never dropped (the denominator must not move
 with the crop code).** rec-only rectifies each 4-point GT quad by perspective warp. 19 scorable
 test-500 instances have quads 2–3 px on a side — real, labelled, microscopic text (`'000'` in 6×3 px,
