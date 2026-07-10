@@ -21,11 +21,15 @@ LAST DONE     : 0.1 env+data ☑ · 0.2 contamination probe ☑ · 0.3 harness (
                 Zero-shot rec-only (no fine-tune, full splits): train CER 25.80% / test CER 21.33%,
                 gap -4.47pp -> NO contamination signature. Disjointness NOT PROVABLE (manifest unpublished).
                 EVAL_PROTOCOL §13 amendments E1–E9 written.   [commit: see git log]
-NEXT ACTION   : Stage 0, step 0.5 — real-only baseline: fine-tune vgg_transformer on VinText-real train
-                (25,776 crops), k=3 seeds. Record rec-only CER + 3 axes on test-500. Measure run-to-run
-                std -> FREEZE as the Gate-A noise floor (EVAL_PROTOCOL §7 [VERIFY]).
-                Then 0.6 — gold-set stratified sample + transcription tooling (NOT the labels themselves).
-IN-FLIGHT     : none
+                0.6 gold set ☑ FROZEN at 2,437 instances (labels pending — USER's manual double-pass).
+NEXT ACTION   : when the k=3 run finishes: `python scripts/aggregate_baseline.py` -> freeze the Gate-A
+                noise floor into EVAL_PROTOCOL §13 as a dated amendment, fill RESULTS.md, commit.
+                THEN STOP at the 🧠 Stage-0 brain checkpoint. Do NOT begin Stage 1.
+IN-FLIGHT     : 0.5 real-only baseline, k=3 seeds (0,1,2), running via `bash run_baseline_k3.sh`
+                -> runs/k3_train.log, per-seed runs/baseline_seed{N}/{train.log,best.pth,result.json}
+                ~24 min/seed on the 4060; 12,000 iters, pre-registered HP in scripts/train_baseline.py.
+                If the run died: rerun `bash run_baseline_k3.sh` (lmdb cache train_vintext_real/ is
+                reusable). Seeds are independent; a completed seed's result.json can be kept.
 BLOCKERS/Q    : (1) ERROR_ANALYSIS.md does not exist in repo — Stage 1 "Obeys" it. Needs drafting
                     (design/brain side) before Stage 1. Not a Stage-0 blocker.
                 (2) 🧠 E2 (###/empty excluded from rec-only), E8 (degenerate quads scored-not-dropped),
