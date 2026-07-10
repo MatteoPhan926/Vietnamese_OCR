@@ -16,17 +16,29 @@
 
 ```
 CURRENT STAGE : Stage 0 — Environment + harness + baseline
-LAST DONE     : 0.1 (data) + 0.4 — real VinText obtained & audited; instance counts FROZEN
-                (test-500 rec-only = 10,068 inst / 37,263 NFC chars; train = 25,776 crops)
-                EVAL_PROTOCOL §13 amendments E1–E5 written.   [commit: 93cad60]
-NEXT ACTION   : Stage 0, step 0.2 — install pbcquoc vietocr (vgg_transformer) + checkpoint, then
-                verify pretraining corpus is DISJOINT from VinText test-500 (EVAL_PROTOCOL §6 [VERIFY])
+LAST DONE     : 0.1 env+data ☑ · 0.2 contamination probe ☑ · 0.3 harness (44/44 self-tests) ☑ · 0.4 counts ☑
+                FROZEN: test-500 rec-only = 10,068 inst / 37,254 NFC chars; train = 25,776 crops.
+                Zero-shot rec-only (no fine-tune, full splits): train CER 25.80% / test CER 21.33%,
+                gap -4.47pp -> NO contamination signature. Disjointness NOT PROVABLE (manifest unpublished).
+                EVAL_PROTOCOL §13 amendments E1–E9 written.   [commit: see git log]
+NEXT ACTION   : Stage 0, step 0.5 — real-only baseline: fine-tune vgg_transformer on VinText-real train
+                (25,776 crops), k=3 seeds. Record rec-only CER + 3 axes on test-500. Measure run-to-run
+                std -> FREEZE as the Gate-A noise floor (EVAL_PROTOCOL §7 [VERIFY]).
+                Then 0.6 — gold-set stratified sample + transcription tooling (NOT the labels themselves).
 IN-FLIGHT     : none
 BLOCKERS/Q    : (1) ERROR_ANALYSIS.md does not exist in repo — Stage 1 "Obeys" it. Needs drafting
                     (design/brain side) before Stage 1. Not a Stage-0 blocker.
-                (2) ###/empty exclusion (E2) is a definitional freeze I made from the audit — flag
-                    for brain review at the Stage-0 checkpoint.
-NEXT 🧠 CHKPT : end of Stage 0 — report baseline CER + 3-axis + frozen noise floor
+                (2) 🧠 E2 (###/empty excluded from rec-only), E8 (degenerate quads scored-not-dropped),
+                    and E9 (disjointness unprovable; falsification failed) are definitional freezes made
+                    from measurement. All three need brain sign-off at the Stage-0 checkpoint.
+                (3) Base axis is scored case-SENSITIVE (case-insensitive reported alongside as a
+                    diagnostic). EVAL_PROTOCOL §3.1 did not specify. Brain to confirm.
+                (4) Insertions are charged to CER but create no axis denominator (§3.1 says
+                    "deletion/insertion counts as all applicable axes wrong" — for an insertion the
+                    applicable axes are undefined; there is no GT char). Documented deviation.
+                (5) HOST: C: drive is 100% full (46 MB free). uv cache / TORCH_HOME / TMP redirected to
+                    E:. Training checkpoints must also write to E:.
+NEXT 🧠 CHKPT : end of Stage 0 — report baseline CER + 3-axis + frozen noise floor  (NEAR: after 0.5)
 ```
 
 ---
@@ -49,7 +61,7 @@ NEXT 🧠 CHKPT : end of Stage 0 — report baseline CER + 3-axis + frozen noise
 
 ---
 
-## Stage 0 — Environment + measurement harness + honest baseline  ☐
+## Stage 0 — Environment + measurement harness + honest baseline  ◐
 **Goal:** a working measurement rig and a real-only baseline, with every Stage-0 `[VERIFY]` measured and frozen.
 **Obeys:** EVAL_PROTOCOL §1–§6, §11; CLAUDE.md §0, §9.1, §9.7.
 

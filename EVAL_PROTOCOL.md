@@ -372,6 +372,60 @@ literally called `test_image` would report a **validation** number as the headli
   by 25 overall; the frozen test denominator is **37,254**, not 37,263 (the pre-strip value, which
   appeared in E1's first draft and is superseded).
 
+**[2026-07-10] E8 — Degenerate GT quads are scored, never dropped (the denominator must not move
+with the crop code).** rec-only rectifies each 4-point GT quad by perspective warp. 19 scorable
+test-500 instances have quads 2–3 px on a side — real, labelled, microscopic text (`'000'` in 6×3 px,
+`'-'` in 4×2, `':'` in 3×10). (train: 32, val: 1.)
+
+- **`[LOCKED]` A GT-scorable instance is NEVER excluded from rec-only scoring.** An unrectifiable crop
+  yields an **empty prediction**, scored as all-deletions.
+- **Why this is not a detail:** if degenerate crops were *excluded*, the crop function's `min_side`
+  threshold would become a silent knob on the **test set**. Raising it 4→8 would drop **250** of the
+  hardest test instances and *improve* CER for free. Pinning the rule keeps the denominator at exactly
+  the frozen **10,068 instances / 37,254 chars** regardless of crop implementation.
+- Verified: with the rule applied, the harness reproduces 10,068 / 37,254 exactly. The 19 degenerate
+  instances are all digits/punctuation, so they add 33 chars to CER but **zero** base/tone axis
+  positions (digits bear neither) — the axis denominators are unchanged, as they must be.
+
+**[2026-07-10] E9 — §6 `[VERIFY→FREEZE @ Stage 0]` disjointness: NOT PROVABLE; falsification attempted
+and failed. Residual risk stated, not hidden.**
+
+§6 asked to "confirm from the pbcquoc repo that the pretraining corpus is disjoint from the VinText
+test set." That confirmation **cannot be obtained**, and saying otherwise would be the exact over-claim
+this project forbids. What was actually established:
+
+*Documentary evidence (weak — absence of mention):*
+- pbcquoc's README describes the 10M pretraining set only as *"ảnh tự phát sinh, chữ viết tay, các văn
+  bản scan thực tế"* (synthetic, handwriting, real scanned documents). **No scene-text source is named.**
+- The repo contains **zero** references to VinText / VinAI / dict-guided / scene text (grepped).
+- **The full 10M manifest is NOT published** (only a ~1M synthetic sample is released) → a set
+  intersection is **impossible**. This is the binding limitation.
+
+*Temporal evidence (fails to exonerate):*
+- Checkpoint `vgg_transformer.pth` `Last-Modified: 2022-12-03`; VinText released ~May 2021 (archive
+  entries dated 2020-06 → 2021-02). **The checkpoint postdates the dataset by ~19 months**, so
+  publication dates cannot rule out ingestion.
+
+*Empirical falsification test (the real evidence) — `scripts/probe_contamination.py`, zero fine-tuning,
+rec-only on GT-box crops, FULL splits (no sampling):*
+
+| split | n | CER | exact-match | Axis1 base | Axis2 modifier | Axis3 tone |
+|---|---|---|---|---|---|---|
+| train (seen-if-contaminated) | 25,776 | **25.80%** | 57.84% | 83.70% | 86.92% | 83.97% |
+| test-500 (held out) | 10,068 | **21.33%** | 60.83% | 86.41% | 88.49% | 85.88% |
+
+- **Gap (test − train) = −4.47 pp: the held-out split is *easier* than train.** Memorisation of the
+  train images would drive train CER far *below* test. The contamination signature is **absent**.
+- Absolute zero-shot performance (CER ~21–26%, exact-match ~58–61%) is far below the checkpoint's
+  reported **0.88 in-domain full-sequence precision** — consistent with a genuine document→scene
+  **domain gap**, i.e. with never having seen scene text.
+
+**Verdict `[FROZEN]`: no evidence of VinText contamination in the pbcquoc checkpoint; set-level
+disjointness is unprovable from published artifacts. Firewall 1 proceeds on a falsification-failed
+basis, and every write-up must say so** — "no contamination detected by a train-vs-test zero-shot
+probe," never "verified disjoint." If the brain judges this insufficient, the fallback in §6 (substitute
+a clean held-out) applies.
+
 **[2026-07-10] E7 — Vocab coverage of the locked backbone measured (no irreducible floor on test).**
 The pbcquoc `base.yml` vocab (229 chars) vs VinText's readable GT, per `scripts/check_vocab_coverage.py`:
 

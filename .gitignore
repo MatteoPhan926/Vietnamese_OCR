@@ -11,3 +11,4 @@ runs/
 .uv_cache/
 .tmp/
 third_party/
+.torch/
