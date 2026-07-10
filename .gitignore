@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+data/
+weights/
+runs/
+*.pth
+*.pt
+*.zip
+*.tar.gz
