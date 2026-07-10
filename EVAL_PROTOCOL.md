@@ -296,3 +296,62 @@ Every `[LOCKED]` value holds until a **dated, written amendment appended to this
 changed and why. Thresholds are **never** re-tuned *after* seeing the number they gate — that is the
 p-hack this protocol exists to prevent. A `[VERIFY→FREEZE @ Stage N]` value, once measured and frozen at
 its stage, becomes `[LOCKED]` and follows the same rule.
+
+---
+
+## §13. AMENDMENTS (dated; supersede any conflicting text above)
+
+**[2026-07-10] E1 — §4 instance counts MEASURED and FROZEN (resolves `[VERIFY→FREEZE @ Stage 0]`).**
+Source: the shipped VinText `labels/gt_*.txt` (original `x1,y1,…,x4,y4,TRANSCRIPT` format), audited by
+`scripts/audit_vintext.py` @ commit of this change. No detector was run (rec-only is scored on GT boxes).
+
+| split | folder | images | total instances | `###` | empty | **READABLE (rec-only scorable)** | GT chars (NFC) |
+|---|---|---|---|---|---|---|---|
+| train | `train_images` (im0001–1200) | 1200 | 35,094 | 9,300 | 18 | **25,776** | 94,364 |
+| val   | `test_image` (im1201–1500)   | 300  | 8,737  | 1,517 | 19 | **7,201**  | 26,840 |
+| test  | `unseen_test_images` (im1501–2000) | 500 | 12,253 | 2,167 | 18 | **10,068** | 37,263 |
+| ALL   | | 2000 | **56,084** | 12,984 | 55 | 43,045 | 158,467 |
+
+- The 56,084 total **confirms** the figure cited in §4. The splits are contiguous, disjoint, and every
+  image has exactly one label file (verified).
+- **FROZEN: the scaling curve's rec-only test denominator = 10,068 instances / 37,263 NFC GT characters.**
+  This **replaces the "~14k" estimate** in §4, which was ~22% high against total instances and ~39% high
+  against scorable ones.
+- **FROZEN: the real train recognition set = 25,776 word-crops.** This **replaces the "~33k real
+  word-crops" estimate** in §4. The "non-starved real-only baseline" claim in §4 still holds at 25.8k,
+  but the doc's number was an over-estimate and the corrected one is what every manifest must cite.
+
+**[2026-07-10] E2 — `###` and empty transcripts EXCLUDED from rec-only scoring (definitional freeze).**
+§4 says the curve is scored over "the GT-labeled text instances." VinText marks illegible/do-not-care
+regions with the transcript `###` (12,984 instances) and ships **55 instances with an empty transcript**
+(a genuine annotation defect, found by audit, not documented upstream). Neither carries a reference
+string, so neither can contribute to a CER numerator or denominator.
+
+- **`[LOCKED]` rec-only scoring excludes `###` and empty-transcript instances.** This is the ICDAR/scene-text
+  convention and the only coherent one for recognition: there is no reference to score against.
+- **`[LOCKED]` For e2e and det-only, `###` regions are `don't care`**: a detection overlapping a `###`
+  region is scored as **neither true-positive nor false-positive** (it is removed from the match set
+  before P/R/F1). This is the standard VinText/ICDAR treatment and must not silently become an FP —
+  doing so would understate detection precision and, through it, the e2e number the curve reports
+  alongside its headline.
+- Every reported instance count states which convention it uses. `10,068` (scorable) and `12,253`
+  (all annotated regions) are **different numbers for different scopes** and are never interchanged.
+
+**[2026-07-10] E3 — Shipped VinText labels are already NFC; normalization is still applied explicitly.**
+Audit: of the 43,045 readable transcripts, 25,214 are NFC-and-not-NFD, 17,831 are ASCII-only
+(NFC==NFD), and **zero** are NFD or mixed. **No combining codepoints appear anywhere in the label set.**
+This is a convenient starting state, **not** a licence to skip §2: the *model's* output is what NFC
+normalization actually protects against (a decomposed prediction scored against a precomposed reference
+would inflate CER), and any future corpus/synthetic text may arrive NFD. §2 stands unchanged.
+
+**[2026-07-10] E4 — Annotation parsing hazard (recorded so it is never reintroduced).** 756 of the 56,084
+label lines contain **10** comma-separated fields, not 9, because **the transcript itself contains a
+comma**. The transcript is therefore `",".join(parts[8:])`, never `parts[8]`. All 56,084 lines were
+verified to have exactly 8 integer-parseable leading coordinate fields, so the 4-point-quad assumption
+holds and the rejoin is unambiguous. A naive `parts[8]` silently truncates 756 GT strings and would
+inflate measured CER.
+
+**[2026-07-10] E5 — Split-name trap.** VinText's folder named `test_image` is the **300-image validation**
+split; the **500-image test** split is the folder named `unseen_test_images`. §4's "1,200 / 300 / 500"
+maps to `train_images` / `test_image` / `unseen_test_images` respectively. Evaluating on the folder
+literally called `test_image` would report a **validation** number as the headline test number.
