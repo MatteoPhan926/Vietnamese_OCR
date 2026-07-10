@@ -12,3 +12,7 @@ runs/
 .tmp/
 third_party/
 .torch/
+train_vintext_real/
+valid_vintext_real/
+train_vintext_real_s*/
+valid_vintext_real_s*/
