@@ -305,3 +305,14 @@ can buy ~1.00× at batch=1 on a small model.
 this anchor. Add to the pointer list: **`EVAL_PROTOCOL.md`** (the concrete instantiation of §9.1 — metrics,
 gates, gold spec; the measurement ruler) and **`BUILD_PLAN.md`** (the stateful, resumable build roadmap —
 read + update every session). `RESULTS.md` is created and filled by the implementation agent during build.
+
+
+**[2026-07-10] A4 — On-device stage (c) cut per L3 cut-order.** Executing §0 L3's pre-registered
+contingency ("drop (c) first"). Stage 4 (on-device INT8 + Core ML + Apple Vision) is **deferred to future
+work**: execution of a known-good playbook (L3c), redundant with the sibling C/CUDA GPT-2 engine's
+already-demonstrated edge-inference / INT8 signal; the senior-signal contribution is the data engine +
+honest evaluation (L3b). Project now terminates at the scaling curve (SCALING) + error analysis
+(ERROR_ANALYSIS), then write-up. EVAL_PROTOCOL §8–9 and A2 remain future-work spec, not executed. The cut
+is NARROW: e2e/detection (DBNet, ERROR_ANALYSIS §5) stays — the working pipeline (L3a). The project
+one-liner should no longer lead with "iPhone deployment"; on-device is future work, edge-inference lives in
+the sibling engine.

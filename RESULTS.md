@@ -241,3 +241,87 @@ about the data engine.
 **Provenance correction (metadata only, no measured quantity changed):** `train_crops`/`val_crops` were
 hardcoded `25744/7200` in the run-time manifest, stale by 2 after the OOV filter. Corrected post-hoc from
 the annotation files to `25742/7200`; the script now counts them instead of hardcoding.
+
+---
+
+## Stage 1 — ERROR_ANALYSIS Run 0 (real-only baseline)
+
+**Provenance.** `scripts/error_analysis.py` + `scripts/stratify.py` · inputs
+`runs/baseline_seed{0,1,2}/predictions.tsv` · scope **rec-only (GT boxes)** · NFC (axes NFD) ·
+test-500 real held-out, 10,068 instances / 37,254 chars · k=3 median · **public labels only**
+(gold cross-check BLOCKED) · base axis **case-insensitive** (brain adjudication).
+Full report: `ERROR_ANALYSIS.md` -> "RUN 0 REPORT".
+
+### The kill-test (ERROR_ANALYSIS §3.2) — CLAUDE.md §5's conjecture is **REFUTED**
+
+CLAUDE.md §5 `[CONJECTURE]`: *"The dominant error class is diacritics, not base characters or detection."*
+
+| share of ALL character edits | value |
+|---|---|
+| **base-only substitutions** (case-insens; mod+tone correct) | **39.48%** |
+| **diacritic-only substitutions** (tone or modifier wrong, base correct) | **16.12%** |
+| pure-tone substitutions | 10.40% |
+| pure-case substitutions | 8.88% |
+| pure-modifier substitutions | 3.37% |
+| mixed (>1 axis) | 10.91% |
+| deletions / insertions | 15.51% / 11.51% |
+
+**Base outweighs diacritics ~2.5×.** Any-base-involved 47.75% vs any-diacritic-involved 24.50%.
+
+This *vindicates* the three-axis metric rather than undermining it. Tone is still the **least accurate**
+axis (5.577% error vs base's 4.881%) exactly as G2 predicts — but base positions outnumber tone-bearing
+positions 2.5:1 (32,267 vs 12,875), so base contributes far more total error. **Only the three-axis
+decomposition can show both facts at once.** A single "diacritic accuracy" number would have shown neither.
+
+### Three further refutations of pre-registered expectations
+
+1. **hỏi ↔ ngã is essentially absent** (`hoi→nga` = 4, `nga→hoi` = 4). ERROR_ANALYSIS §3.3 called it
+   "the canonical Vietnamese tone confusion." Tone failure is **presence/absence**: 215 drops + 174
+   hallucinations vs 199 tone-to-tone confusions. The model does not *see* the mark; it does not
+   *mistake* one mark for another. → resolution/blur, **not** similar-tone over-sampling.
+2. **Horn (`ơ ư`) is the *most* accurate modifier class** (2.87% error), not the signature drop §3.3 and
+   DATA_ENGINE §5 predicted. Worst modifier is **breve (`ă`, 11.16%)**, ~4× horn (widest error bar: only
+   242 positions).
+3. **Tone does not fall off a cliff at small sizes relative to other axes — base falls hardest.**
+   ≥24 px plateau → <12 px: base −11.4 pp, tone −10.0 pp, modifier −8.8 pp. Small text is a *general*
+   legibility failure. Refutes DATA_ENGINE §3's assumption.
+
+### Worst strata (k=3 median, rec-only)
+
+| stratum | n | CER | base(ci) | modifier | tone |
+|---|---|---|---|---|---|
+| **tilt ≥20°** | 490 | **30.34%** | 78.40% | 87.93% | 86.23% |
+| **contrast <0.20** | 468 | **27.55%** | 82.28% | 86.47% | 83.55% |
+| **1-char instances** | 560 | **25.89%** | 80.54% | 93.15% | 94.57% |
+| **height <12 px** | 953 | **22.86%** | 85.08% | 88.33% | 85.88% |
+| (overall) | 10,068 | 9.395% | 95.12% | 96.21% | 94.42% |
+
+Geometry is the single most damaging stratum. In every one of them **base is the worst-hit axis** —
+except 1-char, where tone is untouched at 94.57% (isolated glyphs destroy letter identity, not tones).
+
+### Provisional priority list (ERROR_ANALYSIS §7)
+
+1. Base-letter error dominates → **geometric + photometric degradation** (not font coverage)
+2. Angled text ≥20° → **geometric degradation**
+3. Low contrast → **photometric degradation**
+4. Small crops → **downsample→upsample + blur**
+5. Tone drop/hallucinate → **resolution + blur**
+6. Modifier (breve worst) → **font coverage**, low priority (only 3.37% of edits)
+7. 1-char instances → **generation length distribution**
+
+> **The engine's priority is degradation realism — geometric first — NOT the font-coverage /
+> stacked-diacritic curriculum CLAUDE.md §5 and DATA_ENGINE §5 anticipated.** Font coverage stays a
+> *correctness prerequisite* for generation (a font that cannot render `ệ` poisons training) but is not
+> where the measured error lives.
+
+### ⚠ The list is PROVISIONAL — two `[LOCKED]` sections are open
+
+- **§4 gold cross-check BLOCKED.** Gold labels do not exist (user's manual double-pass). All Run-0
+  numbers are against **public labels** = model error + label error, entangled. Label noise inflates
+  *base* errors and *insertions* specifically (verified case: `im1501` public `VỰ` vs image `VỰC`), so
+  **39.48% is an upper bound** on the model's true base share. The kill-test must be re-run against gold
+  before it is treated as settled.
+- **§5 det-vs-rec DEFERRED.** DBNet not set up; `e2e CER − rec-only CER` unmeasured, e2e ceiling
+  unstated. §7 requires it: if detection is the bottleneck, the engine's e2e effect is capped.
+- **§6 stylized-vs-plain BLOCKED, not dropped.** VinText ships no style annotation; no defensible proxy
+  exists without one.

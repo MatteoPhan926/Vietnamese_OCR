@@ -15,44 +15,54 @@
 ## ▶ RESUME POINTER  (the agent overwrites this block every session — read it FIRST)
 
 ```
-CURRENT STAGE : Stage 0 — COMPLETE (all 6 steps ☑, all 4 [VERIFY] frozen). AWAITING 🧠 BRAIN CHECKPOINT.
-LAST DONE     : 0.5 real-only baseline, k=3 seeds {0,1,2} ☑ — the last [VERIFY] is frozen.
-                REAL-ONLY BASELINE (rec-only, test-500 real held-out, NFC/axes NFD, n=10,068 / 37,254):
-                  CER median 9.395%  (std 0.148 pp, 95% CI ±0.368)
-                  Axis1 base 94.081% | Axis2 modifier 96.207% | Axis3 tone 94.423% (std 0.113 pp)
-                  WER 19.307% | exact-match 81.943%       [median + spread over k=3, never best-of-N]
-                FROZEN Gate-A noise floor: CER std 0.148 pp · tone std 0.113 pp  (EVAL_PROTOCOL §13 E11)
-                => a synth run must beat CER by ~>=0.7 pp AND move tone to clear Gate A's
-                   pre-registered non-overlapping-CI rule. Consequence of the floor, not a new choice.
-                All Stage-0 freezes: EVAL_PROTOCOL §13 E1–E12.
-NEXT ACTION   : *** STOP. DO NOT START STAGE 1. *** Report to the brain and WAIT for adjudication of:
-                  (a) the baseline + noise floor above,
-                  (b) E9 disjointness ("no contamination detected", NOT "verified disjoint"),
-                  (c) E2 / E8 / E10 definitional freezes,
-                  (d) the [LEAD] that Axis1 base (94.08%) is the WEAKEST axis, slightly below tone
-                      (94.42%) — CLAUDE.md §5's "diacritics dominate" [CONJECTURE] is not obviously
-                      supported by axis accuracies. Axis accuracy != share-of-CER; the Stage-1 CER
-                      decomposition is the kill-test. The engine's design forks on this.
-                Stage 1 also needs ERROR_ANALYSIS.md, which does not exist yet (brain to draft).
-IN-FLIGHT     : none. (k=3 run finished rc=0; the background task's "killed" status arrived AFTER
-                "ALL SEEDS COMPLETE" — all three result.json are present and validated.)
-BLOCKERS/Q    : (1) ERROR_ANALYSIS.md does not exist in repo — Stage 1 "Obeys" it. Needs drafting
-                    (design/brain side) before Stage 1. Not a Stage-0 blocker.
-                (2) 🧠 E2 (###/empty excluded from rec-only), E8 (degenerate quads scored-not-dropped),
-                    and E9 (disjointness unprovable; falsification failed) are definitional freezes made
-                    from measurement. All three need brain sign-off at the Stage-0 checkpoint.
-                (3) Base axis is scored case-SENSITIVE (case-insensitive reported alongside as a
-                    diagnostic). EVAL_PROTOCOL §3.1 did not specify. Brain to confirm.
-                (4) Insertions are charged to CER but create no axis denominator (§3.1 says
-                    "deletion/insertion counts as all applicable axes wrong" — for an insertion the
-                    applicable axes are undefined; there is no GT char). Documented deviation.
-                (5) HOST: C: drive is 100% full (46 MB free). uv cache / TORCH_HOME / TMP redirected to
-                    E:. Training checkpoints must also write to E:.
-                (6) DBNet is NOT set up. Step 0.1 lists it ("needed for det/e2e later"), but Stage 0's
-                    EXIT GATE does not require a det/e2e number (rec-only is the headline scope, §1).
-                    Deferred to just before the first e2e number is needed (Stage 1 §5 det-vs-rec
-                    attribution). NOT silently skipped — stated here.
-NEXT 🧠 CHKPT : end of Stage 0 — report baseline CER + 3-axis + frozen noise floor  (NEAR: after 0.5)
+CURRENT STAGE : Stage 1 — Error analysis Run 0.  (Stage 0 ☑ and BRAIN-ADJUDICATED 2026-07-10.)
+LAST DONE     : Stage-0 🧠 brain checkpoint PASSED. Baseline + noise floor accepted; adjudications below.
+                REAL-ONLY BASELINE (rec-only, test-500, NFC/axes NFD, n=10,068/37,254, k=3):
+                  CER 9.395% (std 0.148pp) | base 94.081% | modifier 96.207% | tone 94.423% (std 0.113pp)
+                  WER 19.307% | exact 81.943%.  Gate-A noise floor FROZEN (§13 E11): CER std 0.148pp,
+                  tone std 0.113pp  =>  a synth run needs CER improvement ~>=0.7pp AND tone movement to
+                  clear §7's non-overlapping-CI rule.
+                BRAIN ADJUDICATIONS (2026-07-10):
+                  • E2 / E8 / E10 freezes + insertion-handling (CER-only, no axis denominator): APPROVED.
+                  • E9 disjointness: APPROVED POSTURE — write "no contamination detected by a zero-shot
+                    probe", NEVER "verified disjoint". Lean on DOMAIN-disjointness (document pretrain vs
+                    scene test) as PRIMARY; the zero-shot probe is weak, direction-ambiguous corroboration.
+                  • Base case-sensitivity: keep BOTH; case-INSENSITIVE is the reference for axis-weakness.
+                  • The [LEAD] (base weakest by axis accuracy) is NOT settled — see NEXT ACTION.
+                ERROR_ANALYSIS.md is now IN REPO (brain delivered it). CLAUDE.md amendments A1–A4 applied.
+                Stage 1 §3 (axes, CER decomposition, confusions, per-class) DONE and §6 (stratifications) DONE.
+                ERROR_ANALYSIS.md "RUN 0 REPORT" + RESULTS.md Stage-1 section filled.
+
+                *** THE KILL-TEST ANSWER: CLAUDE.md §5's "diacritics dominate" is REFUTED. ***
+                  base-only subs 39.48% of all edits vs diacritic-only 16.12% (~2.5x).
+                  BUT tone is still the LEAST ACCURATE axis (err 5.577% vs base(ci) 4.881%) — base
+                  positions outnumber tone-bearing 2.5:1 (32,267 vs 12,875). The three-axis metric
+                  is what made BOTH facts visible; it is vindicated, not undermined.
+                  Also refuted: hoi<->nga confusion is ABSENT (4 and 4) — tone fails by DROP (215) +
+                  HALLUCINATION (174), not shape confusion (199). Horn is the BEST modifier (2.87%),
+                  not the predicted "horn drop"; breve is worst (11.16%). Tone does NOT fall off a
+                  cliff at small size relative to base — base falls hardest (-11.4pp vs -10.0pp).
+                  Worst strata: tilt>=20deg CER 30.34% | contrast<0.20 27.55% | 1-char 25.89% |
+                  height<12px 22.86%. Base is the worst-hit axis in all but 1-char.
+                  PROVISIONAL priority: degradation realism, GEOMETRIC first, then photometric, then
+                  resolution/blur. NOT the font-coverage/stacked-diacritic curriculum anticipated.
+NEXT ACTION   : Close the two open [LOCKED] sections, then the priority list is final:
+                  A. §5 det-vs-rec: set up DBNet, measure e2e CER - rec-only CER, state the e2e ceiling.
+                  B. §4 gold cross-check: BLOCKED on the USER's manual double-pass of the 2,437-instance
+                     sheet (data/gold/transcription_sheet.tsv; gold_pass1/gold_pass2 are empty).
+                Then STOP at the brain checkpoint with the FINAL ranked priority list.
+IN-FLIGHT     : none.
+BLOCKERS/Q    : (1) 🧠 §4 gold cross-check BLOCKED — gold labels do not exist; NOT fabricated. Every Run-0
+                    number is public-label = model error + label error, ENTANGLED. Label noise inflates
+                    base errors + insertions specifically, so the 39.48% base share is an UPPER BOUND.
+                    The kill-test must be re-run against gold before it is treated as settled.
+                (2) DBNet still not set up — needed for §5 det-vs-rec/e2e + the e2e ceiling. Next action A.
+                (3) §6 stylized-vs-plain BLOCKED, not dropped: VinText ships no style annotation and no
+                    defensible proxy exists without one.
+                (4) HOST: C: drive full (46 MB free); uv cache / TORCH_HOME / TMP / checkpoints -> E:.
+NEXT 🧠 CHKPT : end of Stage 1 — the FINAL ranked priority list (after §5 closes). The kill-test answer
+                above (REFUTED) is the headline; the engine's design forks on it. Brain must also rule on
+                whether the priority list may be acted on while §4 (gold) is still open.
 ```
 
 ---
@@ -64,7 +74,7 @@ NEXT 🧠 CHKPT : end of Stage 0 — report baseline CER + 3-axis + frozen noise
 - **STATUS legend:** `☐ NOT STARTED` · `◐ IN PROGRESS` · `☑ DONE`.
 - **🧠 BRAIN CHECKPOINT:** at these points STOP, report the number + full provenance to the user, and
   WAIT. Do not self-declare a gate green, do not start the next stage. The design brain (separate chat)
-  adjudicates. These are Gate A, the INT8 result, and the final curve.
+  adjudicates. These are Gate A and the final curve. (The on-device INT8 checkpoint is removed — Stage 4 is cut, see its tombstone.)
 - **[VERIFY→FREEZE @ Stage N]:** resolve by **measuring**, then write the frozen value into the owning doc
   as a dated amendment. Never invent or estimate one and move on.
 - **Never skip a stage or reorder.** Stage 1 (error analysis) before Stage 2 (engine) is load-bearing:
@@ -105,7 +115,7 @@ frozen via dated amendments · disjointness confirmed.
 
 ---
 
-## Stage 1 — Error analysis Run 0 → the engine's priority list  ☐
+## Stage 1 — Error analysis Run 0 → the engine's priority list  ◐
 **Goal:** the ranked failure profile of the real-only baseline that tells the engine what to generate.
 **Obeys:** ERROR_ANALYSIS (all) — especially §3 (three-axis + CER decomposition), §4 (gold cross-check),
 §5 (det-vs-rec + e2e ceiling), §6 (stratifications), §7 (findings→priorities).
@@ -162,26 +172,23 @@ headline sentence (domain-transfer framing) and that the per-axis mechanism actu
 
 ---
 
-## Stage 4 — On-device (INT8 + Apple Vision)  ☐
-**Goal:** on-device latency + accuracy vs Apple Vision, and the INT8 finding.
-**Obeys:** EVAL_PROTOCOL §8 (INT8 quality+speed gates, dispatch), §9 (on-device + Apple Vision firewalls).
-**PREREQ (do first):** run `VNRecognizeTextRequest.supportedRecognitionLanguages()` on the actual iPhone
-12 Pro Max and record the result — the framing depends on whether `vi` is present (it should be, iOS
-26.5.2 Vietnamese Live Text is confirmed; verify the exact API string anyway).
+## Stage 4 — On-device (INT8 + Apple Vision)  ✂️ CUT — deferred to future work
+**Decision [2026-07-10]:** cut per **CLAUDE.md §0 L3 pre-registered cut-order** ("Cut order if time runs
+short: drop (c) first"). Rationale: on-device INT8 + Core ML export + Apple Vision benchmark is *execution
+of a known-good playbook, not novelty* (CLAUDE.md L3c), and it is **redundant** with the sibling C/CUDA
+GPT-2 engine, which already carries the edge-inference / quantization / batch=1-INT8 signal. The project's
+senior-signal contribution is the **data engine + honest evaluation** (L3b); keeping the portfolio as two
+*distinct* deep signals (systems/inference in GPT-2, data-centric/evaluation here) beats two that both
+touch on-device INT8. **This is recorded, not silently deleted** — the same discipline as keeping reverted
+experiments in git history.
 
-- Export the recognizer to **Core ML / ONNX-iOS**.
-- **INT8:** quality gate (CER +≤0.5, tone −≤1.0% vs fp16) AND **speed gate** vs a pre-registered floor +
-  **Core ML compute-unit dispatch** (ANE/GPU/CPU, Xcode performance report). *INT8 buying < floor is a
-  measured finding, not a failure — the GPT-2 lesson (§8).*
-- **Apple Vision baseline:** `.accurate` level, matched scope (GT-box crops for rec-only, full image for
-  e2e), pin iOS 26.5.2 + VNRecognizeTextRequest revision, **per-axis** comparison (win on tone/modifier is
-  the credible result), black-box (report WHERE it fails, not WHY).
-- Thermal protocol: rest 1–2 min between batches, ambient stated, warmed, **median + spread**.
+**Retained as future-work spec (NOT executed):** EVAL_PROTOCOL §8–9 (INT8 quality+speed gates, Core ML
+dispatch, Apple Vision per-axis firewalls) and CLAUDE.md §11 A2. The write-up (Stage 5) frames on-device as
+explicit future work and points the edge-inference signal to the sibling engine.
 
-**Exit gate:** on-device latency + accuracy · INT8 quality+speed finding + dispatch · Apple Vision
-per-axis comparison.
-**🧠 BRAIN CHECKPOINT:** report the INT8 result (esp. if speed < floor) + dispatch, and the Apple Vision
-per-axis comparison.
+**The cut is NARROW — it does not touch e2e/detection.** DBNet + the det-vs-rec attribution (ERROR_ANALYSIS
+§5) and the e2e-alongside numbers **stay**: they are "the pipeline works" (L3a), not the on-device stage.
+Technical work now terminates at **Stage 3** (the scaling curve); Stage 5 is the write-up.
 
 ---
 
@@ -191,7 +198,8 @@ per-axis comparison.
 
 - Finalize **RESULTS.md** (the measured-evidence ledger: CER/WER/3-axis/det-F1@IoU/scope/splits per run).
 - Portfolio README in the **sibling GPT-2 doc style** (numbers with provenance, negative results kept,
-  gap honestly explained).
+  gap honestly explained), with **on-device deployment scoped as explicit future work** (the edge-inference
+  signal is carried by the sibling GPT-2 engine — Stage 4 tombstone).
 - Final consistency pass: every doc's numbers vs CLAUDE.md and each other; no locked value silently edited.
 
 **Exit gate:** RESULTS.md complete · README done · docs mutually consistent.
