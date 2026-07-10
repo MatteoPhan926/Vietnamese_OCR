@@ -17,3 +17,4 @@ valid_vintext_real/
 train_vintext_real_s*/
 valid_vintext_real_s*/
 runs/
+.torch/
