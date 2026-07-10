@@ -16,10 +16,16 @@
 
 ```
 CURRENT STAGE : Stage 0 — Environment + harness + baseline
-LAST DONE     : (nothing yet — repo is docs-only)   [commit: —]
-NEXT ACTION   : Stage 0, step 0.1 — set up env, obtain VinText, install pbcquoc vietocr (vgg_transformer)
+LAST DONE     : 0.1 (data) + 0.4 — real VinText obtained & audited; instance counts FROZEN
+                (test-500 rec-only = 10,068 inst / 37,263 NFC chars; train = 25,776 crops)
+                EVAL_PROTOCOL §13 amendments E1–E5 written.   [commit: 93cad60]
+NEXT ACTION   : Stage 0, step 0.2 — install pbcquoc vietocr (vgg_transformer) + checkpoint, then
+                verify pretraining corpus is DISJOINT from VinText test-500 (EVAL_PROTOCOL §6 [VERIFY])
 IN-FLIGHT     : none
-BLOCKERS/Q    : none  (flag here anything you need the user to answer)
+BLOCKERS/Q    : (1) ERROR_ANALYSIS.md does not exist in repo — Stage 1 "Obeys" it. Needs drafting
+                    (design/brain side) before Stage 1. Not a Stage-0 blocker.
+                (2) ###/empty exclusion (E2) is a definitional freeze I made from the audit — flag
+                    for brain review at the Stage-0 checkpoint.
 NEXT 🧠 CHKPT : end of Stage 0 — report baseline CER + 3-axis + frozen noise floor
 ```
 

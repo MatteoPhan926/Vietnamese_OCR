@@ -8,3 +8,6 @@ runs/
 *.pt
 *.zip
 *.tar.gz
+.uv_cache/
+.tmp/
+third_party/

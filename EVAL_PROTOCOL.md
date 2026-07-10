@@ -305,16 +305,20 @@ its stage, becomes `[LOCKED]` and follows the same rule.
 Source: the shipped VinText `labels/gt_*.txt` (original `x1,y1,…,x4,y4,TRANSCRIPT` format), audited by
 `scripts/audit_vintext.py` @ commit of this change. No detector was run (rec-only is scored on GT boxes).
 
+Char counts are over **edge-whitespace-stripped, NFC-normalized** transcripts (E6), re-derived from the
+single shared parser by `scripts/freeze_counts.py`. If that script and this table ever disagree, this
+table is wrong.
+
 | split | folder | images | total instances | `###` | empty | **READABLE (rec-only scorable)** | GT chars (NFC) |
 |---|---|---|---|---|---|---|---|
-| train | `train_images` (im0001–1200) | 1200 | 35,094 | 9,300 | 18 | **25,776** | 94,364 |
-| val   | `test_image` (im1201–1500)   | 300  | 8,737  | 1,517 | 19 | **7,201**  | 26,840 |
-| test  | `unseen_test_images` (im1501–2000) | 500 | 12,253 | 2,167 | 18 | **10,068** | 37,263 |
-| ALL   | | 2000 | **56,084** | 12,984 | 55 | 43,045 | 158,467 |
+| train | `train_images` (im0001–1200) | 1200 | 35,094 | 9,300 | 18 | **25,776** | 94,347 |
+| val   | `test_image` (im1201–1500)   | 300  | 8,737  | 1,517 | 19 | **7,201**  | 26,839 |
+| test  | `unseen_test_images` (im1501–2000) | 500 | 12,253 | 2,167 | 18 | **10,068** | 37,254 |
+| ALL   | | 2000 | **56,084** | 12,984 | 55 | 43,045 | 158,440 |
 
 - The 56,084 total **confirms** the figure cited in §4. The splits are contiguous, disjoint, and every
   image has exactly one label file (verified).
-- **FROZEN: the scaling curve's rec-only test denominator = 10,068 instances / 37,263 NFC GT characters.**
+- **FROZEN: the scaling curve's rec-only test denominator = 10,068 instances / 37,254 NFC GT characters.**
   This **replaces the "~14k" estimate** in §4, which was ~22% high against total instances and ~39% high
   against scorable ones.
 - **FROZEN: the real train recognition set = 25,776 word-crops.** This **replaces the "~33k real
@@ -355,3 +359,30 @@ inflate measured CER.
 split; the **500-image test** split is the folder named `unseen_test_images`. §4's "1,200 / 300 / 500"
 maps to `train_images` / `test_image` / `unseen_test_images` respectively. Evaluating on the folder
 literally called `test_image` would report a **validation** number as the headline test number.
+
+**[2026-07-10] E6 — Transcript whitespace rule (fixes the CER denominator).** 27 readable instances
+(17 train / 1 val / 9 test) carry **leading or trailing ASCII spaces** (`'Điện '`, `' phần'`).
+- **`[LOCKED]` Transcripts are `.strip()`ed of edge whitespace before scoring; internal spaces are
+  preserved.** A recognizer fed a cropped word box cannot produce a leading space the image does not
+  contain; charging it a CER insertion/deletion for an annotation artifact is a measurement error.
+- **`[LOCKED]` Strip the transcript, never the raw line.** `line.strip()` before splitting removes a
+  *trailing* transcript space but leaves a *leading* one — a silent asymmetry that made two of this
+  project's own scripts disagree by 7 characters on the test denominator before it was caught.
+- Instance counts are unaffected (no transcript becomes empty under stripping). Character counts drop
+  by 25 overall; the frozen test denominator is **37,254**, not 37,263 (the pre-strip value, which
+  appeared in E1's first draft and is superseded).
+
+**[2026-07-10] E7 — Vocab coverage of the locked backbone measured (no irreducible floor on test).**
+The pbcquoc `base.yml` vocab (229 chars) vs VinText's readable GT, per `scripts/check_vocab_coverage.py`:
+
+| split | chars | OOV chars | instances with ≥1 OOV |
+|---|---|---|---|
+| train | 94,347 | 2 (`°` U+00B0, 0.0021%) | 2 |
+| val | 26,839 | **0** | 0 |
+| **test** | 37,254 | **0** | **0** |
+
+**The test set has zero out-of-vocabulary characters**, so the locked vocab imposes **no irreducible CER
+floor** on any headline number. Recorded because the converse would have been a silent constant added to
+every curve point — a floor attributable to the vocab, not the recognizer, and one that synthetic data
+could never remove. The 2 training `°` instances are left as-is (0.002% of train chars; changing the
+locked vocab to chase them would be a confound, not a fix).
