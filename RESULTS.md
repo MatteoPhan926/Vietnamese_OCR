@@ -325,3 +325,36 @@ except 1-char, where tone is untouched at 94.57% (isolated glyphs destroy letter
   unstated. §7 requires it: if detection is the bottleneck, the engine's e2e effect is capped.
 - **§6 stylized-vs-plain BLOCKED, not dropped.** VinText ships no style annotation; no defensible proxy
   exists without one.
+
+### Stage 1 §5 — det-vs-rec: DBNet setup + why the attribution is NOT yet measurable
+
+`scripts/detect_eval.py` · doctr `db_resnet50` **pretrained on English/Latin, NOT fine-tuned on VinText**
+· polygon-vs-quad IoU via shapely (never axis-aligned-box-vs-quad: §6 measured tilt as the most damaging
+stratum, so that bias would be large) · `###` regions treated as **don't care**, neither TP nor FP
+(EVAL_PROTOCOL §13 E2) · first 20 test images (probe, not a result).
+
+**det-only F1 @ IoU 0.5, vs detector input size:**
+
+| input size | P | R | **F1@0.5** |
+|---|---|---|---|
+| 1024 | 42.27% | 51.74% | 46.52% |
+| 1280 | 46.85% | 49.21% | **48.00%** |
+| 1600 | 48.10% | 47.95% | **48.03%** |
+| 2048 | 39.77% | 43.53% | 41.57% |
+
+> `[NEGATIVE RESULT — recorded, not buried]` **Input resolution is not the cause.** F1@0.5 plateaus at
+> ~48% across 1024→1600 and *degrades* at 2048. The obvious confound (VinText text is tiny — 953 test
+> crops are <12 px — so downsampling 1600×1200 to 1024² could have destroyed recall) is **ruled out by
+> measurement**. The ~48% F1 is a genuine **domain gap** of an English-trained detector on Vietnamese
+> scene text.
+
+> ### ⚠ Why no e2e / attribution number is reported here
+> ERROR_ANALYSIS §7 uses the detection bottleneck to decide whether synthetic budget goes to recognition
+> **at all**. Computing `e2e CER − rec-only CER` with a detector at 48% F1 that is **not the system's
+> detector** would manufacture a large, false "detection is the bottleneck" finding and redirect the
+> entire engine. An un-fine-tuned detector is a **lower bound on detection quality**, so the e2e gap it
+> produces is an **upper bound on detection-induced error** — useless for the decision §7 needs.
+>
+> **§5 therefore stays OPEN.** It closes only after DBNet is fine-tuned on the VinText **train** split
+> (never val/test) and re-evaluated. Until then the e2e ceiling is **unstated**, and the §7 priority list
+> is **provisional**.

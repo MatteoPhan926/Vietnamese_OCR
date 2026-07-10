@@ -47,7 +47,13 @@ LAST DONE     : Stage-0 🧠 brain checkpoint PASSED. Baseline + noise floor acc
                   PROVISIONAL priority: degradation realism, GEOMETRIC first, then photometric, then
                   resolution/blur. NOT the font-coverage/stacked-diacritic curriculum anticipated.
 NEXT ACTION   : Close the two open [LOCKED] sections, then the priority list is final:
-                  A. §5 det-vs-rec: set up DBNet, measure e2e CER - rec-only CER, state the e2e ceiling.
+                  A. §5 det-vs-rec: DBNet INSTALLED + det evaluator BUILT (scripts/detect_eval.py:
+                     polygon IoU, ### = don't care per E2). BLOCKED on FINE-TUNING: off-the-shelf doctr
+                     db_resnet50 (English-trained) scores only F1@0.5 ~= 48% on VinText, and input size
+                     is RULED OUT as the cause (48.0% @1280, 48.0% @1600, 41.6% @2048). Using it for the
+                     attribution would manufacture a false 'detection is the bottleneck' finding and
+                     redirect the whole engine. NEXT: fine-tune DBNet on the VinText TRAIN split only,
+                     then measure e2e CER - rec-only CER and state the e2e ceiling.
                   B. §4 gold cross-check: BLOCKED on the USER's manual double-pass of the 2,437-instance
                      sheet (data/gold/transcription_sheet.tsv; gold_pass1/gold_pass2 are empty).
                 Then STOP at the brain checkpoint with the FINAL ranked priority list.
@@ -56,7 +62,11 @@ BLOCKERS/Q    : (1) 🧠 §4 gold cross-check BLOCKED — gold labels do not exi
                     number is public-label = model error + label error, ENTANGLED. Label noise inflates
                     base errors + insertions specifically, so the 39.48% base share is an UPPER BOUND.
                     The kill-test must be re-run against gold before it is treated as settled.
-                (2) DBNet still not set up — needed for §5 det-vs-rec/e2e + the e2e ceiling. Next action A.
+                (2) §5 OPEN: DBNet is installed + the det evaluator is written, but the detector is NOT
+                    fine-tuned on VinText (F1@0.5 ~= 48%, a real domain gap, not a resolution artifact).
+                    NO e2e/attribution number is reported: an un-fine-tuned detector is a LOWER BOUND on
+                    detection, so its e2e gap is an UPPER BOUND on detection-induced error -- useless for
+                    the decision §7 needs. e2e ceiling remains UNSTATED. Fine-tune on train split first.
                 (3) §6 stylized-vs-plain BLOCKED, not dropped: VinText ships no style annotation and no
                     defensible proxy exists without one.
                 (4) HOST: C: drive full (46 MB free); uv cache / TORCH_HOME / TMP / checkpoints -> E:.
