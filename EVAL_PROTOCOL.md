@@ -372,6 +372,44 @@ literally called `test_image` would report a **validation** number as the headli
   by 25 overall; the frozen test denominator is **37,254**, not 37,263 (the pre-strip value, which
   appeared in E1's first draft and is superseded).
 
+**[2026-07-10] E11 — §7 Gate-A NOISE FLOOR measured and FROZEN (resolves the last Stage-0 `[VERIFY→FREEZE]`).**
+The real-only baseline at the §6 locked operating point: document-pretrained pbcquoc `vgg_transformer` →
+fine-tuned on the full VinText-real train split (25,742 crops; lmdb exposed 25,741, see E12). **k=3 seeds
+{0,1,2}**, identical pre-registered hyperparameters, model-selected on val-300 crops only, evaluated
+rec-only on the full test-500 at the frozen denominator **10,068 instances / 37,254 NFC chars**
+(asserted per seed; a mismatch aborts the aggregation).
+
+Script `scripts/train_baseline.py` + `scripts/aggregate_baseline.py`. Spread is **median + std over
+k=3, never best-of-N** (§3).
+
+| metric | seed 0 | seed 1 | seed 2 | median | **std** | mean | 95% CI ± (t, 2 dof) |
+|---|---|---|---|---|---|---|---|
+| **CER** | 9.395 | 9.226 | 9.521 | **9.395** | **0.148** | 9.381 | 0.368 |
+| WER | 18.962 | 19.307 | 19.603 | 19.307 | 0.321 | 19.291 | 0.797 |
+| exact-match | 82.132 | 81.943 | 81.536 | 81.943 | 0.305 | 81.870 | 0.757 |
+| Axis 1 base | 94.081 | 94.285 | 93.975 | 94.081 | 0.158 | 94.114 | 0.391 |
+| Axis 2 modifier | 96.207 | 96.378 | 96.171 | 96.207 | 0.110 | 96.252 | 0.274 |
+| Axis 3 tone | 94.291 | 94.517 | 94.423 | 94.423 | 0.113 | 94.410 | 0.281 |
+
+**`[FROZEN]` Gate-A noise floor:**
+- **run-to-run std of rec-only CER = 0.148 pp (absolute)**
+- **run-to-run std of Axis-3 tone accuracy = 0.113 pp**
+- baseline reference: **CER 9.395% (median), 9.381 ± 0.368 (95% CI)**; **tone 94.423% (median),
+  94.410 ± 0.281**
+
+The Gate-A **decision rule** was pre-registered in §7 *before* this value existed and is **not** re-derived
+from it: GREEN = the synth-augmented run's 95% CI does not overlap the baseline's, **on both CER and the
+tone axis**. Consequence, stated now so it cannot be softened later: with a comparable synth-run spread, a
+synthetic-augmented model must improve CER by roughly **≥0.7 pp absolute** (and move the tone axis) to clear
+Gate A. That bar is a consequence of the measured floor, not a choice made after seeing a synthetic result.
+
+**[2026-07-10] E12 — Upstream lmdb off-by-one (benign, recorded so it is never mistaken for a bug later).**
+`vietocr/tool/create_dataset.py` does `cnt = 0; … ; nSamples = cnt - 1`, so the lmdb records `num-samples`
+= N−1 for N written crops: training saw **25,741** train / **7,199** val, not 25,742 / 7,200. Verified
+**benign**: `read_buffer(idx)` fetches `image-{idx}` and `label-{idx}` with the *same* index, so images and
+labels are never misaligned. It costs exactly one training crop per split and touches **no** evaluation
+denominator. The vendored code is left faithful; the shim layer is `scripts/compat.py` (numpy-2 only).
+
 **[2026-07-10] E10 — §5 gold set MEASURED and FROZEN: 2,437 instances (resolves `[VERIFY→FREEZE @ Stage 0]`).**
 Script `scripts/gold_sample.py`, seed 1234. Parent set: the 10,068 scorable test-500 instances (Gold ⊂
 test-500, §5). Strata are **disjoint**, assigned in priority order; thresholds taken **from the data**

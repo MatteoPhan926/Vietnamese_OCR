@@ -175,18 +175,69 @@ Captures **50.0% of all stacked-diacritic characters in test-500** (1,171 / 2,34
 
 ---
 
-## Open `[VERIFY]` still outstanding at Stage 0
+## Stage-0 `[VERIFY]` ledger — ALL RESOLVED
 
 | id | owning doc | what it is | status |
 |---|---|---|---|
 | test-500 rec-only instance count | EVAL_PROTOCOL §4 | ✅ **FROZEN: 10,068 inst / 37,254 chars** | done (§13 E1/E6/E8) |
 | pbcquoc pretrain ⟂ VinText test | EVAL_PROTOCOL §6 | ✅ **RESOLVED as *not provable*; no contamination detected** | done (§13 E9) — 🧠 **brain to adjudicate** |
-| Gate-A noise floor (k=3 seed std) | EVAL_PROTOCOL §7 | run-to-run std of real-only baseline | ☐ Step 0.5 |
+| Gate-A noise floor (k=3 seed std) | EVAL_PROTOCOL §7 | ✅ **FROZEN: CER std 0.148 pp · tone std 0.113 pp** | done (§13 E11) |
 | gold set exact instance count | EVAL_PROTOCOL §5 | ✅ **FROZEN: 2,437 instances** (labels pending, manual) | done (§13 E10) |
 
 ---
 
 ## Stage 0 model results
 
-*(empty — no model has been trained. Nothing goes here until the real-only baseline runs at k=3 seeds
-with rec-only CER + the three diacritic axes on the real test-500.)*
+### 0.5 REAL-ONLY BASELINE — k=3 seeds (this is the number every curve point is measured against)
+
+**Provenance.** `scripts/train_baseline.py` (seeds 0,1,2) → `scripts/aggregate_baseline.py` ·
+config `configs/vgg_transformer_pinned.yml` · pretrain sha256 `380512193a8b…5ea59` ·
+operating point = **document-pretrained pbcquoc `vgg_transformer` → fine-tuned on full VinText-real train**
+(EVAL_PROTOCOL §6) · train 25,742 crops (lmdb exposed 25,741, §13 E12) · model-selected on **val-300 crops
+only** · 12,000 iters, OneCycleLR max_lr 3e-4, AdamW, batch 32 (HP pre-registered *before* training) ·
+**scope rec-only (GT boxes)** · **NFC** (axes NFD) · test-500 real held-out at the frozen denominator
+**10,068 instances / 37,254 chars** (asserted per seed) · ~27 min/seed on the RTX 4060.
+
+| metric | seed 0 | seed 1 | seed 2 | **median** | **std** | mean | 95% CI ± |
+|---|---|---|---|---|---|---|---|
+| **CER** ↓ | 9.395 | 9.226 | 9.521 | **9.395** | **0.148** | 9.381 | 0.368 |
+| WER ↓ | 18.962 | 19.307 | 19.603 | 19.307 | 0.321 | 19.291 | 0.797 |
+| exact-match ↑ | 82.132 | 81.943 | 81.536 | 81.943 | 0.305 | 81.870 | 0.757 |
+| **Axis 1 base** ↑ | 94.081 | 94.285 | 93.975 | **94.081** | 0.158 | 94.114 | 0.391 |
+| **Axis 2 modifier** ↑ | 96.207 | 96.378 | 96.171 | **96.207** | 0.110 | 96.252 | 0.274 |
+| **Axis 3 tone** ↑ | 94.291 | 94.517 | 94.423 | **94.423** | 0.113 | 94.410 | 0.281 |
+
+Reported as **median + spread over k=3**, never best-of-N (EVAL_PROTOCOL §3).
+
+#### `[VERIFY→FREEZE @ Stage 0]` RESOLVED — the Gate-A noise floor (§13 E11)
+
+- **run-to-run std of rec-only CER = 0.148 pp**
+- **run-to-run std of Axis-3 tone accuracy = 0.113 pp**
+
+The Gate-A rule (non-overlapping 95% CI on **both** CER and tone) was pre-registered in §7 before this
+value existed. Its consequence, stated now so it cannot be softened later: a synthetic-augmented model
+must improve CER by roughly **≥0.7 pp absolute** — and move the tone axis — to clear Gate A.
+
+#### Fine-tuning effect vs the zero-shot checkpoint (same scope, same test set, same denominator)
+
+| | CER | exact | Axis 1 base | Axis 2 modifier | Axis 3 tone |
+|---|---|---|---|---|---|
+| zero-shot (no fine-tune) | 21.33% | 60.83% | 86.41% | 88.49% | 85.88% |
+| **real-only baseline (median, k=3)** | **9.395%** | 81.94% | 94.08% | 96.21% | 94.42% |
+
+Fine-tuning on VinText-real more than halves CER. This is the *vehicle* (CLAUDE.md §0 L3), not a result
+about the data engine.
+
+> `[LEAD — not a finding, Stage 1 adjudicates]` At the real-only baseline the axis ordering is
+> **Axis 1 base (94.08%) ≲ Axis 3 tone (94.42%) < Axis 2 modifier (96.21%)**. The base-letter axis is the
+> *weakest*, marginally below tone — so CLAUDE.md §5's `[CONJECTURE]` that "the dominant error class is
+> diacritics, not base characters" is **not obviously supported** by these axis accuracies alone. Axis
+> accuracy is not the same as share-of-CER: the Stage-1 CER decomposition (ERROR_ANALYSIS §3), not this
+> table, is the kill-test. Flagged for the brain; the engine's design forks on it.
+
+**Artifacts for Stage 1:** `runs/baseline_seed{0,1,2}/predictions.tsv` (10,068 GT↔pred pairs each),
+`runs/baseline_k3_summary.json`, `runs/baseline_seed{N}/best.pth`.
+
+**Provenance correction (metadata only, no measured quantity changed):** `train_crops`/`val_crops` were
+hardcoded `25744/7200` in the run-time manifest, stale by 2 after the OOV filter. Corrected post-hoc from
+the annotation files to `25742/7200`; the script now counts them instead of hardcoding.

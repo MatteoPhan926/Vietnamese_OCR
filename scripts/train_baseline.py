@@ -51,6 +51,11 @@ HP = dict(
 )
 
 
+def count_ann(split):
+    with open(f"data/crops/annotation_{split}.txt", encoding="utf-8") as f:
+        return sum(1 for ln in f if ln.strip())
+
+
 def set_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
@@ -148,7 +153,12 @@ def main():
         axis_n=dict(base=sc.base_n, modifier=sc.mod_n, tone=sc.tone_n),
         degenerate=degen,
         checkpoint_sha256_pretrain="380512193a8b6cbf6fad80deacdc9b6939d10d473d199892fc6408d13775ea59",
-        train_crops=25744, val_crops=7200,
+        # counted from the annotation files, never hardcoded (a hardcoded 25744 survived the
+        # OOV filter that dropped 2 instances and silently misreported the manifest once)
+        train_crops=count_ann("train"), val_crops=count_ann("val"),
+        lmdb_note="vietocr createDataset has an off-by-one (nSamples=cnt-1): lmdb exposes N-1 "
+                  "of the N written crops, so training actually saw train_crops-1. Labels and "
+                  "images stay aligned (read_buffer uses one idx). Benign; recorded.",
     )
     with open(f"{outdir}/result.json", "w", encoding="utf-8") as f:
         json.dump(res, f, indent=2)

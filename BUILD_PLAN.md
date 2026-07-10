@@ -15,21 +15,27 @@
 ## ▶ RESUME POINTER  (the agent overwrites this block every session — read it FIRST)
 
 ```
-CURRENT STAGE : Stage 0 — Environment + harness + baseline
-LAST DONE     : 0.1 env+data ☑ · 0.2 contamination probe ☑ · 0.3 harness (44/44 self-tests) ☑ · 0.4 counts ☑
-                FROZEN: test-500 rec-only = 10,068 inst / 37,254 NFC chars; train = 25,776 crops.
-                Zero-shot rec-only (no fine-tune, full splits): train CER 25.80% / test CER 21.33%,
-                gap -4.47pp -> NO contamination signature. Disjointness NOT PROVABLE (manifest unpublished).
-                EVAL_PROTOCOL §13 amendments E1–E9 written.   [commit: see git log]
-                0.6 gold set ☑ FROZEN at 2,437 instances (labels pending — USER's manual double-pass).
-NEXT ACTION   : when the k=3 run finishes: `python scripts/aggregate_baseline.py` -> freeze the Gate-A
-                noise floor into EVAL_PROTOCOL §13 as a dated amendment, fill RESULTS.md, commit.
-                THEN STOP at the 🧠 Stage-0 brain checkpoint. Do NOT begin Stage 1.
-IN-FLIGHT     : 0.5 real-only baseline, k=3 seeds (0,1,2), running via `bash run_baseline_k3.sh`
-                -> runs/k3_train.log, per-seed runs/baseline_seed{N}/{train.log,best.pth,result.json}
-                ~24 min/seed on the 4060; 12,000 iters, pre-registered HP in scripts/train_baseline.py.
-                If the run died: rerun `bash run_baseline_k3.sh` (lmdb cache train_vintext_real/ is
-                reusable). Seeds are independent; a completed seed's result.json can be kept.
+CURRENT STAGE : Stage 0 — COMPLETE (all 6 steps ☑, all 4 [VERIFY] frozen). AWAITING 🧠 BRAIN CHECKPOINT.
+LAST DONE     : 0.5 real-only baseline, k=3 seeds {0,1,2} ☑ — the last [VERIFY] is frozen.
+                REAL-ONLY BASELINE (rec-only, test-500 real held-out, NFC/axes NFD, n=10,068 / 37,254):
+                  CER median 9.395%  (std 0.148 pp, 95% CI ±0.368)
+                  Axis1 base 94.081% | Axis2 modifier 96.207% | Axis3 tone 94.423% (std 0.113 pp)
+                  WER 19.307% | exact-match 81.943%       [median + spread over k=3, never best-of-N]
+                FROZEN Gate-A noise floor: CER std 0.148 pp · tone std 0.113 pp  (EVAL_PROTOCOL §13 E11)
+                => a synth run must beat CER by ~>=0.7 pp AND move tone to clear Gate A's
+                   pre-registered non-overlapping-CI rule. Consequence of the floor, not a new choice.
+                All Stage-0 freezes: EVAL_PROTOCOL §13 E1–E12.
+NEXT ACTION   : *** STOP. DO NOT START STAGE 1. *** Report to the brain and WAIT for adjudication of:
+                  (a) the baseline + noise floor above,
+                  (b) E9 disjointness ("no contamination detected", NOT "verified disjoint"),
+                  (c) E2 / E8 / E10 definitional freezes,
+                  (d) the [LEAD] that Axis1 base (94.08%) is the WEAKEST axis, slightly below tone
+                      (94.42%) — CLAUDE.md §5's "diacritics dominate" [CONJECTURE] is not obviously
+                      supported by axis accuracies. Axis accuracy != share-of-CER; the Stage-1 CER
+                      decomposition is the kill-test. The engine's design forks on this.
+                Stage 1 also needs ERROR_ANALYSIS.md, which does not exist yet (brain to draft).
+IN-FLIGHT     : none. (k=3 run finished rc=0; the background task's "killed" status arrived AFTER
+                "ALL SEEDS COMPLETE" — all three result.json are present and validated.)
 BLOCKERS/Q    : (1) ERROR_ANALYSIS.md does not exist in repo — Stage 1 "Obeys" it. Needs drafting
                     (design/brain side) before Stage 1. Not a Stage-0 blocker.
                 (2) 🧠 E2 (###/empty excluded from rec-only), E8 (degenerate quads scored-not-dropped),
@@ -69,7 +75,7 @@ NEXT 🧠 CHKPT : end of Stage 0 — report baseline CER + 3-axis + frozen noise
 
 ---
 
-## Stage 0 — Environment + measurement harness + honest baseline  ◐
+## Stage 0 — Environment + measurement harness + honest baseline  ☑
 **Goal:** a working measurement rig and a real-only baseline, with every Stage-0 `[VERIFY]` measured and frozen.
 **Obeys:** EVAL_PROTOCOL §1–§6, §11; CLAUDE.md §0, §9.1, §9.7.
 
