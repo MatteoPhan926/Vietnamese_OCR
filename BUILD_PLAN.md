@@ -42,6 +42,10 @@ BLOCKERS/Q    : (1) ERROR_ANALYSIS.md does not exist in repo — Stage 1 "Obeys"
                     applicable axes are undefined; there is no GT char). Documented deviation.
                 (5) HOST: C: drive is 100% full (46 MB free). uv cache / TORCH_HOME / TMP redirected to
                     E:. Training checkpoints must also write to E:.
+                (6) DBNet is NOT set up. Step 0.1 lists it ("needed for det/e2e later"), but Stage 0's
+                    EXIT GATE does not require a det/e2e number (rec-only is the headline scope, §1).
+                    Deferred to just before the first e2e number is needed (Stage 1 §5 det-vs-rec
+                    attribution). NOT silently skipped — stated here.
 NEXT 🧠 CHKPT : end of Stage 0 — report baseline CER + 3-axis + frozen noise floor  (NEAR: after 0.5)
 ```
 
