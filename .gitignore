@@ -16,5 +16,8 @@ train_vintext_real/
 valid_vintext_real/
 train_vintext_real_s*/
 valid_vintext_real_s*/
+train_*/
+valid_*/
+.hf_cache/
 runs/
 .torch/
