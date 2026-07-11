@@ -16,6 +16,24 @@
 
 ```
 CURRENT STAGE : Stage 2 — Synthetic engine v0 + Gate A @ 10k.  (Stage 1 core ☑, BRAIN-ADJUDICATED 2026-07-10.)
+STAGE-2 PROGRESS (2026-07-11, this session):
+  ☑ Font pipeline (engine/fetch_fonts, font_gate, font_sheet, finalize_fonts): 30 Google-Fonts
+    (SIL OFL) candidates -> 3-check coverage gate (glyph-exists / distinctness round-trip / visual
+    audit of contact_sheet.png). 27/30 PASS checks 1-2 (ptsans/rubik/karla lack precomposed VN);
+    all 27 pass visual audit; SELECTED 18 diverse -> data/synth/fonts/fonts_manifest.json.
+    (Fixed a false-fail: 30px distinctness tolerance exceeded a nạng dot -> lowered to 6px.)
+  ☑ Corpus (engine/corpus): Source B = VinText TRAIN transcripts verbatim (p=0.65, firewall=train
+    only, 25,774); Source A = wiki_vi (HF 20231101.vi rev b04c8d1) syllable freq bank (41,386 uniq /
+    2.0M tok), case-augmented. Length/case targets MEASURED from train (99% single-tok, char med 3,
+    case 68/16/22, 10% digit, 6.6% 1-char) — supersedes §4's '1-4 token' guess. Sampler matches within ~2pp.
+  ☑ Generator (engine/render, bgpatches, imstats): render PASS font -> composite onto real train-scene
+    bg patch (text-free, train-only, 5000) -> degradation in MEASURED §12 order (geometric->photometric
+    ->resolution/blur). Per-sample cmap integrity (§2). ~4 ms/crop (=> 10k ~2min, 200k ~38min feasible).
+  ☑ §7 distribution audit (engine/audit) PASS: synthetic reaches real's HARD tail on all 6 stats
+    (sharpness/contrast/lum_mean/lum_std/height/bg_edge), centers within ~1 IQR, NONE systematically
+    cleaner than real. Refined the verdict from a strict full-envelope test to §7's asymmetric stated
+    intent (danger = 'synthetic cleaner than real'; benign under-reach of the EASY extreme is not a fail).
+    -> FLAG THIS to brain at Gate A.
 LAST DONE     : Stage 1 CER-decomposition (kill-test) + stratifications + detection probe.
                 RESULT: CLAUDE.md §5 "diacritics dominate" CONJECTURE **REFUTED** — base-only subs 39.48%
                 vs diacritic-only 16.12% of all edits (~2.5×). BUT three-axis metric VINDICATED: tone is
@@ -37,14 +55,12 @@ LAST DONE     : Stage 1 CER-decomposition (kill-test) + stratifications + detect
                     Off-the-shelf db_resnet50 (~48% F1) gives an UPPER bound on detection-induced error —
                     wrong side for the §7 decision, so producing no e2e number was the CORRECT call.
                 DATA_ENGINE.md §12 (Stage-1 findings) added by brain. In repo.
-NEXT ACTION   : Start Stage 2 per DATA_ENGINE.md (+ §12 measured priorities). Build the crop generator:
-                corpus (wiki_vi + train-labels, scene-leaning, case-aug, INCLUDE 1-char/short crops); font
-                pipeline (3-check coverage -> 15-20 clean, correctness prerequisite only); degradation in
-                the §12 order — GEOMETRIC first (tilt/perspective), then PHOTOMETRIC (contrast/lighting),
-                then RESOLUTION/BLUR (mark visibility for tone-drop + small text). Generate 10k ->
-                distribution audit BEFORE training (§7) -> fine-tune on the baseline -> Gate A
-                (EVAL_PROTOCOL §7: non-overlapping CI vs the frozen floor, on CER AND tone). Time the 10k loop.
-IN-FLIGHT     : none.
+NEXT ACTION   : (engine built + §7 PASS). Now: generate 10k crops to disk + reproducibility manifest
+                (engine/generate.py), then Gate A — fine-tune from the pretrained checkpoint on (full real
+                train crops + 10k synth), SAME HP as the baseline (Firewall 3: vary only synthetic count),
+                k=3 seeds, eval rec-only test-500 at frozen denom 10,068/37,254 (CER + 3 axes). Then STOP:
+                report Gate A number + provenance to brain (non-overlapping 95% CI vs baseline on CER AND tone).
+IN-FLIGHT     : engine v0 complete + committed. Generating 10k next.
 PARALLEL/LATER: (a) GOLD manual double-pass (2,437-instance sheet ready, empty) — needed before the FINAL
                 curve numbers + the model-vs-label artifact (§4). NOT blocking Stage 2.
                 (b) DBNet fine-tune -> e2e number (§5) — deferred; pipeline-completeness, not the flagship.
