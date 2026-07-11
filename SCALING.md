@@ -34,6 +34,17 @@ The curve varies **only** synthetic count. Fixed across all points: the backbone
 locked with rationale in EVAL_PROTOCOL §6, *not* merely implied by CLAUDE.md L1), hyperparameters, **the
 real-data amount (full train split)**, and this evaluation protocol.
 
+**`[LOCKED]` The sampler — and why the naive protocol is FATAL at 200k (added 2026-07-11).** With a fixed
+iteration budget and **uniform sampling over the pooled (real + synthetic) set**, the synthetic fraction of
+every batch grows with the synthetic count: 10k synth on 25.7k real is ~28% synthetic, but **200k synth is
+~89%** — real data would collapse from ~15 epochs to **~1.5** at the same compute. The curve would then
+decline for a reason that has nothing to do with the data's quality: **the protocol would be starving the
+real data, and the curve would be measuring its own sampler.** So every curve point is run with a
+**weighted sampler holding the per-batch real:synth ratio FIXED** (at the Gate-A-green config's ratio),
+varying only the **size of the synthetic pool**. That isolates the question the curve actually asks —
+*does more UNIQUE synthetic data help?* — with real-data exposure and compute both constant. A curve run
+under uniform pooled sampling at high synth counts is not a data result.
+
 **`[LOCKED]` The generator config is FROZEN at the Gate-A-green configuration ("v1"), and the curve
 varies count only against it.** This is Firewall 3 applied to the engine, and it is the honesty firewall
 a sharp reviewer probes first:
@@ -160,3 +171,43 @@ over synthetic count 10k→200k, under a frozen v1 generator, gated by Gate A, w
 per-point manifest. **Not claimed:** an e2e curve, a curve beyond 200k, a curve under a changing generator,
 a synthetic-test curve, or any inter-point gain within the seed spread. The deliverable is a true curve of
 this engine's domain-transfer value on this data — whatever shape it turns out to be.
+
+---
+
+## §11. WHAT WAS ACTUALLY DELIVERED — read this before §1–§10 `[2026-07-12]`
+
+**§1–§10 above spec the SYNTHETIC-COUNT curve (10k → 50k → 200k at full real data). That curve was NEVER
+RUN, and it is not a deliverable of this project.** Gate A came back **RED** at 10k (RESULTS "Gate A"), and
+the protocol's answer to a RED is unambiguous: **STOP, do not scale** (EVAL_PROTOCOL §7; CLAUDE.md §4
+Stage-2 "ONLY if Gate A is green"). Two engine fixes and a three-arm hygiene re-gate (DATA_ENGINE §8.2–§8.4)
+did not turn it green: **at matched augmentation, synthetic contributes nothing on top of the full 25,742
+real crops.** Scaling to 200k would have bought a more expensive null. **The gate did its job — this is the
+gate working, not the project failing**, and the §1–§10 spec is retained above as the (unused) pre-registration
+it was, so a reviewer can see the curve was designed honestly *before* it was cancelled honestly.
+
+**The curve that WAS delivered is the LABEL-EFFICIENCY curve** — the pre-registered contingency axis
+(EVAL_PROTOCOL §14, frozen §14.1, written **before** its first run). It varies the **real-label budget**
+r ∈ {10, 25, 50, 100}% with the synthetic set held **frozen** at the hygiene-clean 10k, k=3 seeds, 18 runs.
+**Full protocol, table, and readout: RESULTS "Stage 2c".** The headline shape:
+
+| r (real budget) | n_real | **ΔCER (real+synth − real-only)** | **Δtone** | per-point rule (§7) |
+|---|---|---|---|---|
+| **10%** | 2,574 | **+3.357 pp better** | **+2.651 pp** | **GREEN** |
+| **25%** | 6,436 | **+0.939 pp better** | **+0.645 pp** | **GREEN** |
+| 50% | 12,871 | −0.047 (flat) | −0.013 | red |
+| **100%** | 25,742 | **−0.038 (flat)** | +0.158 | **red** |
+
+**The gap is monotone in r.** Pre-registered readout: synthetic is **worth ≈2,800 real crops at r=10%** and
+**≈0 at r≥50%**. Per §14's pre-committed reading, *gap-widens-as-r-shrinks* = **synthetic SUBSTITUTES for
+real labels** — but only where labels are scarce.
+
+**The honest headline (and the sentence that must always travel with it):** *"On real VinText held-out
+(rec-only, NFC, k=3), the synthetic engine is worth ≈2,800 real annotations at a 2,574-crop label budget
+(CER 16.54 → 13.18; tone 89.34 → 91.99; non-overlapping 95% CIs). Its value decays monotonically with the
+real budget and is **NIL at full real data**, where it does not beat a real-only baseline."* The r=100% null
+keeps **full prominence** (§14) — it is not a footnote to the green points. **Never claimable:** "synthetic
+improves Vietnamese OCR."
+
+**Why §7's headline sentence is void.** §7 pre-committed to *"+X% CER from the synthetic engine on top of a
+VinText-real fine-tune."* **X = 0.** That sentence is retired, not reworded to survive; the label-efficiency
+statement above replaces it, at a different and explicitly-stated operating point.

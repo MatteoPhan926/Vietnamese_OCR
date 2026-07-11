@@ -194,6 +194,56 @@ Generate 10k → §7 distribution audit → **Gate A (EVAL_PROTOCOL §7)**.
 wrong, not its *volume*; scaling a wrong distribution to 200k is the two-week burn EVAL_PROTOCOL §7 exists
 to stop.
 
+### §8.1 The re-gate BUDGET (closes a p-hacking hole — added 2026-07-11, BEFORE the first re-gate)
+
+An unbounded "fix one thing → re-gate" loop is a **p-hack by iteration**: run it enough times and some
+config clears the bar on seed luck (k=3 CIs are wide). The loop is bounded, and it is bounded *now*, before
+any re-gate has been attempted:
+
+- **`[LOCKED]` MAX 2 re-gate attempts** at the full-real operating point. Each must (i) name **ONE** fix,
+  (ii) state the **mechanism** by which it is expected to move the number, (iii) be **written down before
+  the run**. No post-hoc "we also changed X."
+- **`[LOCKED]` Bug-checks are NOT attempts.** Ruling out a broken generator / undertraining / corrupted
+  labels is measurement hygiene (§8.2). Only a *deliberate engine change* burns an attempt.
+  **The line, drawn sharply so "it's just hygiene" cannot become a loophole:** *hygiene* = making the
+  generator emit **VALID** data (legible crops, labels matching the image, NFC, in-vocab charset) — a crop
+  no human can read is noise, not data, and fixing it is fixing a bug. An *attempt* = changing **WHAT the
+  data emphasizes** (strata weighting, degradation targeting, corpus mix, font mix). Validity is free;
+  emphasis is budgeted.
+- **`[LOCKED]` If both attempts are RED → the finding is "10k synthetic gives no lift at full real data,"**
+  and the project moves to the **real-data-budget axis** (EVAL_PROTOCOL §14) — the pre-registered
+  contingency, not a post-hoc rescue. The full-real RED is reported at full prominence regardless of what
+  the budget axis later shows.
+
+### §8.2 Bug-checks BEFORE any fix (a RED is a claim about the world — first prove it is not a claim about your code)
+
+Cheap, mandatory; none burns a re-gate attempt:
+1. **Undertraining / dilution.** At fixed iters, synthetic *dilutes* real gradient steps (10k synth on
+   25.7k real → real drops from ~15 to ~11 epochs at equal compute). Read the **val curves in the existing
+   logs**: if val accuracy is still climbing at the final iter, the RED is partly a compute artifact →
+   re-run **both arms** at scaled iters (compute matched at the higher level), never the synth arm alone.
+2. **Legibility.** Eyeball ~50 random synthetic crops against their labels. Illegible crops or misaligned
+   labels are training *noise* — which both flattens the mean and **inflates seed variance**.
+3. **Label integrity.** Assert every synthetic label is **NFC** and its charset is a **subset of the model
+   vocab**. NFD leakage or OOV characters (wiki_vi carries plenty) silently corrupt the target sequence.
+4. **Was the synthetic even learned?** Score the synth-trained model on a **held-out synthetic** split. Did
+   not learn synth → the data/pipeline is broken. **Learned synth but real did not move → the data is fine
+   and it simply does not transfer** — that is the real finding, not a bug. (Synthetic-test accuracy is a
+   sanity check only, never a result — SCALING §6.)
+
+### §8.3 Attempt 1, pre-declared: TARGET the failure strata (do not distribution-match)
+
+**Mechanism.** §7's audit checks that synthetic *covers* real's marginal image-statistics — and it
+**passed while the gate went RED.** That is itself a finding: **covering the marginals is necessary but not
+sufficient.** A generator matched to real's *marginals* reproduces real's *rate* of hard examples, so 10k
+synth adds only a few hundred hard-tilt crops on top of the ~1,300 the 25.7k real crops already contain —
+a rounding error against real examples that are strictly more informative than rendered ones.
+
+**The fix (ONE change):** re-weight generation to **over-represent the measured failure strata** instead of
+matching real's marginals — heavy on **tilt ≥20°, contrast <0.20, height <12 px, 1–2-char crops** (the
+strata at 23–30% CER vs 9.4% overall, §12). The synthetic's job is not to look like the *average* real
+crop; it is to supply **many more examples of the crops the model actually fails on**. Re-gate at 10k.
+
 ---
 
 ## §9. Design bets (`[CONJECTURE]`; each kill-test is a real-data measurement)
@@ -272,3 +322,52 @@ training, §5) but is **NOT where the error lives** — do not spend the degrada
 inflates base errors). Gold (§4, pending manual pass) can only **shrink** the base share; a flip would need
 >50% of base errors to be label noise, implausible → the **ordering is robust**, Stage 2 proceeds on it,
 and gold re-runs the decomposition before the final numbers are believed.
+
+### §8.4 The AUGMENTATION CONFOUND — Attempt 1 must carry a control arm (added 2026-07-11; a design-brain miss)
+
+**The thing none of these docs caught.** The baseline trains with `image_aug=True` — vietocr's built-in
+augmentor, which already applies blur, motion blur, noise, JPEG compression, perspective and affine/shear
+**to the REAL crops, every epoch.** So the baseline has *already* been manufacturing hard examples out of
+real data, and much of the degradation model (§6) is **redundant with an augmentation pipeline the
+comparator already runs.** Worse for the synthetic: **a REAL crop degraded to be hard is strictly more
+informative than a RENDERED crop degraded to be hard** — same degradation, better content underneath.
+
+This explains the flat Gate A better than any ranked §8 suspect, and it has a hard consequence:
+
+- **`[LOCKED]` VERIFY FIRST (do not assume):** read what `image_aug=True` actually applies in the installed
+  vietocr, and record the exact transform list + strength ranges in the manifest. If it already covers
+  geometric + photometric + blur, the synthetic's degradations are *duplicating* it.
+- **`[LOCKED]` The comparator must be the STRONGEST real-only model, not the default-augmented one.**
+  Comparing synthetic against an *under-augmented* baseline is a **strawman**: a reviewer's first question
+  is "would cranking augmentation have done the same?" — and if it would, the "+X% from synthetic" claim is
+  void. A baseline that is non-starved on **data** (25.7k crops, Stage 0) is not automatically non-starved
+  on **augmentation**.
+- **`[LOCKED]` Attempt 1 is therefore a THREE-ARM experiment**, k=3 seeds each:
+  - **A** = baseline (real + default aug) — already measured.
+  - **B** = real + **strata-targeted AUGMENTATION**, NO synthetic — augmentation cranked to manufacture the
+    measured failure strata (tilt ≥20°, contrast <0.20, height <12 px) *from real crops*.
+  - **C** = real + the same strata-targeted augmentation + **strata-targeted SYNTHETIC** (§8.3).
+  **Judge C against B, not against A.** `B − A` = what augmentation alone buys. `C − B` = **the pure
+  synthetic contribution at matched augmentation** — the only number that honestly answers "was generating
+  synthetic data worth it?"
+- **`[LOCKED]` The control arm B is NOT a re-gate attempt.** It changes no synthetic engine knob; it
+  removes a confound and raises the comparator. **Raising the bar is always permitted; lowering it never
+  is.**
+
+**Every outcome is a real finding**, which is why this is worth the compute:
+- **C > B** → synthetic supplies something augmentation cannot manufacture (content/letterform diversity).
+- **C ≈ B > A** → **"aggressive augmentation of real data captures everything this synthetic engine
+  provides"** — a strong, useful, senior negative result, and the project's own baseline improves.
+- **C ≈ B ≈ A** → the failure strata are hard for reasons *neither* more hard examples nor synthesis
+  addresses. Also a finding, and it points at the label-efficiency axis (EVAL_PROTOCOL §14).
+
+This sharpens the project's central question from *"does synthetic data help?"* to the one practitioners
+actually face and almost nobody tests honestly: **"is synthetic data worth generating, or should you just
+augment harder?"**
+
+> **§8.4 OUTCOME (2026-07-11): measured C ≈ B.** Every metric |Δ| < 0.17 pp, all CIs overlap; combined
+> with §8.2(d) (synth-test 26.4 → 16.0 = learned; real flat = no transfer), the full-real question is
+> **closed**: at matched augmentation, this synthetic engine adds nothing on top of 25.7k real crops.
+> Attempt 1 of 2 spent; Attempt 2 held in reserve (ceiling, not quota). The project proceeds on the
+> pre-registered real-data-budget axis — EVAL_PROTOCOL §14/§14.1. The B−A augmentation-tradeoff pattern
+> (axes up, sequence metrics down) becomes a write-up claim only after the ins/del decomposition.

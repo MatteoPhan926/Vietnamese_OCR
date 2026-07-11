@@ -82,7 +82,8 @@ STEP-1 BUG-CHECKS DONE (2026-07-11, this session; §8.2 — do NOT burn an attem
   budget the brain locked to prevent p-hacking-by-iteration — so it is NOT started unilaterally even though
   pre-declared. AWAITING BRAIN DIRECTION (greenlight Attempt 1 as pre-declared, or adjust given the healthy RED).
   Attempt-1 plan is ready: re-weight generation toward tilt>=20deg, contrast<0.20, height<12px, 1-2 char crops.
-NEXT ACTION   : 🧠 ATTEMPT-1 RED ADJUDICATED BY BRAIN 2026-07-11 (3rd checkpoint). Stage 2 at
+PRIOR 🧠 ADJ  : (history — all 3 NEXT STEPS below are now DONE; see STEP-1 / STEP-2)
+                🧠 ATTEMPT-1 RED ADJUDICATED BY BRAIN 2026-07-11 (3rd checkpoint). Stage 2 at
                 full-real is CLOSED — answered, not stuck. Moving to the pre-registered budget axis.
                 ADJUDICATIONS:
                   • Comparator stronger-of-{A,B} PER METRIC: APPROVED (strictest, bar-raising reading).
@@ -136,23 +137,51 @@ STEP-2 IN FLIGHT — §14 BUDGET AXIS (per FROZEN §14.1):
     between MEASURED points, never extrapolate; N=(r'-r)x25,742). Per-point rule UNCHANGED:
     non-overlapping 95% CI on CER AND tone. A green at r<100% is a LABEL-EFFICIENCY claim ONLY;
     the r=100% null (C≈B) keeps FULL prominence everywhere.
-  ✅ r=10% COMPLETE (k=3 both arms) — CIs NON-OVERLAPPING on BOTH CER and tone (per-point rule MET):
-       real-only   CER 16.538±2.350  (17.622/16.108/15.883)   tone 89.336±1.704
-       real+synth  CER 13.181±0.290  (13.062/13.185/13.295)   tone 91.987±0.099
-       GAP         CER +3.357 pp                              tone +2.651 pp
-     => At a SCARCE label budget the synthetic SUBSTITUTES for real labels — the §14 "gap widens as
-        r shrinks" outcome. Coherent with §8.2(d): the model LEARNS synth fine; that knowledge is
-        REDUNDANT with what 25.7k real crops already teach, so it only pays off when real data is thin.
-     ⚠ LABEL-EFFICIENCY CLAIM ONLY, for r=10%. It does NOT rehabilitate the full-real null (C≈B).
-        Per §14 the r=100% RED keeps FULL prominence. NEVER claimable: "synthetic improves Vietnamese OCR".
-IN-FLIGHT     : §14 budget axis — r10 DONE (6/18). Now r25 real seeds 0,1. Then r25 synth, r50 both arms.
-                Attempt 2 HELD IN RESERVE (not spent).
+STEP-2 ✅ COMPLETE (2026-07-12) — ALL 18/18 CELLS TRAINED. THE LABEL-EFFICIENCY CURVE:
+  (mean ± 95%CI, k=3; rec-only, test-500, frozen denom. runs/budget_curve_summary.json)
+    r     n_real   real-only CER   real+synth CER   GAP      tone gap   per-point rule (§7)
+    10%    2,574   16.538±2.350    13.181±0.290    +3.357    +2.651     GREEN (both CIs separate)
+    25%    6,436   12.373±0.337    11.434±0.349    +0.939    +0.645     GREEN (both CIs separate)
+    50%   12,871   10.430±0.200    10.478±0.807    -0.047    -0.013     red (overlap, flat)
+   100%   25,742    9.381±0.368     9.419±0.237    -0.038    +0.158     red (overlap, flat)
+  => GAP IS MONOTONE IN r (+3.36 -> +0.94 -> -0.05 -> -0.04). This is the §14 pre-registered
+     "gap WIDENS as r shrinks" branch: synthetic SUBSTITUTES for real labels, ONLY when labels are scarce.
+  PRE-REGISTERED READOUT (§14.1 interpolation, never extrapolated):
+     r=10%  -> real-only equivalent r'=20.9%  => synthetic is worth ~ +2,813 real crops
+     r=25%  -> real-only equivalent r'=34.9%  => synthetic is worth ~ +2,560 real crops
+     r=50%/100% -> ~0 (nil). Purchasing power ~0.27 real crops per synthetic crop at r=10%, decaying to 0.
+  SECONDARY (reported, not headlined): synth STABILIZES the scarce fit — r=10% CER CI ±2.350 -> ±0.290
+     (~8x tighter). Opposite sign to Gate A at r=100% (synth RAISED variance ±0.368 -> ±0.895). Same
+     mechanism: the synth pool matters when real is thin, is dead weight when it is not.
+  ⚠ LABEL-EFFICIENCY CLAIM ONLY (r<=25%). Does NOT rehabilitate the full-real null (C≈B). Per §14 the
+     r=100% RED keeps FULL prominence in the same breath. NEVER claimable: "synthetic improves Vietnamese OCR".
+  WRITTEN UP: RESULTS "Stage 2c" (full protocol + tables) · SCALING §11 (what was delivered vs the
+     never-run count curve; §7's "+X% on top of full real" headline is RETIRED, X=0).
+NEXT ACTION   : 🧠 BRAIN CHECKPOINT — THE LABEL-EFFICIENCY CURVE IS COMPLETE AND REPORTED, NOT ADJUDICATED.
+                Per CLAUDE.md §9.8 the curve goes back to the design brain for the protocol/plausibility
+                check BEFORE any headline is declared. Questions for the brain, in order:
+                1) Is the monotone gap (+3.36/+0.94/-0.05/-0.04) accepted as THE flagship result, with the
+                   r=100% null at full prominence? (§14's "gap widens as r shrinks" branch, as pre-committed.)
+                2) Does the curve surface a NEW mechanism that reopens Attempt 2? Standing rule (2026-07-11):
+                   Attempt 2 reopens ONLY on a mechanism, never to chase a green. Reading here: it does NOT —
+                   the curve CONFIRMS the redundancy mechanism (synth pays only when real is thin) rather than
+                   contradicting it. Recommend: keep Attempt 2 UNSPENT, close Stage 2.
+                3) Sanity flag for the brain: r=10% real-only CI is wide (±2.350, seeds 17.62/16.11/15.88).
+                   The GREEN does not depend on it (CIs still separate; the synth arm is ±0.290), but k=3 at
+                   a scarce budget is the thinnest evidence in the curve. Option: +2 seeds at r=10% real-only
+                   to tighten the anchor (~1h). Cheap insurance on the headline number — brain's call.
+                THEN (once adjudicated, in order): (a) GOLD double-pass -> the noise floor the curve is read
+                against + the model-vs-label artifact; (b) ERROR_ANALYSIS §8 per-axis before/after at r=10%
+                (the MECHANISM half of the deliverable — SCALING §9: a curve without it is half a result);
+                (c) write-up. Stage 3/on-device stays CUT (CLAUDE.md A4).
+IN-FLIGHT     : nothing. GPU is free. Attempt 2 HELD IN RESERVE (not spent — see the §14-reopen condition).
 PARALLEL/LATER: (a) GOLD manual double-pass (2,437-instance sheet ready, empty) — needed before the FINAL
                 curve numbers + the model-vs-label artifact (§4). NOT blocking Stage 2.
                 (b) DBNet fine-tune -> e2e number (§5) — deferred; pipeline-completeness, not the flagship.
 BLOCKERS/Q    : HOST: C: drive full (46 MB free); uv cache / TORCH_HOME / TMP / checkpoints -> E:.
-NEXT 🧠 CHKPT : Gate A result (green/red + number + provenance). **THE gate.** Brain confirms green is real
-                (non-overlapping CI) or reads the red diagnosis (DATA_ENGINE §8, geometric-first).
+NEXT 🧠 CHKPT : ⬅ **NOW.** The §14 label-efficiency curve, complete (18/18). See NEXT ACTION for the three
+                questions. (Gate-A checkpoint: DONE 2026-07-11, RED, adjudicated. Attempt-1 RED: DONE,
+                adjudicated. This is the 4th checkpoint and the last one before the write-up.)
 ```
 
 ---

@@ -587,3 +587,71 @@ odd "axes UP while CER UP" pattern in arm B *must* be insertion-driven, or the t
 
 **`C − B`** (synthetic's effect on the error mix at matched augmentation): sub −0.079 · del +0.004 ·
 ins +0.058 · **CER −0.017** — i.e. nothing, consistent with the C≈B null above.
+
+---
+
+## Stage 2c — §14 real-data-budget axis: the LABEL-EFFICIENCY CURVE `[COMPLETE 2026-07-12]`
+
+The pre-registered contingency (EVAL_PROTOCOL §14, frozen §14.1 spec written **before** the first run).
+Question: not "does synthetic add on top of ALL my real data?" (answered: **no**, RED) but **"how much real
+annotation can synthetic replace?"**
+
+**Protocol (§14.1, unchanged from the frozen spec).** Same document-pretrained pbcquoc `vgg_transformer`
+checkpoint; real budget r ∈ {10, 25, 50, 100}% of the train split as **fixed-seed NESTED subsets**
+(10 ⊂ 25 ⊂ 50 ⊂ 100, crop-level, subset seed 20260711); arms = **real-only(r)** vs **real(r) + the FROZEN
+hygiene-clean synth10k_leg** (same synthetic set at every r — one variable at a time); §6 operating config
+(default `image_aug`, fixed HP, iters=12,000, best-val selection on the full val-300); **uniform sampling
+over the pooled set** (per §14.1 — the synthetic *fraction* growing as r shrinks IS the phenomenon under
+study, not a confound); k=3 seeds {0,1,2}. Eval rec-only, test-500, NFC/axes-NFD, frozen denominator.
+r=100% reuses the Stage-0 baseline (real-only) and the hygiene re-gate (leg) run. New compute: 18 runs.
+Scripts: `scripts/train_budget.py` + `scripts/aggregate_budget.py`. Curve: `runs/budget_curve_summary.json`.
+
+### The curve (CER ↓, Axis3 tone ↑; mean ± 95% CI over k=3)
+
+| r | n_real | real-only CER | real+synth CER | **ΔCER (gap)** | real-only tone | real+synth tone | **Δtone** | per-point rule (§7) |
+|---|---|---|---|---|---|---|---|---|
+| **10%** | 2,574 | 16.538 ± 2.350 | **13.181 ± 0.290** | **+3.357** | 89.336 ± 1.704 | **91.987 ± 0.099** | **+2.651** | **GREEN** (both CIs separate) |
+| **25%** | 6,436 | 12.373 ± 0.337 | **11.434 ± 0.349** | **+0.939** | 92.432 ± 0.357 | **93.077 ± 0.126** | **+0.645** | **GREEN** (both CIs separate) |
+| **50%** | 12,871 | 10.430 ± 0.200 | 10.478 ± 0.807 | −0.047 | 93.869 ± 0.535 | 93.856 ± 0.408 | −0.013 | red (overlap, flat) |
+| **100%** | 25,742 | 9.381 ± 0.368 | 9.419 ± 0.237 | −0.038 | 94.410 ± 0.281 | 94.568 ± 0.463 | +0.158 | **red** (overlap, flat) |
+
+**The gap is MONOTONE in r: +3.36 → +0.94 → −0.05 → −0.04.** This is the pre-registered *"gap widens as r
+shrinks"* branch of §14 — **synthetic SUBSTITUTES for real labels, and only when real labels are scarce.**
+
+### `[LOCKED]` The pre-registered readout — "synthetic ≈ worth N real crops at budget r"
+Invert the real-only curve (linear in log r, **between measured points only, never extrapolated**);
+N = (r′ − r) × 25,742:
+
+| r | real+synth CER | matches real-only at r′ | **N (real crops synthetic is worth)** |
+|---|---|---|---|
+| **10%** | 13.181 | 20.9% | **≈ +2,813 real crops** |
+| **25%** | 11.434 | 34.9% | **≈ +2,560 real crops** |
+| 50% | 10.478 | 49.2% | ≈ −216 (nil) |
+| 100% | 9.419 | 97.5% | ≈ −646 (nil) |
+
+At a scarce budget, **10k synthetic crops buy ~2,600–2,800 real crops' worth of accuracy** — i.e. ~0.27
+real crops per synthetic crop — and that purchasing power **decays to zero by r=50%**.
+
+### Secondary observation (reported, not headlined): synthetic STABILIZES the scarce-budget fit
+At r=10% the real-only arm's CER 95% CI is **±2.350**; adding synthetic collapses it to **±0.290** (~8×
+tighter; same at tone, ±1.704 → ±0.099). With 2,574 crops the real-only fine-tune is seed-unstable;
+the synthetic pool regularizes it. Note this is the **opposite** sign of the Gate-A observation at r=100%
+(where synth *raised* variance, ±0.368 → ±0.895) — consistent with the same mechanism: the synthetic pool
+matters when real data is thin and is dead weight when it is not.
+
+### `[LOCKED]` Scope — what this does and does NOT license
+- **Licensed:** *"At a real-label budget of 2,574 crops (10% of VinText train), adding 10k crops from the
+  synthetic engine cuts rec-only CER on real VinText held-out from 16.54 to 13.18 (−3.36 pp, non-overlapping
+  95% CI over 3 seeds) and tone accuracy from 89.34 to 91.99 (+2.65 pp) — worth ≈2,800 additional real
+  annotations. The effect decays monotonically with the real budget and is NIL at full real data."*
+- **NEVER claimable:** *"synthetic improves Vietnamese OCR."* **It did not, at full real data** (r=100%:
+  ΔCER −0.038, CIs overlap → RED). Per §14 the r=100% null keeps **full prominence** and is stated in the
+  same breath as any label-efficiency claim.
+- This is a **label-efficiency** result, not a rehabilitation of the count-scaling thesis. The
+  synthetic-count axis (10k→200k at full real) was **never run and is not licensed** — Gate A's RED
+  correctly stopped it (§7: a RED means do not scale).
+- Coherent with DATA_ENGINE §8.2(d) + the §8.4 three-arm null: the model **learns** the synthetic fine, but
+  that knowledge is **REDUNDANT** with what 25,742 real crops already teach. It only pays when real is thin.
+
+> **BRAIN CHECKPOINT — the curve is REPORTED here, not adjudicated here.** Per CLAUDE.md §9.8 the numbers go
+> back to the design brain for the protocol/plausibility check before any headline is declared.

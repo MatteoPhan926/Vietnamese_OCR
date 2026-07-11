@@ -521,3 +521,85 @@ floor** on any headline number. Recorded because the converse would have been a 
 every curve point — a floor attributable to the vocab, not the recognizer, and one that synthetic data
 could never remove. The 2 training `°` instances are left as-is (0.002% of train chars; changing the
 locked vocab to chase them would be a confound, not a fix).
+
+---
+
+## §14. The real-data-budget axis (pre-registered contingency — written BEFORE its first run)
+
+**Status: pre-registered 2026-07-11, before any budget-axis run and before the §8.1 re-gate attempts have
+resolved.** It is **not** a post-hoc rescue: §6 already reserved this direction ("a second curve from a
+cold/generic start, to show the domain-transfer value is larger when the prior is weaker"), and the three
+candidate operating points (full-real / low-real / no-real) were named before Stage 0. Writing it down now,
+while the outcome is still unknown, is what keeps it honest.
+
+**Why it exists.** The headline operating point (§6) asks the most conservative question: *does synthetic
+add on top of ALL the real data I have?* But 25,742 real in-domain crops is a lot — **the real fine-tune
+already performs much of the document→scene transfer the synthetic was meant to perform.** The question
+with actual decision value is: **how much real annotation can synthetic replace?**
+
+**`[LOCKED]` The design.** Fine-tune from the same pretrained checkpoint, varying the **real-data budget**
+r ∈ {10%, 25%, 50%, 100%} of the train split (fixed-seed nested subsets: 10% ⊂ 25% ⊂ 50% ⊂ 100%), each
+**with and without** the synthetic set, k=3 seeds, everything else per §1–§7. The deliverable is the **gap
+between the two arms as a function of r** — a label-efficiency curve.
+
+**`[LOCKED]` The honest reading, pre-committed:**
+- Gap **widens as r shrinks** → synthetic substitutes for real labels. Honest headline: *"synthetic
+  recovers X% of the gap at real-budget r"* / *"synthetic is worth ~N real crops."*
+- Gap **flat at every r** → the generator produces no usable signal at any budget. That is a **strong,
+  clean negative result** about this generator, reported as the finding.
+- **r=100% IS a point on this curve**, and its RED is reported at full prominence. The budget axis does not
+  replace, soften, or bury the full-real null result.
+
+**`[LOCKED]` Never claimable.** Not "synthetic improves Vietnamese OCR" — it did not, at full real data.
+Only the measured statement, with the r=100% null stated in the same breath.
+
+---
+
+## §15. Amendment to the Gate-A comparator (2026-07-11) — the bar may be RAISED, never lowered
+
+§7 defined GREEN as a non-overlapping CI against **"the real-only baseline."** That phrase is now made
+precise, because it was silently ambiguous:
+
+**`[LOCKED]` The comparator is the STRONGEST real-only configuration available, not merely the first one
+trained.** The Stage-0 baseline (default `image_aug`) is non-starved on *data* but was never shown to be
+non-starved on *augmentation* (DATA_ENGINE §8.4). If a strata-targeted-augmentation arm (no synthetic)
+beats it, **that arm becomes the Gate-A comparator.** "+X% from synthetic" measured against an
+under-augmented baseline is a strawman claim and is void.
+
+**`[LOCKED]` The asymmetry that keeps this honest:** *raising* the bar after seeing a result is always
+permitted (it can only make a GREEN harder to obtain); *lowering* it is never permitted (§12). This
+amendment strictly raises the bar.
+
+**`[LOCKED]` The decision rule itself is UNCHANGED** — non-overlapping 95% CI over k=3 seeds, on both CER
+and the tone axis. It is not being swapped for a more powerful test after the fact. Recorded for the
+write-up: at the hygiene re-gate, even a **paired** test (strictly more powerful than the pre-registered
+rule) failed to reach significance — CER t=+0.46, tone t=+2.05 against t_crit=4.30 at 2 dof. **The
+conservative rule is not what produced the RED; the effect is genuinely too small.** That sentence belongs
+in the write-up, because it preempts the obvious objection.
+
+### §14.1 Execution spec (FROZEN 2026-07-11, before the first budget-axis run)
+
+- **Points:** r ∈ {10%, 25%, 50%, 100%} of the train split; **fixed-seed NESTED subsets**
+  (10 ⊂ 25 ⊂ 50 ⊂ 100), drawn at crop level, subset seed recorded in the manifest.
+- **Arms per point:** real-only(r) vs real(r) + **synth10k_leg** (the hygiene-clean 10k, FROZEN — the
+  same set at every r; one variable at a time).
+- **Config:** the §6 operating configuration (default `image_aug`, fixed HP, iters=12,000, best-val
+  model selection on the full val-300). **NOT** Attempt 1's strata-aug — that question is answered
+  (DATA_ENGINE §8.4 outcome); §14 measures the pre-registered operating point.
+- **Sampling:** **uniform over the pooled set.** The synthetic FRACTION therefore grows as r shrinks
+  (~28% at r=100% → ~79% at r=10%) — that is the **phenomenon under study** (a practitioner with r real
+  + 10k synth trains on all of it), not a confound. (SCALING §2's fixed-ratio sampler governs the
+  count-scaling curve — a different experiment.)
+- **Val:** the full val-300 at every r. Model-selection quality is held constant; the budget question is
+  about TRAIN labels. Stated, not hidden.
+- **Fixed iters + best-val export:** at low r the epoch count balloons (~150 real-epochs at r=10%,
+  real-only arm); best-val selection guards overfit. **Report val-curve sanity per r.**
+- **Reuse:** r=100% real-only = the Stage-0 baseline (A); r=100% +synth = the hygiene re-gate (leg) run.
+  New compute: 3 r-values × 2 arms × 3 seeds = **18 runs ≈ 9 h** on the 4060.
+- **Per-point rule unchanged:** non-overlapping 95% CI over k=3, on CER **and** tone (§7). A green at
+  r<100% is a **label-efficiency claim** for that budget, never a full-real claim; the r=100% null keeps
+  full prominence in every write-up.
+- **`[LOCKED]` The pre-registered readout:** *"synthetic ≈ worth N real crops at budget r"* — interpolate
+  the real-only-vs-r curve (linear in log r between adjacent measured points, never extrapolated beyond
+  measured r) to find r′ where real-only(r′) matches real(r)+synth; **N = (r′ − r) × 25,742.** The
+  deliverable is the gap-vs-r curve + this readout, whatever they turn out to be.
