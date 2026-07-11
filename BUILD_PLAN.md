@@ -82,56 +82,77 @@ STEP-1 BUG-CHECKS DONE (2026-07-11, this session; §8.2 — do NOT burn an attem
   budget the brain locked to prevent p-hacking-by-iteration — so it is NOT started unilaterally even though
   pre-declared. AWAITING BRAIN DIRECTION (greenlight Attempt 1 as pre-declared, or adjust given the healthy RED).
   Attempt-1 plan is ready: re-weight generation toward tilt>=20deg, contrast<0.20, height<12px, 1-2 char crops.
-NEXT ACTION   : 🧠 GATE-A RED ADJUDICATED BY BRAIN 2026-07-11. RED is ACCEPTED as correctly called (the
-                gate worked: caught at 10k, not at 200k). Do NOT scale. Do NOT start Stage 3. Proceed in
-                this exact order — new locks are in DATA_ENGINE §8.1/§8.2/§8.3, EVAL_PROTOCOL §14,
-                SCALING §2 (all delivered by brain, in repo):
-                STEP 1 — BUG-CHECKS FIRST (DATA_ENGINE §8.2). These do NOT burn a re-gate attempt:
-                  (a) val curves from the EXISTING logs: still climbing at iter 12k? -> the RED is partly
-                      an undertraining artifact (10k synth cut real from ~15 to ~11 epochs at equal
-                      compute). If undertrained, re-run BOTH ARMS at scaled iters (never synth alone).
-                  (b) eyeball ~50 synth crops vs labels (illegible/misaligned = training noise, and noise
-                      explains the 2.4x variance blow-up).
-                  (c) assert every synth label is NFC AND charset ⊆ model vocab (NFD/OOV from wiki_vi
-                      silently corrupts targets).
-                  (d) score the synth-trained model on HELD-OUT SYNTHETIC. Didn't learn synth -> broken
-                      pipeline. LEARNED synth but real flat -> data is fine, it simply DOES NOT TRANSFER
-                      = the real finding. (Sanity check only, never a result.)
-                  Report (a)-(d) to brain before touching the engine.
-                STEP 2 — RE-GATE ATTEMPT 1 of MAX 2 (DATA_ENGINE §8.3), pre-declared, ONE change:
-                  TARGET THE FAILURE STRATA instead of matching real's marginals. The §7 audit passing
-                  while Gate A went RED IS the finding: covering marginals is necessary, NOT sufficient.
-                  A marginal-matched generator reproduces real's RATE of hard crops (~few hundred hard-tilt
-                  in 10k) against the ~1,300 the 25.7k real crops already have = a rounding error.
-                  -> re-weight generation heavily toward tilt>=20deg, contrast<0.20, height<12px,
-                     1-2 char crops (the 23-30% CER strata vs 9.4% overall). Re-gate at 10k.
-                STEP 3 — if Attempt 2 is also RED: the FINDING is "10k synthetic gives no lift at full real
-                  data" (reported at full prominence), and the project moves to the PRE-REGISTERED
-                  real-data-budget axis (EVAL_PROTOCOL §14): r in {10,25,50,100}% real x {with,without}
-                  synth, k=3 -> the label-efficiency curve. That axis was reserved in §6 BEFORE Stage 0;
-                  it is a contingency, NOT a post-hoc rescue.
-                ALSO LOCKED NOW (SCALING §2): the curve must use a WEIGHTED SAMPLER holding the per-batch
-                  real:synth ratio FIXED. Uniform pooled sampling at fixed iters would make 200k synth =
-                  89% of every batch (real collapses ~15 -> ~1.5 epochs) — the curve would measure its own
-                  sampler, not the data. Fatal; fixed before Stage 3 ever runs.
-                PROTOCOL FLAGS ANSWERED: (1) fixed-iters was the CORRECT conservative call; the val curves
-                  (Step 1a) decide whether epoch-constant is needed — and if so, BOTH arms get it.
-                  (2) The §7 asymmetric verdict is ACCEPTED, but §7 is now known to be necessary-not-
-                  sufficient (that is Attempt 1's whole mechanism).
-GATE A RESULT (k=3, rec-only test-500, frozen denom 10,068/37,254; FIXED HP iters=12000 = baseline):
-                CER  base 9.381±0.368 -> gateA 9.521±0.895  (Δ +0.140, WORSE, CIs OVERLAP)
-                tone base 94.410±0.281 -> gateA 94.374±0.553 (Δ -0.036, FLAT, CIs OVERLAP)
-                per-seed CER gateA 9.373/9.932/9.258 (med 9.373) vs base 9.395/9.226/9.521 (med 9.395).
-                Pre-registered non-overlap condition on BOTH CER and tone: NOT met -> RED.
-                Notable: gateA CER CI ±0.895 = ~2.4x baseline's -> 10k synth ADDED variance, no lift.
-                Key diagnostic for brain: §7 audit PASSED (synthetic covers real, not cleaner) yet Gate A
-                is flat -> matching crop image-STATISTICS != a real recognition gain. Suspects (DATA_ENGINE
-                §8 ranked): (a) at fixed compute 10k synth dilutes real w/o new signal beyond the doc prior;
-                (b) degradation matches statistics not the capture MECHANISM; (c) thesis needs scale/curriculum
-                not reachable at 10k. Brain picks the ONE §8 fix (degradation-first) before a re-gate at 10k.
-                PROTOCOL FLAGS carried into that decision: (1) iters held FIXED at 12000 (equal compute,
-                conservative vs false-GREEN); epoch-constant alt is an open policy Q. (2) §7 verdict encodes
-                §7's ASYMMETRIC stated intent (reach-hard-tail + not-cleaner), not a strict full-envelope.
+STEP-0 DONE (2026-07-11, §8.4 + §8.2d) — committed:
+  (i) [VERIFY->RESOLVED] installed vietocr image_aug = ImgAugTransformV2 (albumentations 2.0.8):
+      InvertImg p.2 | ColorJitter p.2 | MotionBlur blur_limit(3,3) p.2 | RandomBrightnessContrast +-0.2 p.2
+      | Perspective scale(0.01,0.05) p.5 | RandomDottedLine p.5.
+      ABSENT: rotation, shear, gaussian blur, NOISE, JPEG, downsample/resolution.
+      => FINDING: partially REFUTES §8.4's "largely redundant" premise. BUT §8.4's DESIGN gets STRONGER:
+         baseline is UNDER-AUGMENTED on exactly the measured failure strata -> arm B has big headroom;
+         §15's raised comparator is essential. No [LOCKED] decision invalidated (§8.4 branched on this).
+  (ii) §8.2(d) THE FINDING: model LEARNED synthetic decisively but it DOES NOT TRANSFER.
+      held-out synth (n=2000): baseline CER 26.4% -> leg 16.0% (-39% rel), exact 58.4->74.2, tone 80.6->88.6,
+      while REAL test CER stayed FLAT (9.381 -> 9.419). Data/pipeline fine; TRANSFER is the failure.
+STEP-1 IN FLIGHT (Attempt 1 of max 2, as the §8.4 THREE-ARM experiment; B is a CONTROL, not an attempt):
+  engine/strata_aug.py = StrataAugment: manufactures the measured strata FROM REAL CROPS (perspective+shear
+    +rotation / contrast crushed <0.20 / downsample 8-12px), one stratum at a time, ON TOP of the exact
+    default aug (arm B = strict SUPERSET of A's aug; bar RAISED never lowered). SAME augmentor in B and C.
+    Measured on real crops: contrast<0.20 6.3%->23.3%, sharpness<200 9.7%->28.7%.
+  data/crops/synth10k_strata = §8.3 strata-targeted synth (over-represent strata, NOT marginal-match;
+    corpus short_rate 0.20). Legibility guard (§8.2 lesson): first pass sev .35-.75 gave ~50% illegible ->
+    stratum carries difficulty, rest MILD (sev .05-.30). Objective: baseline-model CER 41.8%/exact 43%
+    (vs leg 27.6%/57.5%) = +14pp over the synthetic domain gap, in line with real strata (+13..+21pp).
+    HARD-BUT-LEARNABLE, not noise.
+  RUN: scripts/train_arm.py --arm B|C --seed {0,1,2}; FIXED HP iters=12000; rec-only test-500 frozen denom.
+  AGGREGATE: B-A = what augmentation alone buys. C-B = PURE synthetic contribution at matched augmentation.
+    JUDGE C AGAINST B (§15). Outcomes: C>B = synth adds what aug cannot; C~B>A = "just augment harder"
+    (strong negative result); C~B~A = strata resist both -> EVAL_PROTOCOL §14 label-efficiency axis.
+  STATUS: arm B seeds 0,1 launched (bg br523cmoj). Then B seed2, then C seeds 0,1,2. ~30 min/run.
+  NOTE flagged to brain: crops are perspective-RECTIFIED by crop_quad at BOTH train and test, so a literal
+    >=20deg rotation is not what the model ever sees; "geometric" is manufactured as strong perspective+
+    shear+moderate rotation (residual distortion). C-B is robust to this choice since B and C share the aug.
+NEXT ACTION   : 🧠 HYGIENE RE-GATE ADJUDICATED BY BRAIN 2026-07-11 (2nd checkpoint).
+                VERDICT: the legibility fix WAS legitimate hygiene, NOT a re-gate attempt (0 of 2 spent).
+                  Reason it is principled: §8.2 PREDICTED the signature (illegible crops = noise = inflated
+                  seed variance). The fix removed exactly that signature: CER CI +/-0.895 -> +/-0.237, now
+                  TIGHTER than the baseline's own +/-0.368. A falsifiable prediction, confirmed.
+                RED still correct: CER delta +0.038 (noise). BUT the picture CHANGED materially — all five
+                  non-CER metrics moved positive (WER -0.125, exact +0.255, base +0.061, mod +0.135, tone
+                  +0.158 with 3/3 seeds positive). Synthetic is no longer HARMFUL, only INSUFFICIENT.
+                  Checked and recorded: even a PAIRED test (more powerful than the pre-registered rule)
+                  fails — CER t=+0.46, tone t=+2.05 vs t_crit 4.30 (2 dof). The conservative rule is NOT
+                  what produced the RED. (Rule NOT changed — that would be goalpost-moving.)
+                *** THE BRAIN'S OWN MISS, now locked as DATA_ENGINE §8.4: the AUGMENTATION CONFOUND. ***
+                  The baseline runs image_aug=True — vietocr already applies blur/motion-blur/noise/JPEG/
+                  perspective/affine TO THE REAL CROPS every epoch. So the degradation model (§6) is largely
+                  REDUNDANT with an augmentation pipeline the comparator already has — and a REAL crop
+                  degraded hard beats a RENDERED crop degraded hard. This explains the flatness better than
+                  any ranked §8 suspect, and no doc caught it.
+NEXT STEPS (in order):
+                STEP 0 (free, DATA_ENGINE §8.2d + §8.4):
+                  (i) VERIFY what image_aug actually applies in the installed vietocr (exact transform list
+                      + strength ranges) -> record in the manifest. Do NOT assume.
+                  (ii) Score the leg model on HELD-OUT SYNTHETIC (the one §8.2 check never run). Learned
+                      synth but real flat => data is fine, it DOES NOT TRANSFER = the real finding. Didn't
+                      learn synth => still broken.
+                STEP 1 — ATTEMPT 1 APPROVED (1 of max 2), but as a THREE-ARM experiment (§8.4), k=3 each:
+                  A = baseline (real + default aug) — HAVE IT.
+                  B = real + STRATA-TARGETED AUGMENTATION, NO synth (tilt>=20deg, contrast<0.20, height
+                      <12px manufactured FROM REAL CROPS). *** B is a CONTROL, not an attempt. ***
+                  C = real + same strata-targeted aug + STRATA-TARGETED SYNTHETIC (§8.3).
+                  JUDGE C AGAINST B, NOT A. B-A = what augmentation alone buys. C-B = the PURE synthetic
+                  contribution at matched augmentation — the only honest answer to "was generating the
+                  synthetic worth it?" Comparing C to an under-augmented A is a STRAWMAN (EVAL_PROTOCOL §15:
+                  the comparator is the STRONGEST real-only config; the bar may be RAISED, never lowered).
+                  Every outcome is a finding: C>B = synth adds what aug cannot; C~B>A = "just augment
+                  harder" (strong negative result); C~B~A = the strata resist both -> go to §14.
+                STEP 2 — if Attempt 2 also RED: finding = "10k synthetic gives no lift at full real data"
+                  (reported at FULL prominence), then the PRE-REGISTERED real-data-budget axis
+                  (EVAL_PROTOCOL §14): r in {10,25,50,100}% real x {with,without} synth -> label-efficiency
+                  curve. Reserved in §6 BEFORE Stage 0 — a contingency, NOT a post-hoc rescue.
+                STILL LOCKED (SCALING §2): the curve needs a WEIGHTED SAMPLER holding per-batch real:synth
+                  ratio FIXED. Uniform pooled sampling at fixed iters => 200k synth = 89% of every batch
+                  (real collapses ~15 -> ~1.5 epochs); the curve would measure its own sampler.
 IN-FLIGHT     : none. All 3 Gate-A seeds complete; engine v0 + Gate-A scripts committed.
 PARALLEL/LATER: (a) GOLD manual double-pass (2,437-instance sheet ready, empty) — needed before the FINAL
                 curve numbers + the model-vs-label artifact (§4). NOT blocking Stage 2.
