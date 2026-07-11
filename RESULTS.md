@@ -514,3 +514,51 @@ from the 10k train set), `scripts/bugcheck_synthtest.py`:
 >
 > This is precisely what §8.4's mechanism predicts: **a REAL crop degraded to be hard is strictly more
 > informative than a RENDERED crop degraded to be hard.** It motivates the three-arm test directly.
+
+### ATTEMPT 1 (1 of max 2, §8.1) — the THREE-ARM experiment (§8.4) — **RED** — 2026-07-11
+
+k=3 seeds per arm · rec-only · VinText test-500 · NFC (axes NFD) · frozen denominator 10,068 / 37,254 ·
+**iters=12,000 FIXED** (= baseline compute) · `scripts/train_arm.py`, `scripts/aggregate_arms.py`.
+**B and C use the IDENTICAL augmentor** (`engine/strata_aug.py`), so `C − B` isolates the synthetic.
+
+- **A** = real + **default** aug (Stage-0 baseline).
+- **B** = real + **strata-targeted** aug, **NO synthetic** (CONTROL — not a re-gate attempt).
+- **C** = real + the same strata aug + **10k strata-targeted synthetic** (`synth10k_strata`, §8.3).
+
+| metric | A (baseline) | B (strata aug) | C (aug + synth) | **B − A** | **C − B** |
+|---|---|---|---|---|---|
+| **CER** | 9.381 ± 0.368 | 9.637 ± 0.074 | 9.620 ± 0.191 | **+0.256** | **−0.017** |
+| WER | 19.291 ± 0.797 | 19.626 ± 0.392 | 19.462 ± 0.551 | +0.335 | −0.164 |
+| exact-match | 81.870 ± 0.757 | 81.751 ± 0.333 | 81.777 ± 0.307 | −0.119 | +0.026 |
+| Axis1 base | 94.114 ± 0.391 | 94.189 ± 0.220 | 94.195 ± 0.174 | +0.075 | +0.006 |
+| Axis2 modifier | 96.252 ± 0.274 | 96.366 ± 0.259 | 96.354 ± 0.182 | +0.114 | −0.012 |
+| **Axis3 tone** | 94.410 ± 0.281 | 94.542 ± 0.142 | 94.493 ± 0.117 | **+0.132** | **−0.049** |
+
+Per-seed CER — B: 9.631/9.610/9.669 · C: 9.626/9.693/9.540.
+
+**Finding 1 — `B − A`: "just augment harder" is NOT a free win.** Strata-targeted augmentation of *real*
+crops improves **all three per-position axes** (base +0.075, modifier +0.114, **tone +0.132**) but
+**worsens CER (+0.256), WER (+0.335) and exact-match (−0.119)**. Mechanism: the axes score *aligned*
+positions, while CER/WER also charge insertions/deletions — heavy augmentation buys **per-character
+robustness at the cost of length errors** (dropped/hallucinated characters). Consequently **B is NOT
+uniformly stronger than A**, which breaks an assumption in §15; the strictest honest comparator is
+therefore the **better of {A, B} per metric** (C must beat **A's CER** *and* **B's tone**).
+
+**Finding 2 — `C − B`: at MATCHED augmentation the synthetic contributes NOTHING.** Every metric moves by
+**|Δ| < 0.17 pp** with **all CIs overlapping**: CER **−0.017**, tone **−0.049**, base +0.006, modifier
+−0.012. This is the **§8.4 "C ≈ B"** outcome — *aggressive augmentation of real data captures everything
+this synthetic engine provides.* It is the honest answer to the question practitioners actually face and
+almost nobody tests: **"is synthetic data worth generating, or should you just augment harder?"** Here, for
+a document-pretrained recognizer with 25.7k real crops: **generating it was not worth it.**
+
+- **Pre-registered GATE-A condition (§7, unchanged): NOT met on either CER or tone → RED.**
+  (C vs A on CER: +0.239, no gain, CIs overlap. C vs B on tone: −0.049, no gain, CIs overlap.)
+- **Attempt 1 of max 2 is now SPENT (§8.1).** Bug-checks and the control arm B did not consume attempts.
+- Consistent with §8.2(d): the model **learns** the synthetic (synth-test CER 26.4 → 16.0) but it **does
+  not transfer** — and now we know it adds nothing even when the failure strata are over-represented AND
+  the comparator is augmentation-matched.
+
+> **BRAIN CHECKPOINT — reported, NOT self-adjudicated.** Per §8.1, one attempt remains. If Attempt 2 is
+> also RED, the finding is *"10k synthetic gives no lift at full real data"* (reported at full prominence)
+> and the project moves to the **pre-registered** real-data-budget axis (EVAL_PROTOCOL §14) —
+> a contingency reserved before Stage 0, not a post-hoc rescue.

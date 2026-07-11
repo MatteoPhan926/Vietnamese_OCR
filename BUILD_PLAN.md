@@ -107,7 +107,26 @@ STEP-1 IN FLIGHT (Attempt 1 of max 2, as the §8.4 THREE-ARM experiment; B is a 
   AGGREGATE: B-A = what augmentation alone buys. C-B = PURE synthetic contribution at matched augmentation.
     JUDGE C AGAINST B (§15). Outcomes: C>B = synth adds what aug cannot; C~B>A = "just augment harder"
     (strong negative result); C~B~A = strata resist both -> EVAL_PROTOCOL §14 label-efficiency axis.
-  STATUS: arm B seeds 0,1 launched (bg br523cmoj). Then B seed2, then C seeds 0,1,2. ~30 min/run.
+  STATUS: ✅ ALL SIX RUNS DONE (k=3 per arm). ATTEMPT 1 = RED. ATTEMPT 1 OF 2 IS SPENT (§8.1).
+  RESULT (rec-only test-500, frozen denom, iters=12000 FIXED):
+    metric        A(base)         B(strata aug)   C(aug+synth)    B-A       C-B
+    CER          9.381±0.368     9.637±0.074     9.620±0.191    +0.256    -0.017
+    WER         19.291±0.797    19.626±0.392    19.462±0.551    +0.335    -0.164
+    exact       81.870±0.757    81.751±0.333    81.777±0.307    -0.119    +0.026
+    base        94.114±0.391    94.189±0.220    94.195±0.174    +0.075    +0.006
+    modifier    96.252±0.274    96.366±0.259    96.354±0.182    +0.114    -0.012
+    tone        94.410±0.281    94.542±0.142    94.493±0.117    +0.132    -0.049
+  FINDING 1 (B-A): "just augment harder" is NOT a free win — strata aug improves ALL THREE AXES
+    (base/mod/tone) but WORSENS CER/WER/exact. Axes score ALIGNED positions; CER/WER also charge
+    insert/delete => aug buys per-CHARACTER robustness at the cost of LENGTH errors.
+    => B is NOT uniformly stronger than A (breaks a §15 assumption). Strictest honest comparator =
+       better of {A,B} PER METRIC (C must beat A's CER AND B's tone). Flagged to brain.
+  FINDING 2 (C-B): at MATCHED augmentation the SYNTHETIC CONTRIBUTES NOTHING. Every metric |Δ|<0.17pp,
+    ALL CIs overlap (CER -0.017, tone -0.049). This is the §8.4 "C≈B" outcome = "aggressive augmentation
+    of real data captures everything this synthetic engine provides" — the honest answer to
+    "is synthetic worth generating, or should you just augment harder?" For a document-pretrained
+    recognizer with 25.7k real crops: GENERATING IT WAS NOT WORTH IT. (Strong negative result.)
+  GATE A: pre-registered condition NOT met on CER or tone -> RED.
   NOTE flagged to brain: crops are perspective-RECTIFIED by crop_quad at BOTH train and test, so a literal
     >=20deg rotation is not what the model ever sees; "geometric" is manufactured as strong perspective+
     shear+moderate rotation (residual distortion). C-B is robust to this choice since B and C share the aug.
