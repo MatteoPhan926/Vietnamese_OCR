@@ -55,12 +55,17 @@ LAST DONE     : Stage 1 CER-decomposition (kill-test) + stratifications + detect
                     Off-the-shelf db_resnet50 (~48% F1) gives an UPPER bound on detection-induced error —
                     wrong side for the §7 decision, so producing no e2e number was the CORRECT call.
                 DATA_ENGINE.md §12 (Stage-1 findings) added by brain. In repo.
-NEXT ACTION   : (engine built + §7 PASS). Now: generate 10k crops to disk + reproducibility manifest
-                (engine/generate.py), then Gate A — fine-tune from the pretrained checkpoint on (full real
-                train crops + 10k synth), SAME HP as the baseline (Firewall 3: vary only synthetic count),
-                k=3 seeds, eval rec-only test-500 at frozen denom 10,068/37,254 (CER + 3 axes). Then STOP:
-                report Gate A number + provenance to brain (non-overlapping 95% CI vs baseline on CER AND tone).
-IN-FLIGHT     : engine v0 complete + committed. Generating 10k next.
+NEXT ACTION   : Gate-A k=3 TRAINING IN FLIGHT (10k generated + committed; manifest + §7-audit PASS).
+                When all 3 seeds land -> run scripts/aggregate_gateA.py -> STOP and report to brain
+                (non-overlapping 95% CI vs baseline on CER AND tone; frozen floor: CER 9.381±0.368,
+                tone 94.410±0.281; need ~≥0.7pp CER + tone movement). Do NOT self-declare or start Stage 3.
+IN-FLIGHT     : Gate-A training real(25,742)+synth10k(10,000)=35,742, FIXED HP/iters=12000, k=3 seeds.
+                seed0 launched detached (pid 17376); chained watcher (bg task b9b3vwkiv) runs seeds 1,2 after.
+                Results -> runs/gateA_synth10k_seed{0,1,2}/result.json. Aggregator + trainer committed.
+                PROTOCOL FLAG for brain: iters held FIXED at baseline's 12000 (equal compute, conservative
+                vs false-GREEN); epoch-constant alt (scale iters by data ratio) is the Stage-3 curve's
+                open iters-policy question. Also: §7 audit verdict was expressed as §7's ASYMMETRIC intent
+                (reach hard tail + not-cleaner), not a strict full-envelope — flagged above.
 PARALLEL/LATER: (a) GOLD manual double-pass (2,437-instance sheet ready, empty) — needed before the FINAL
                 curve numbers + the model-vs-label artifact (§4). NOT blocking Stage 2.
                 (b) DBNet fine-tune -> e2e number (§5) — deferred; pipeline-completeness, not the flagship.
