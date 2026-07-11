@@ -9,6 +9,7 @@ This script REPORTS the evidence and states mechanically whether the non-overlap
 is met. It does NOT declare the project's gate green/red — that is a BRAIN CHECKPOINT
 (BUILD_PLAN Stage 2). The brain adjudicates whether green is real and what a red means.
 """
+import argparse
 import glob
 import json
 import statistics as st
@@ -36,7 +37,11 @@ def overlap(a_lo, a_hi, b_lo, b_hi):
 
 
 def main():
-    files = sorted(glob.glob("runs/gateA_synth10k_seed[0-9]/result.json"))
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--dataset", type=str, default="gateA_synth10k",
+                    help="run-dir prefix, e.g. gateA_synth10k_leg")
+    args = ap.parse_args()
+    files = sorted(glob.glob(f"runs/{args.dataset}_seed[0-9]/result.json"))
     res = [json.load(open(f, encoding="utf-8")) for f in files]
     if len(res) < 2:
         raise SystemExit(f"need >=2 gateA seeds, found {len(res)}")
@@ -79,10 +84,11 @@ def main():
     print("This is a BRAIN CHECKPOINT. Report to the design brain; do not start Stage 3 or")
     print("declare the gate here. RED -> DATA_ENGINE §8 re-diagnosis (degradation-first), re-gate at 10k.")
 
+    outp = f"runs/{args.dataset}_summary.json"
     json.dump(dict(k=len(res), seeds=seeds, metrics=summary,
                    condition_met=dict(cer=cer_sep, tone=tone_sep, both=cer_sep and tone_sep)),
-              open("runs/gateA_synth10k_summary.json", "w", encoding="utf-8"), indent=2)
-    print("\nwrote runs/gateA_synth10k_summary.json")
+              open(outp, "w", encoding="utf-8"), indent=2)
+    print(f"\nwrote {outp}")
 
 
 if __name__ == "__main__":

@@ -64,9 +64,14 @@ STEP-1 BUG-CHECKS DONE (2026-07-11, this session; §8.2 — do NOT burn an attem
   (d) synth-test CER 16-17% (vs 9.4% real), exact 72-74% (vs 82%) -> model did NOT cleanly learn synth;
       illegible fraction is unlearnable noise. (scripts/bugcheck_synthtest.py)
   VERDICT: RED confounded by over-degradation noise (§8.2 HYGIENE defect, NOT yet the §8.3 transfer finding).
-  ACTING NOW (user said 'continue & make gate A green'): fix legibility as §8.2 HYGIENE (cap over-degradation
-  to hard-but-LEGIBLE, keep §7 hard-tail coverage) -> re-audit §7 -> re-gate @10k. Does NOT burn Attempt 1.
-  FLAG for brain at the re-gate checkpoint: treating legibility as hygiene; §8.3 strata-targeting stays available.
+  HYGIENE FIX APPLIED (2026-07-11, commit): severity-budget in render.py — per-crop latent sev scales all
+  heavy degradations coherently (mild-OR-hard, not all-maxed); glare/motion gated to high sev; low-contrast
+  floored 0.42; defocus height-capped. Eyeball illegible ~26% -> ~6%; §7 re-PASS (still reaches hard tail).
+  Regenerated set = data/crops/synth10k_leg (kept SEPARATE from the RED synth10k for provenance).
+  RE-GATE IN FLIGHT: scripts/train_gateA.py --synth synth10k_leg, k=3, FIXED HP iters=12000, dataset
+  gateA_synth10k_leg (fresh lmdb). Aggregate: scripts/aggregate_gateA.py --dataset gateA_synth10k_leg.
+  This is a §8.2 HYGIENE re-gate (does NOT burn Attempt 1); §8.3 strata-targeting stays available if still RED.
+  FLAG for brain at the re-gate checkpoint: legibility treated as hygiene per §8.2(b/d).
 NEXT ACTION   : 🧠 GATE-A RED ADJUDICATED BY BRAIN 2026-07-11. RED is ACCEPTED as correctly called (the
                 gate worked: caught at 10k, not at 200k). Do NOT scale. Do NOT start Stage 3. Proceed in
                 this exact order — new locks are in DATA_ENGINE §8.1/§8.2/§8.3, EVAL_PROTOCOL §14,

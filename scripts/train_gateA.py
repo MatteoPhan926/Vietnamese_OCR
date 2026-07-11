@@ -32,7 +32,7 @@ from scripts.infer import load_config  # noqa: E402
 from scripts.train_baseline import HP, count_ann, evaluate, set_seed  # noqa: E402
 from scripts.scorer import format_score  # noqa: E402
 
-SYNTH = "synth10k"
+SYNTH = "synth10k"        # overridden by --synth
 DATASET = f"gateA_{SYNTH}"
 COMBINED_ANN = f"annotation_train_{SYNTH}.txt"
 
@@ -79,9 +79,15 @@ def build_cfg(seed, iters):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seed", type=int, required=True)
+    ap.add_argument("--synth", type=str, default="synth10k", help="synth set name under data/crops/")
     ap.add_argument("--iters", type=int, default=HP["iters"])  # FIXED = baseline's 12000
     ap.add_argument("--eval-only", action="store_true")
     args = ap.parse_args()
+
+    global SYNTH, DATASET, COMBINED_ANN
+    SYNTH = args.synth
+    DATASET = f"gateA_{SYNTH}"
+    COMBINED_ANN = f"annotation_train_{SYNTH}.txt"
 
     outdir = f"runs/{DATASET}_seed{args.seed}"
     os.makedirs(outdir, exist_ok=True)
