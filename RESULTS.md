@@ -430,3 +430,40 @@ exactly this). The §7 audit passed because it measures aggregate image-statisti
 Per §8.2, fixing legibility is **hygiene, not a re-gate attempt.** Next: cap over-degradation so crops are
 **hard-but-legible** (preserve §7 hard-tail coverage), re-audit §7, re-gate at 10k. Judgment flagged for brain:
 treating legibility as §8.2 hygiene (not the §8.3 Attempt-1 strata-targeting, which stays available).
+
+### Gate-A HYGIENE RE-GATE (`synth10k_leg`, legibility-fixed) — still RED, but HEALTHY — 2026-07-11
+Fix applied (§8.2 hygiene, does **not** burn a re-gate attempt): per-crop **severity budget** in
+`engine/render.py` — one latent `sev` scales photometric+sensor degradations coherently (mild-OR-hard, never
+independently-maxed on every axis); glare/motion gated to high sev; low-contrast floored at 0.42; defocus
+height-capped. **Eyeball illegible ~26% → ~6%**; **§7 audit re-PASS** (still reaches real's hard tail on all
+6 stats, none systematically cleaner). Set regenerated as `synth10k_leg` (the RED `synth10k` is preserved).
+Everything else identical: same HP, **iters=12,000 FIXED**, k=3 seeds, rec-only test-500, frozen denominator.
+Scripts: `scripts/train_gateA.py --synth synth10k_leg` · `aggregate_gateA.py --dataset gateA_synth10k_leg`.
+
+| metric | baseline mean ± 95%CI | **RED run** (over-degraded) | **leg run** (legibility-fixed) | Δ leg−base | CIs |
+|---|---|---|---|---|---|
+| **CER** | 9.381 ± 0.368 | 9.521 ± 0.895 | **9.419 ± 0.237** | **+0.038** (flat) | OVERLAP |
+| WER | 19.291 ± 0.797 | 19.353 ± 1.000 | 19.166 ± 0.079 | −0.125 ✓ | OVERLAP |
+| exact-match | 81.870 ± 0.757 | 81.850 ± 0.838 | 82.125 ± 0.284 | +0.255 ✓ | OVERLAP |
+| Axis1 base | 94.114 ± 0.391 | 94.041 ± 0.656 | 94.175 ± 0.278 | +0.061 ✓ | OVERLAP |
+| Axis2 modifier | 96.252 ± 0.274 | 96.252 ± 0.600 | 96.387 ± 0.280 | +0.135 ✓ | OVERLAP |
+| **Axis3 tone** | 94.410 ± 0.281 | 94.374 ± 0.553 | **94.568 ± 0.463** | **+0.158** ✓ | OVERLAP |
+
+Per-seed CER — leg: **9.320 / 9.427 / 9.510** (range 0.19); RED: 9.373 / 9.932 / 9.258 (range 0.67);
+baseline: 9.395 / 9.226 / 9.521 (range 0.30).
+
+- **Pre-registered GATE-A condition (EVAL_PROTOCOL §7): STILL NOT MET → RED.** CER Δ is +0.038 (flat, vs the
+  ~≥0.7 pp the frozen floor requires); tone improved (+0.158) but its CI overlaps baseline's.
+- **The hygiene fix worked, exactly as bug-check (b) predicted:** seed **variance collapsed** — CER 95%CI
+  **±0.895 → ±0.237**, now *below* the baseline's own ±0.368. The illegible-crop noise was the variance driver.
+- **Every axis flipped from negative/flat to positive** (tone, modifier, base, exact, WER all improve). The
+  synthetic now *trends* helpful — but the magnitude is a rounding error against the pre-registered bar.
+- **This is the §8.3 mechanism showing up empirically:** clean, legible, **marginal-matched** synthetic
+  reproduces real's *rate* of hard crops, so 10k adds only a few hundred hard examples on top of the ~1,300
+  the 25.7k real crops already contain. Covering the marginals is **necessary but not sufficient** — which is
+  precisely what §8.3's pre-declared Attempt 1 (over-represent the *failure strata*) exists to fix.
+
+> **BRAIN CHECKPOINT — reported, NOT self-adjudicated.** A Gate-A number was produced, so I STOP here.
+> Attempt 1 (§8.3) would spend **1 of only 2** pre-registered re-gate attempts (§8.1) — a budget the brain
+> locked specifically to prevent p-hacking by iteration — so it is **not** started unilaterally, even though
+> it is pre-declared. Awaiting brain direction.

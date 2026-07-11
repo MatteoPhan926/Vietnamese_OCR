@@ -68,10 +68,20 @@ STEP-1 BUG-CHECKS DONE (2026-07-11, this session; §8.2 — do NOT burn an attem
   heavy degradations coherently (mild-OR-hard, not all-maxed); glare/motion gated to high sev; low-contrast
   floored 0.42; defocus height-capped. Eyeball illegible ~26% -> ~6%; §7 re-PASS (still reaches hard tail).
   Regenerated set = data/crops/synth10k_leg (kept SEPARATE from the RED synth10k for provenance).
-  RE-GATE IN FLIGHT: scripts/train_gateA.py --synth synth10k_leg, k=3, FIXED HP iters=12000, dataset
-  gateA_synth10k_leg (fresh lmdb). Aggregate: scripts/aggregate_gateA.py --dataset gateA_synth10k_leg.
-  This is a §8.2 HYGIENE re-gate (does NOT burn Attempt 1); §8.3 strata-targeting stays available if still RED.
-  FLAG for brain at the re-gate checkpoint: legibility treated as hygiene per §8.2(b/d).
+  HYGIENE RE-GATE DONE (k=3, synth10k_leg): STILL RED by the pre-registered rule, but HEALTHY.
+    CER  base 9.381±0.368 -> leg 9.419±0.237 (Δ +0.038 FLAT, overlap)   [RED run was 9.521±0.895]
+    tone base 94.410±0.281 -> leg 94.568±0.463 (Δ +0.158 improved, overlap)
+    base +0.061, mod +0.135, exact +0.255, WER -0.125 -> ALL AXES NOW POSITIVE (were negative/flat).
+    per-seed CER 9.320/9.427/9.510 (range 0.19 vs RED's 0.67).
+    VARIANCE COLLAPSED: CER 95%CI ±0.895 -> ±0.237 (below baseline's own ±0.368) => bug-check (b) confirmed:
+    illegible crops WERE the variance driver. Hygiene worked; it just does not clear the bar.
+    => Empirically confirms §8.3's mechanism: marginal-matched synthetic reproduces real's RATE of hard crops
+       (a rounding error vs the ~1,300 hard crops already in the 25.7k real). Covering marginals = necessary,
+       NOT sufficient. This is exactly what Attempt 1 (over-represent the FAILURE STRATA) is for.
+  ⛔ STOPPED AT BRAIN CHECKPOINT. Attempt 1 (§8.3) would spend 1 of only 2 budgeted attempts (§8.1) — the
+  budget the brain locked to prevent p-hacking-by-iteration — so it is NOT started unilaterally even though
+  pre-declared. AWAITING BRAIN DIRECTION (greenlight Attempt 1 as pre-declared, or adjust given the healthy RED).
+  Attempt-1 plan is ready: re-weight generation toward tilt>=20deg, contrast<0.20, height<12px, 1-2 char crops.
 NEXT ACTION   : 🧠 GATE-A RED ADJUDICATED BY BRAIN 2026-07-11. RED is ACCEPTED as correctly called (the
                 gate worked: caught at 10k, not at 200k). Do NOT scale. Do NOT start Stage 3. Proceed in
                 this exact order — new locks are in DATA_ENGINE §8.1/§8.2/§8.3, EVAL_PROTOCOL §14,
