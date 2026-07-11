@@ -562,3 +562,28 @@ a document-pretrained recognizer with 25.7k real crops: **generating it was not 
 > also RED, the finding is *"10k synthetic gives no lift at full real data"* (reported at full prominence)
 > and the project moves to the **pre-registered** real-data-budget axis (EVAL_PROTOCOL §14) —
 > a contingency reserved before Stage 0, not a post-hoc rescue.
+
+### INS/DEL/SUB decomposition — the B−A tradeoff MECHANISM, verified — 2026-07-11
+`scripts/insdel_decomp.py` (reuses the single `scorer.align`) over the existing `predictions.tsv` of all
+three arms, k=3. **Why it matters:** the three axes are scored on *matched* positions — a **substitution or
+deletion charges the axes**, but an **insertion has no reference position and charges CER/WER only**. So the
+odd "axes UP while CER UP" pattern in arm B *must* be insertion-driven, or the tradeoff story is wrong.
+
+| arm | sub /100ch | del /100ch | ins /100ch | CER% |
+|---|---|---|---|---|
+| A (baseline) | 6.806 ± 0.326 | 1.461 ± 0.239 | 1.114 ± 0.116 | 9.381 |
+| B (strata aug) | 6.926 ± 0.177 | **1.362 ± 0.020** | **1.348 ± 0.112** | 9.637 |
+| C (aug + synth) | 6.848 ± 0.064 | 1.365 ± 0.114 | 1.407 ± 0.130 | 9.620 |
+
+**`B − A`: sub +0.121 · del −0.099 · ins +0.234 · CER +0.256** → the CER regression is **92% insertions**.
+
+> **`[MECHANISM CONFIRMED, and sharpened]`** Deletions *improved* (−0.099) and insertions *worsened*
+> (+0.234). Because a **deletion charges every applicable axis** (a dropped character is all-axes-wrong)
+> while an **insertion charges none**, this is precisely why the axes rise while CER falls: strata
+> augmentation makes the recognizer **less willing to DROP a character** (axes up: base +0.075, modifier
+> +0.114, tone +0.132) but **more willing to HALLUCINATE one** (CER +0.256, WER +0.335). The write-up claim
+> is therefore stated as **insertions**, not the vaguer "length errors": *aggressive augmentation buys
+> per-character robustness and pays for it in hallucinated characters.*
+
+**`C − B`** (synthetic's effect on the error mix at matched augmentation): sub −0.079 · del +0.004 ·
+ins +0.058 · **CER −0.017** — i.e. nothing, consistent with the C≈B null above.
