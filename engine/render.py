@@ -43,18 +43,26 @@ DEFAULT_CFG = dict(
     p_rotate=0.72, rot_deg=15.0,               # +-, covers the tilt>=20 worst stratum tail
     p_shear=0.45, shear=0.18,
     p_curve=0.15, curve_amp=0.06,              # mild baseline curvature (frac of height)
+    # --- severity budget (legibility hygiene, 2026-07-11) ---------------------
+    # A single per-crop latent `sev` in [0,1] scales ALL heavy degradations coherently, so a
+    # crop is mild OR hard as a whole, never independently-maxed on every axis at once (the
+    # ~26% illegible fraction = training noise, DATA_ENGINE §8.2 bug-check b/d). sev is biased
+    # LOW; the heaviest ops only engage at high sev; maxima are capped so hard crops stay
+    # LEGIBLE. §7 hard-tail coverage is preserved because high-sev crops still hit low
+    # contrast / blur / small size -- just not all-destroyed simultaneously.
+    sev_bias=1.5,                              # sev = U^sev_bias  (higher -> more mass at low sev)
     # photometric
-    p_illum=0.65, illum_strength=0.35,         # smooth multiplicative gradient
-    p_lowcontrast=0.32, contrast_min=0.30,     # compress dynamic range toward the real low end
-    p_glare=0.13, glare_strength=0.45,
-    p_shadow=0.22, shadow_off=0.06,            # cast-shadow offset (frac of text height)
+    p_illum=0.6, illum_strength=0.32,          # scaled by sev
+    p_lowcontrast=0.5, contrast_min=0.42,      # a = 1 - sev*(1-contrast_min); floor keeps text readable
+    p_glare=0.10, glare_strength=0.28, glare_sev=0.7,   # glare only when sev>glare_sev (blows highlights)
+    p_shadow=0.22, shadow_off=0.06,
     # resolution / sensor (applied LAST, at/near target height)
     p_clean=0.30,                              # near-pristine crops -> cover the SHARP/high-contrast end
-    supersample_max=1.8,                       # render at up to 1.8x target -> downscale = low-res
-    p_defocus=0.45, defocus_sigma=1.1,         # kernel is height-capped so small crops survive
-    p_motion=0.25, motion_len=9,
-    p_jpeg=0.75, jpeg_qmin=32, jpeg_qmax=92,
-    p_noise=0.45, noise_sigma=10.0,
+    supersample_max=1.8,
+    p_defocus=0.6, defocus_sigma=1.5,          # sigma scales with sev; height-capped so tiny crops survive
+    p_motion=0.35, motion_len=8, motion_sev=0.5,        # motion only when sev>motion_sev
+    jpeg_qmin=34, jpeg_qmax=93,                # q = qmax - sev*(qmax-qmin); always applied
+    p_noise=0.6, noise_sigma=9.0,              # sigma scales with sev
     # background / appearance
     p_real_bg=0.82,                            # else synthetic solid/gradient
     contrast_margin=95,                        # min text-vs-bg luminance gap (before degradation)
@@ -250,7 +258,7 @@ class Generator:
         return cv2.warpPerspective(img, M, (W, H), flags=cv2.INTER_CUBIC,
                                    borderMode=cv2.BORDER_REFLECT)
 
-    def _photometric(self, img):
+    def _photometric(self, img, sev):
         cfg = self.cfg
         H, W = img.shape[:2]
         img = img.astype(np.float32)
@@ -258,21 +266,22 @@ class Generator:
             gx, gy = self.rng.uniform(-1, 1), self.rng.uniform(-1, 1)
             yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
             g = (xx / W - 0.5) * gx + (yy / H - 0.5) * gy
-            g = 1.0 + cfg["illum_strength"] * g
+            g = 1.0 + cfg["illum_strength"] * sev * g            # scaled by severity
             img = img * g[..., None]
-        if self.rng.random() < cfg["p_glare"]:
+        if sev > cfg["glare_sev"] and self.rng.random() < cfg["p_glare"]:
             cx, cy = self.rng.uniform(0, W), self.rng.uniform(0, H)
             yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
             r = np.exp(-(((xx - cx) / (0.3 * W)) ** 2 + ((yy - cy) / (0.3 * H)) ** 2))
-            img = img + cfg["glare_strength"] * 255 * r[..., None] * self.rng.uniform(0.3, 1.0)
+            img = img + cfg["glare_strength"] * 255 * r[..., None] * self.rng.uniform(0.2, 0.7)
         if self.rng.random() < cfg["p_lowcontrast"]:
-            a = self.rng.uniform(cfg["contrast_min"], 1.0)
+            # contrast retained = 1 at sev 0, floored at contrast_min at sev 1 (readable floor)
+            a = 1.0 - sev * (1.0 - cfg["contrast_min"])
             mean = img.mean()
             img = mean + (img - mean) * a
-            img = img + self.rng.uniform(-30, 30)  # lift/drop level
+            img = img + self.rng.uniform(-25, 25) * sev
         return np.clip(img, 0, 255).astype(np.uint8)
 
-    def _resolution(self, img, target_h, clean=False):
+    def _resolution(self, img, target_h, clean=False, sev=0.0):
         cfg = self.cfg
         if img.dtype != np.uint8:                       # clean path skips _photometric's cast
             img = np.clip(img, 0, 255).astype(np.uint8)
@@ -292,13 +301,13 @@ class Generator:
                 img = cv2.imdecode(enc, cv2.IMREAD_COLOR)
             return img
         if self.rng.random() < cfg["p_defocus"]:
-            # cap sigma relative to crop height so a 10px crop is not annihilated
-            smax = min(cfg["defocus_sigma"], max(0.5, target_h / 16.0))
-            s = self.rng.uniform(0.35, smax)
+            # sigma scales with severity, capped relative to crop height (tiny crops survive)
+            smax = min(cfg["defocus_sigma"] * (0.4 + 0.6 * sev), max(0.5, target_h / 12.0))
+            s = self.rng.uniform(0.35, max(0.4, smax))
             k = int(2 * round(s) + 1)
             img = cv2.GaussianBlur(img, (k, k), s)
-        if self.rng.random() < cfg["p_motion"]:
-            L = self.rng.randint(3, cfg["motion_len"])
+        if sev > cfg["motion_sev"] and self.rng.random() < cfg["p_motion"]:
+            L = self.rng.randint(3, max(4, int(3 + (cfg["motion_len"] - 3) * sev)))
             ker = np.zeros((L, L), np.float32)
             ang = self.rng.uniform(0, np.pi)
             cx = (L - 1) / 2
@@ -310,13 +319,13 @@ class Generator:
             ker /= max(ker.sum(), 1)
             img = cv2.filter2D(img, -1, ker)
         if self.rng.random() < cfg["p_noise"]:
-            n = self.np_rng.normal(0, self.rng.uniform(3, cfg["noise_sigma"]), img.shape)
+            n = self.np_rng.normal(0, self.rng.uniform(2, max(2.5, cfg["noise_sigma"] * sev)), img.shape)
             img = np.clip(img.astype(np.float32) + n, 0, 255).astype(np.uint8)
-        if self.rng.random() < cfg["p_jpeg"]:
-            q = self.rng.randint(cfg["jpeg_qmin"], cfg["jpeg_qmax"])
-            ok, enc = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, q])
-            if ok:
-                img = cv2.imdecode(enc, cv2.IMREAD_COLOR)
+        # jpeg always applied; quality scales inversely with severity
+        q = int(round(cfg["jpeg_qmax"] - sev * (cfg["jpeg_qmax"] - cfg["jpeg_qmin"])))
+        ok, enc = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, q])
+        if ok:
+            img = cv2.imdecode(enc, cv2.IMREAD_COLOR)
         return img
 
     # ---- one crop ------------------------------------------------------------
@@ -338,9 +347,12 @@ class Generator:
                 continue
             crop, _ = self._compose(mask)
             crop = self._geometric(crop, light=clean)   # geometry always applies (scene angles)
+            # per-crop severity latent (biased low); scales photometric + sensor coherently so
+            # crops are mild-OR-hard, not independently-destroyed on every axis (legibility hygiene)
+            sev = self.rng.random() ** self.cfg["sev_bias"]
             if not clean:
-                crop = self._photometric(crop)
-            crop = self._resolution(crop, target_h, clean=clean)
+                crop = self._photometric(crop, sev)
+            crop = self._resolution(crop, target_h, clean=clean, sev=sev)
             if crop.shape[0] < 3 or crop.shape[1] < 3:
                 continue
             return crop, text, font["family"]
