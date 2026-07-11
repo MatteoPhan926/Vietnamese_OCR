@@ -55,9 +55,54 @@ LAST DONE     : Stage 1 CER-decomposition (kill-test) + stratifications + detect
                     Off-the-shelf db_resnet50 (~48% F1) gives an UPPER bound on detection-induced error —
                     wrong side for the §7 decision, so producing no e2e number was the CORRECT call.
                 DATA_ENGINE.md §12 (Stage-1 findings) added by brain. In repo.
-NEXT ACTION   : ⛔ GATE A = RED. STOP — awaiting BRAIN adjudication of the red diagnosis (§8). Do NOT
-                scale to 200k, do NOT start Stage 3, do NOT unilaterally change the engine + re-gate.
-                Reported to brain 2026-07-11 (RESULTS.md Stage 2 + runs/gateA_synth10k_summary.json).
+STEP-1 BUG-CHECKS DONE (2026-07-11, this session; §8.2 — do NOT burn an attempt):
+  (a) undertraining: val end-slopes (8-12k) baseline +.0058/+.0010/+.0013 vs gateA +.0079/+.0009/-.0006
+      per-1k -> BOTH plateaued & comparable; dilution-undertraining weakly supported at best.
+  (b) legibility: ~13/50 (~26%) synth crops illegibly OVER-DEGRADED (labels correct, signal destroyed)
+      = training noise -> explains the 2.4x variance blow-up. (data/synth/_bugcheck_50.png)
+  (c) labels: PASS — 0 non-NFC, 0 OOV over 10,000.
+  (d) synth-test CER 16-17% (vs 9.4% real), exact 72-74% (vs 82%) -> model did NOT cleanly learn synth;
+      illegible fraction is unlearnable noise. (scripts/bugcheck_synthtest.py)
+  VERDICT: RED confounded by over-degradation noise (§8.2 HYGIENE defect, NOT yet the §8.3 transfer finding).
+  ACTING NOW (user said 'continue & make gate A green'): fix legibility as §8.2 HYGIENE (cap over-degradation
+  to hard-but-LEGIBLE, keep §7 hard-tail coverage) -> re-audit §7 -> re-gate @10k. Does NOT burn Attempt 1.
+  FLAG for brain at the re-gate checkpoint: treating legibility as hygiene; §8.3 strata-targeting stays available.
+NEXT ACTION   : 🧠 GATE-A RED ADJUDICATED BY BRAIN 2026-07-11. RED is ACCEPTED as correctly called (the
+                gate worked: caught at 10k, not at 200k). Do NOT scale. Do NOT start Stage 3. Proceed in
+                this exact order — new locks are in DATA_ENGINE §8.1/§8.2/§8.3, EVAL_PROTOCOL §14,
+                SCALING §2 (all delivered by brain, in repo):
+                STEP 1 — BUG-CHECKS FIRST (DATA_ENGINE §8.2). These do NOT burn a re-gate attempt:
+                  (a) val curves from the EXISTING logs: still climbing at iter 12k? -> the RED is partly
+                      an undertraining artifact (10k synth cut real from ~15 to ~11 epochs at equal
+                      compute). If undertrained, re-run BOTH ARMS at scaled iters (never synth alone).
+                  (b) eyeball ~50 synth crops vs labels (illegible/misaligned = training noise, and noise
+                      explains the 2.4x variance blow-up).
+                  (c) assert every synth label is NFC AND charset ⊆ model vocab (NFD/OOV from wiki_vi
+                      silently corrupts targets).
+                  (d) score the synth-trained model on HELD-OUT SYNTHETIC. Didn't learn synth -> broken
+                      pipeline. LEARNED synth but real flat -> data is fine, it simply DOES NOT TRANSFER
+                      = the real finding. (Sanity check only, never a result.)
+                  Report (a)-(d) to brain before touching the engine.
+                STEP 2 — RE-GATE ATTEMPT 1 of MAX 2 (DATA_ENGINE §8.3), pre-declared, ONE change:
+                  TARGET THE FAILURE STRATA instead of matching real's marginals. The §7 audit passing
+                  while Gate A went RED IS the finding: covering marginals is necessary, NOT sufficient.
+                  A marginal-matched generator reproduces real's RATE of hard crops (~few hundred hard-tilt
+                  in 10k) against the ~1,300 the 25.7k real crops already have = a rounding error.
+                  -> re-weight generation heavily toward tilt>=20deg, contrast<0.20, height<12px,
+                     1-2 char crops (the 23-30% CER strata vs 9.4% overall). Re-gate at 10k.
+                STEP 3 — if Attempt 2 is also RED: the FINDING is "10k synthetic gives no lift at full real
+                  data" (reported at full prominence), and the project moves to the PRE-REGISTERED
+                  real-data-budget axis (EVAL_PROTOCOL §14): r in {10,25,50,100}% real x {with,without}
+                  synth, k=3 -> the label-efficiency curve. That axis was reserved in §6 BEFORE Stage 0;
+                  it is a contingency, NOT a post-hoc rescue.
+                ALSO LOCKED NOW (SCALING §2): the curve must use a WEIGHTED SAMPLER holding the per-batch
+                  real:synth ratio FIXED. Uniform pooled sampling at fixed iters would make 200k synth =
+                  89% of every batch (real collapses ~15 -> ~1.5 epochs) — the curve would measure its own
+                  sampler, not the data. Fatal; fixed before Stage 3 ever runs.
+                PROTOCOL FLAGS ANSWERED: (1) fixed-iters was the CORRECT conservative call; the val curves
+                  (Step 1a) decide whether epoch-constant is needed — and if so, BOTH arms get it.
+                  (2) The §7 asymmetric verdict is ACCEPTED, but §7 is now known to be necessary-not-
+                  sufficient (that is Attempt 1's whole mechanism).
 GATE A RESULT (k=3, rec-only test-500, frozen denom 10,068/37,254; FIXED HP iters=12000 = baseline):
                 CER  base 9.381±0.368 -> gateA 9.521±0.895  (Δ +0.140, WORSE, CIs OVERLAP)
                 tone base 94.410±0.281 -> gateA 94.374±0.553 (Δ -0.036, FLAT, CIs OVERLAP)

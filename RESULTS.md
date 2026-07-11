@@ -413,3 +413,20 @@ inflates the mean + variance.
 > **BRAIN CHECKPOINT — reported, NOT self-adjudicated.** Per BUILD_PLAN Stage 2 + EVAL_PROTOCOL §7, a RED
 > means **STOP, do not scale to 200k**; the design brain reads the red diagnosis and picks the ONE §8 fix
 > (degradation-first) before a re-gate at 10k. No engine change or re-gate was made unilaterally.
+
+### Gate-A RED — bug-checks (DATA_ENGINE §8.2, do NOT burn a re-gate attempt) — 2026-07-11
+Brain adjudicated the RED (2026-07-11) as correctly called; ordered the §8.2 bug-checks before any fix.
+
+| check | method | result |
+|---|---|---|
+| **(a) undertraining / dilution** | end-slope of val full-seq acc over iters 8k–12k, both arms, k=3 (`train.log`) | baseline slopes +0.0058/+0.0010/+0.0013, gateA +0.0079/+0.0009/−0.0006 per-1k-iters. **Both plateaued and COMPARABLE** — gateA is not climbing steeper than baseline, so dilution-undertraining is weakly supported at best. |
+| **(b) legibility** | eyeball 50 random `synth10k` crops vs labels (seed 42) → `data/synth/_bugcheck_50.png` | **~13/50 (~26%) illegibly over-degraded.** Labels are CORRECT (not misaligned); the degradation stack destroyed all recoverable text signal (e.g. `3000`, `TIỆM`, `GIÁP`, `NAM` are pure blur). **Training noise.** |
+| **(c) label integrity** | assert every `synth10k` label NFC ∧ charset ⊆ model vocab | **PASS** — 0 non-NFC, 0 OOV over 10,000 labels. |
+| **(d) was synth learned?** | score each gateA model on held-out synthetic (seed 777, n=2000, disjoint from train) — `scripts/bugcheck_synthtest.py` | synth-test CER **16.0–17.0%** (vs 9.4% on real), exact-match **72–74%** (vs 82% real). Model did **NOT** cleanly learn synthetic — the illegible fraction is unlearnable noise. |
+
+**Bug-check verdict:** the RED is substantially confounded by **over-degradation → ~26% illegible crops =
+training noise** (a §8.2 hygiene defect), which also explains the **2.4× seed-variance inflation** (§8.2 predicted
+exactly this). The §7 audit passed because it measures aggregate image-statistics, not per-crop legibility.
+Per §8.2, fixing legibility is **hygiene, not a re-gate attempt.** Next: cap over-degradation so crops are
+**hard-but-legible** (preserve §7 hard-tail coverage), re-audit §7, re-gate at 10k. Judgment flagged for brain:
+treating legibility as §8.2 hygiene (not the §8.3 Attempt-1 strata-targeting, which stays available).
