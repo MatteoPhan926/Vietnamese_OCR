@@ -6,6 +6,7 @@ REAL result means the data simply DOES NOT TRANSFER (the real finding). If synth
 also high, the pipeline is broken. Synthetic-test accuracy is a SANITY CHECK ONLY, never a
 result (SCALING §6).
 """
+import argparse
 import glob
 import json
 import sys
@@ -42,11 +43,14 @@ def gen_heldout():
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--runs", type=str, default="runs/gateA_synth10k_seed[0-9]/best.pth")
+    args = ap.parse_args()
     crops, labels = gen_heldout()
     print(f"held-out synthetic: {len(crops)} crops (seed {HELDOUT_SEED}, disjoint from train seed 100)\n")
     cfg = load_config()
     cfg["dataset"] = dict(image_height=32, image_min_width=32, image_max_width=512)
-    for wpath in sorted(glob.glob("runs/gateA_synth10k_seed[0-9]/best.pth")):
+    for wpath in sorted(glob.glob(args.runs)):
         rec = Recognizer(cfg, weights=wpath)
         preds = rec.predict(crops, max_batch=48)
         sc = Score()

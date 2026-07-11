@@ -467,3 +467,50 @@ baseline: 9.395 / 9.226 / 9.521 (range 0.30).
 > Attempt 1 (§8.3) would spend **1 of only 2** pre-registered re-gate attempts (§8.1) — a budget the brain
 > locked specifically to prevent p-hacking by iteration — so it is **not** started unilaterally, even though
 > it is pre-declared. Awaiting brain direction.
+
+### STEP 0 (DATA_ENGINE §8.4 + §8.2d) — the AUGMENTATION CONFOUND, verified — 2026-07-11
+
+**(i) `[VERIFY→RESOLVED BY MEASUREMENT]` What `image_aug=True` actually applies.** §8.4 locked "VERIFY
+FIRST, do not assume." Measured from the **installed** vietocr (`vietocr/loader/aug.py::ImgAugTransformV2`,
+albumentations **2.0.8**), dumped via `Compose.to_dict()`:
+
+| transform | p | strength (exact) |
+|---|---|---|
+| `InvertImg` | 0.2 | colour inversion |
+| `ColorJitter` | 0.2 | brightness/contrast/saturation (0.8, 1.2); hue (−0.5, 0.5) |
+| `MotionBlur` | 0.2 | **blur_limit (3, 3)** — fixed 3-px kernel |
+| `RandomBrightnessContrast` | 0.2 | brightness_limit **(−0.2, 0.2)**; contrast_limit **(−0.2, 0.2)** |
+| `Perspective` | 0.5 | **scale (0.01, 0.05)** — tiny corner jitter |
+| `RandomDottedLine` (vietocr) | 0.5 | 1 random dotted/dashed/solid line drawn over the crop |
+
+**ABSENT: rotation, shear, Gaussian/defocus blur, noise, JPEG compression, downsample/resolution.**
+
+> **`[FINDING — partially REFUTES §8.4's stated premise]`** §8.4 asserted the default augmentation "already
+> applies blur, motion blur, noise, JPEG compression, perspective and affine/shear," making the §6
+> degradation model "largely redundant." **It does not.** Noise, JPEG, shear/rotation and Gaussian blur are
+> absent; blur and perspective exist only in very mild form. So the **redundancy** mechanism is *not* what
+> flattened Gate A.
+>
+> **But §8.4's DESIGN gets stronger, not weaker** (and §8.4 explicitly branched on this verification, so no
+> `[LOCKED]` decision is invalidated): the baseline is **under-augmented on exactly the measured failure
+> strata** — tilt ≥20° (30.3% CER) is untouched by a 0.01–0.05 perspective; contrast <0.20 (27.6%) is barely
+> moved by ±0.2; height <12 px (22.9%) is never manufactured. **Arm B therefore has large headroom**, and
+> §15's raised comparator is essential: a "+X% from synthetic" claim measured against *this* baseline would
+> be a strawman.
+
+**(ii) §8.2(d) on the leg models — the transfer verdict.** Held-out synthetic (seed 777, n=2000, disjoint
+from the 10k train set), `scripts/bugcheck_synthtest.py`:
+
+| model | synth-test CER | exact-match | tone | real-test CER |
+|---|---|---|---|---|
+| **A — baseline** (never saw synthetic) | **26.4%** (26.65/26.79/25.82) | 58.4% | 80.6% | 9.381 |
+| **leg** (trained on 10k synthetic) | **16.0%** (15.74/16.08/16.19) | 74.2% | 88.6% | 9.419 |
+
+> **`[THE FINDING]` The model LEARNED the synthetic distribution decisively** — synth-test CER **26.4 → 16.0**
+> (−39% relative), exact-match +15.8 pp, tone +8.0 pp — **while real-test CER did not move at all**
+> (9.381 → 9.419). Per §8.2(4) this is the clean verdict: **the data and pipeline are fine; the synthetic
+> simply DOES NOT TRANSFER to real VinText.** Not a bug — the real result. (Synthetic-test accuracy is a
+> sanity check only, never a result — SCALING §6.)
+>
+> This is precisely what §8.4's mechanism predicts: **a REAL crop degraded to be hard is strictly more
+> informative than a RENDERED crop degraded to be hard.** It motivates the three-arm test directly.
