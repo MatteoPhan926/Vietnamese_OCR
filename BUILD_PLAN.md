@@ -136,7 +136,17 @@ STEP-2 IN FLIGHT — §14 BUDGET AXIS (per FROZEN §14.1):
     between MEASURED points, never extrapolate; N=(r'-r)x25,742). Per-point rule UNCHANGED:
     non-overlapping 95% CI on CER AND tone. A green at r<100% is a LABEL-EFFICIENCY claim ONLY;
     the r=100% null (C≈B) keeps FULL prominence everywhere.
-IN-FLIGHT     : §14 budget axis, batch 1 of 9 (r10 real seeds 0,1). Attempt 2 HELD IN RESERVE (not spent).
+  ✅ r=10% COMPLETE (k=3 both arms) — CIs NON-OVERLAPPING on BOTH CER and tone (per-point rule MET):
+       real-only   CER 16.538±2.350  (17.622/16.108/15.883)   tone 89.336±1.704
+       real+synth  CER 13.181±0.290  (13.062/13.185/13.295)   tone 91.987±0.099
+       GAP         CER +3.357 pp                              tone +2.651 pp
+     => At a SCARCE label budget the synthetic SUBSTITUTES for real labels — the §14 "gap widens as
+        r shrinks" outcome. Coherent with §8.2(d): the model LEARNS synth fine; that knowledge is
+        REDUNDANT with what 25.7k real crops already teach, so it only pays off when real data is thin.
+     ⚠ LABEL-EFFICIENCY CLAIM ONLY, for r=10%. It does NOT rehabilitate the full-real null (C≈B).
+        Per §14 the r=100% RED keeps FULL prominence. NEVER claimable: "synthetic improves Vietnamese OCR".
+IN-FLIGHT     : §14 budget axis — r10 DONE (6/18). Now r25 real seeds 0,1. Then r25 synth, r50 both arms.
+                Attempt 2 HELD IN RESERVE (not spent).
 PARALLEL/LATER: (a) GOLD manual double-pass (2,437-instance sheet ready, empty) — needed before the FINAL
                 curve numbers + the model-vs-label artifact (§4). NOT blocking Stage 2.
                 (b) DBNet fine-tune -> e2e number (§5) — deferred; pipeline-completeness, not the flagship.
