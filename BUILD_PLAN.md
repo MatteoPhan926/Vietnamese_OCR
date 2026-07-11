@@ -82,97 +82,61 @@ STEP-1 BUG-CHECKS DONE (2026-07-11, this session; §8.2 — do NOT burn an attem
   budget the brain locked to prevent p-hacking-by-iteration — so it is NOT started unilaterally even though
   pre-declared. AWAITING BRAIN DIRECTION (greenlight Attempt 1 as pre-declared, or adjust given the healthy RED).
   Attempt-1 plan is ready: re-weight generation toward tilt>=20deg, contrast<0.20, height<12px, 1-2 char crops.
-STEP-0 DONE (2026-07-11, §8.4 + §8.2d) — committed:
-  (i) [VERIFY->RESOLVED] installed vietocr image_aug = ImgAugTransformV2 (albumentations 2.0.8):
-      InvertImg p.2 | ColorJitter p.2 | MotionBlur blur_limit(3,3) p.2 | RandomBrightnessContrast +-0.2 p.2
-      | Perspective scale(0.01,0.05) p.5 | RandomDottedLine p.5.
-      ABSENT: rotation, shear, gaussian blur, NOISE, JPEG, downsample/resolution.
-      => FINDING: partially REFUTES §8.4's "largely redundant" premise. BUT §8.4's DESIGN gets STRONGER:
-         baseline is UNDER-AUGMENTED on exactly the measured failure strata -> arm B has big headroom;
-         §15's raised comparator is essential. No [LOCKED] decision invalidated (§8.4 branched on this).
-  (ii) §8.2(d) THE FINDING: model LEARNED synthetic decisively but it DOES NOT TRANSFER.
-      held-out synth (n=2000): baseline CER 26.4% -> leg 16.0% (-39% rel), exact 58.4->74.2, tone 80.6->88.6,
-      while REAL test CER stayed FLAT (9.381 -> 9.419). Data/pipeline fine; TRANSFER is the failure.
-STEP-1 IN FLIGHT (Attempt 1 of max 2, as the §8.4 THREE-ARM experiment; B is a CONTROL, not an attempt):
-  engine/strata_aug.py = StrataAugment: manufactures the measured strata FROM REAL CROPS (perspective+shear
-    +rotation / contrast crushed <0.20 / downsample 8-12px), one stratum at a time, ON TOP of the exact
-    default aug (arm B = strict SUPERSET of A's aug; bar RAISED never lowered). SAME augmentor in B and C.
-    Measured on real crops: contrast<0.20 6.3%->23.3%, sharpness<200 9.7%->28.7%.
-  data/crops/synth10k_strata = §8.3 strata-targeted synth (over-represent strata, NOT marginal-match;
-    corpus short_rate 0.20). Legibility guard (§8.2 lesson): first pass sev .35-.75 gave ~50% illegible ->
-    stratum carries difficulty, rest MILD (sev .05-.30). Objective: baseline-model CER 41.8%/exact 43%
-    (vs leg 27.6%/57.5%) = +14pp over the synthetic domain gap, in line with real strata (+13..+21pp).
-    HARD-BUT-LEARNABLE, not noise.
-  RUN: scripts/train_arm.py --arm B|C --seed {0,1,2}; FIXED HP iters=12000; rec-only test-500 frozen denom.
-  AGGREGATE: B-A = what augmentation alone buys. C-B = PURE synthetic contribution at matched augmentation.
-    JUDGE C AGAINST B (§15). Outcomes: C>B = synth adds what aug cannot; C~B>A = "just augment harder"
-    (strong negative result); C~B~A = strata resist both -> EVAL_PROTOCOL §14 label-efficiency axis.
-  STATUS: ✅ ALL SIX RUNS DONE (k=3 per arm). ATTEMPT 1 = RED. ATTEMPT 1 OF 2 IS SPENT (§8.1).
-  RESULT (rec-only test-500, frozen denom, iters=12000 FIXED):
-    metric        A(base)         B(strata aug)   C(aug+synth)    B-A       C-B
-    CER          9.381±0.368     9.637±0.074     9.620±0.191    +0.256    -0.017
-    WER         19.291±0.797    19.626±0.392    19.462±0.551    +0.335    -0.164
-    exact       81.870±0.757    81.751±0.333    81.777±0.307    -0.119    +0.026
-    base        94.114±0.391    94.189±0.220    94.195±0.174    +0.075    +0.006
-    modifier    96.252±0.274    96.366±0.259    96.354±0.182    +0.114    -0.012
-    tone        94.410±0.281    94.542±0.142    94.493±0.117    +0.132    -0.049
-  FINDING 1 (B-A): "just augment harder" is NOT a free win — strata aug improves ALL THREE AXES
-    (base/mod/tone) but WORSENS CER/WER/exact. Axes score ALIGNED positions; CER/WER also charge
-    insert/delete => aug buys per-CHARACTER robustness at the cost of LENGTH errors.
-    => B is NOT uniformly stronger than A (breaks a §15 assumption). Strictest honest comparator =
-       better of {A,B} PER METRIC (C must beat A's CER AND B's tone). Flagged to brain.
-  FINDING 2 (C-B): at MATCHED augmentation the SYNTHETIC CONTRIBUTES NOTHING. Every metric |Δ|<0.17pp,
-    ALL CIs overlap (CER -0.017, tone -0.049). This is the §8.4 "C≈B" outcome = "aggressive augmentation
-    of real data captures everything this synthetic engine provides" — the honest answer to
-    "is synthetic worth generating, or should you just augment harder?" For a document-pretrained
-    recognizer with 25.7k real crops: GENERATING IT WAS NOT WORTH IT. (Strong negative result.)
-  GATE A: pre-registered condition NOT met on CER or tone -> RED.
-  NOTE flagged to brain: crops are perspective-RECTIFIED by crop_quad at BOTH train and test, so a literal
-    >=20deg rotation is not what the model ever sees; "geometric" is manufactured as strong perspective+
-    shear+moderate rotation (residual distortion). C-B is robust to this choice since B and C share the aug.
-NEXT ACTION   : 🧠 HYGIENE RE-GATE ADJUDICATED BY BRAIN 2026-07-11 (2nd checkpoint).
-                VERDICT: the legibility fix WAS legitimate hygiene, NOT a re-gate attempt (0 of 2 spent).
-                  Reason it is principled: §8.2 PREDICTED the signature (illegible crops = noise = inflated
-                  seed variance). The fix removed exactly that signature: CER CI +/-0.895 -> +/-0.237, now
-                  TIGHTER than the baseline's own +/-0.368. A falsifiable prediction, confirmed.
-                RED still correct: CER delta +0.038 (noise). BUT the picture CHANGED materially — all five
-                  non-CER metrics moved positive (WER -0.125, exact +0.255, base +0.061, mod +0.135, tone
-                  +0.158 with 3/3 seeds positive). Synthetic is no longer HARMFUL, only INSUFFICIENT.
-                  Checked and recorded: even a PAIRED test (more powerful than the pre-registered rule)
-                  fails — CER t=+0.46, tone t=+2.05 vs t_crit 4.30 (2 dof). The conservative rule is NOT
-                  what produced the RED. (Rule NOT changed — that would be goalpost-moving.)
-                *** THE BRAIN'S OWN MISS, now locked as DATA_ENGINE §8.4: the AUGMENTATION CONFOUND. ***
-                  The baseline runs image_aug=True — vietocr already applies blur/motion-blur/noise/JPEG/
-                  perspective/affine TO THE REAL CROPS every epoch. So the degradation model (§6) is largely
-                  REDUNDANT with an augmentation pipeline the comparator already has — and a REAL crop
-                  degraded hard beats a RENDERED crop degraded hard. This explains the flatness better than
-                  any ranked §8 suspect, and no doc caught it.
-NEXT STEPS (in order):
-                STEP 0 (free, DATA_ENGINE §8.2d + §8.4):
-                  (i) VERIFY what image_aug actually applies in the installed vietocr (exact transform list
-                      + strength ranges) -> record in the manifest. Do NOT assume.
-                  (ii) Score the leg model on HELD-OUT SYNTHETIC (the one §8.2 check never run). Learned
-                      synth but real flat => data is fine, it DOES NOT TRANSFER = the real finding. Didn't
-                      learn synth => still broken.
-                STEP 1 — ATTEMPT 1 APPROVED (1 of max 2), but as a THREE-ARM experiment (§8.4), k=3 each:
-                  A = baseline (real + default aug) — HAVE IT.
-                  B = real + STRATA-TARGETED AUGMENTATION, NO synth (tilt>=20deg, contrast<0.20, height
-                      <12px manufactured FROM REAL CROPS). *** B is a CONTROL, not an attempt. ***
-                  C = real + same strata-targeted aug + STRATA-TARGETED SYNTHETIC (§8.3).
-                  JUDGE C AGAINST B, NOT A. B-A = what augmentation alone buys. C-B = the PURE synthetic
-                  contribution at matched augmentation — the only honest answer to "was generating the
-                  synthetic worth it?" Comparing C to an under-augmented A is a STRAWMAN (EVAL_PROTOCOL §15:
-                  the comparator is the STRONGEST real-only config; the bar may be RAISED, never lowered).
-                  Every outcome is a finding: C>B = synth adds what aug cannot; C~B>A = "just augment
-                  harder" (strong negative result); C~B~A = the strata resist both -> go to §14.
-                STEP 2 — if Attempt 2 also RED: finding = "10k synthetic gives no lift at full real data"
-                  (reported at FULL prominence), then the PRE-REGISTERED real-data-budget axis
-                  (EVAL_PROTOCOL §14): r in {10,25,50,100}% real x {with,without} synth -> label-efficiency
-                  curve. Reserved in §6 BEFORE Stage 0 — a contingency, NOT a post-hoc rescue.
-                STILL LOCKED (SCALING §2): the curve needs a WEIGHTED SAMPLER holding per-batch real:synth
-                  ratio FIXED. Uniform pooled sampling at fixed iters => 200k synth = 89% of every batch
-                  (real collapses ~15 -> ~1.5 epochs); the curve would measure its own sampler.
-IN-FLIGHT     : none. All 3 Gate-A seeds complete; engine v0 + Gate-A scripts committed.
+NEXT ACTION   : 🧠 ATTEMPT-1 RED ADJUDICATED BY BRAIN 2026-07-11 (3rd checkpoint). Stage 2 at
+                full-real is CLOSED — answered, not stuck. Moving to the pre-registered budget axis.
+                ADJUDICATIONS:
+                  • Comparator stronger-of-{A,B} PER METRIC: APPROVED (strictest, bar-raising reading).
+                  • Attempt accounting CONFIRMED: 1 of 2 spent (B was a control; bug-checks free).
+                  • ATTEMPT 2: HELD IN RESERVE, NOT spent. Budget = CEILING, not quota. No mechanism-backed
+                    full-real hypothesis remains: scale→forbidden + refuted by learned-but-no-transfer;
+                    renderer-jump→a new project, and C≈B says hard-crop realism isn't the bottleneck;
+                    sequential-pretrain-slot→thin, the model already learns synth fine. Chasing a green at
+                    full-real = the §8.1 p-hack. Reopen ONLY if the §14 curve surfaces a new mechanism.
+                  • B−A tradeoff is a coherent PATTERN, not yet a claim: per-metric CIs overlap (A's CER CI
+                    ±0.368 swallows B). It becomes a write-up claim only after step 1 below.
+                  • FINDING (full prominence in every write-up): for a document-pretrained recognizer with
+                    25.7k real crops, at matched augmentation, this synthetic engine adds NOTHING (C≈B) —
+                    and "just augment harder" is itself a tradeoff, not a free win (B−A pattern).
+                NEXT STEPS (in order):
+                1) INS/DEL DECOMPOSITION (free, existing predictions.tsv, ALL arms A/B/C): count ins/del/sub
+                   per arm. KEY: axes exclude INSERTIONS (CER-only) but deletions DO charge axes — so the
+                   "axes up + CER up" B−A pattern points at INSERTIONS specifically. Verify before write-up;
+                   if deletions drive it instead, restate the tradeoff.
+                2) START the §14 budget axis per the FROZEN §14.1 spec (EVAL_PROTOCOL): r ∈ {10,25,50}%
+                   nested fixed-seed subsets × {real-only, real+synth10k_leg} × k=3 = 18 runs (~9h).
+                   r=100% REUSED (A + leg run). Default §6 config (NOT strata-aug). UNIFORM pooled sampling
+                   (synth fraction growing as r shrinks IS the phenomenon). Full val-300 at every r; report
+                   val-curve sanity per r (~150 real-epochs at r=10% real-only; best-val export guards).
+                3) Deliverable: the LABEL-EFFICIENCY CURVE (gap vs r) + the pre-registered readout
+                   "synthetic ≈ worth N real crops at budget r" (§14.1 interpolation rule). Per-point rule
+                   unchanged: non-overlapping CI on CER AND tone. A green at r<100% is a label-efficiency
+                   claim ONLY; the r=100% null keeps full prominence everywhere.
+STEP-1 DONE (2026-07-11) — INS/DEL/SUB decomposition (free, existing predictions.tsv, k=3):
+  arm   sub/100ch     del/100ch     ins/100ch    CER%
+  A     6.806±0.326   1.461±0.239   1.114±0.116  9.381
+  B     6.926±0.177   1.362±0.020   1.348±0.112  9.637
+  C     6.848±0.064   1.365±0.114   1.407±0.130  9.620
+  B-A: sub +0.121, del -0.099, ins +0.234, CER +0.256  => the regression is 92% INSERTIONS.
+  MECHANISM CONFIRMED + SHARPENED: deletions IMPROVED, and deletions charge EVERY axis (a dropped
+  char = all-axes-wrong) while insertions charge NONE -> that is exactly why axes rise as CER falls.
+  Strata aug makes the model less willing to DROP a char (axes up) and more willing to HALLUCINATE
+  one (CER/WER up). Write-up states INSERTIONS specifically, not vague "length errors". [commit]
+  C-B: sub -0.079, del +0.004, ins +0.058, CER -0.017 -> nothing (consistent with the C≈B null).
+STEP-2 IN FLIGHT — §14 BUDGET AXIS (per FROZEN §14.1):
+  scripts/make_subsets.py: NESTED fixed-seed subsets, seed=20260711 (one shuffle -> prefixes;
+    10 sub 25 sub 50 ASSERTED). r10=2,574 | r25=6,436 | r50=12,871 | r100=25,742 (reused).
+  scripts/train_budget.py: arms real(r) vs real(r)+synth10k_leg (FROZEN, same set every r).
+    §6 operating config: DEFAULT image_aug (NOT strata aug), fixed HP iters=12000, best-val on FULL
+    val-300. UNIFORM pooled sampling (synth fraction 28%@r100 -> 79%@r10 = the phenomenon, not a confound).
+    Verified at launch: r=10% real-only => ~149.2 epochs (matches §14.1's ~150 prediction).
+  RUNS: 3r x 2 arms x 3 seeds = 18 (~9h). r=100% REUSED (real=baseline A; synth=the leg run).
+  Batching 2 runs/launch (bg jobs get killed ~60-90min). Batch 1 = r10 real seeds 0,1 (bg b4plq0yfg).
+  AGGREGATE (to write): scripts/aggregate_budget.py -> gap-vs-r curve + the PRE-REGISTERED readout
+    "synthetic ~ worth N real crops at budget r" (§14.1: interpolate real-only curve linear in log r
+    between MEASURED points, never extrapolate; N=(r'-r)x25,742). Per-point rule UNCHANGED:
+    non-overlapping 95% CI on CER AND tone. A green at r<100% is a LABEL-EFFICIENCY claim ONLY;
+    the r=100% null (C≈B) keeps FULL prominence everywhere.
+IN-FLIGHT     : §14 budget axis, batch 1 of 9 (r10 real seeds 0,1). Attempt 2 HELD IN RESERVE (not spent).
 PARALLEL/LATER: (a) GOLD manual double-pass (2,437-instance sheet ready, empty) — needed before the FINAL
                 curve numbers + the model-vs-label artifact (§4). NOT blocking Stage 2.
                 (b) DBNet fine-tune -> e2e number (§5) — deferred; pipeline-completeness, not the flagship.
