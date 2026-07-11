@@ -358,3 +358,58 @@ stratum, so that bias would be large) · `###` regions treated as **don't care**
 > **§5 therefore stays OPEN.** It closes only after DBNet is fine-tuned on the VinText **train** split
 > (never val/test) and re-evaluated. Until then the e2e ceiling is **unstated**, and the §7 priority list
 > is **provisional**.
+
+---
+
+## Stage 2 — Synthetic engine v0 + Gate A @ 10k
+
+### Engine v0 (DATA_ENGINE §4–§6; measured §12 priorities) — built 2026-07-11
+- **Fonts (§5):** 30 Google-Fonts (SIL OFL, vietnamese subset) candidates → 3-check coverage gate
+  (glyph-exists / distinctness round-trip / visual audit). 27/30 PASS checks 1–2; all 27 pass visual
+  audit; **18 selected** for type diversity → `data/synth/fonts/fonts_manifest.json`.
+- **Corpus (§4):** Source B = VinText **train** transcripts verbatim (p=0.65, firewall=train only);
+  Source A = wiki_vi (HF `20231101.vi` rev b04c8d1) syllable freq bank (41,386 uniq / 2.0M tok),
+  case-augmented. Length/case targets **measured** from train (99% single-token, char median 3,
+  case 68/16/22, 10% digit, 6.6% 1-char) — supersedes §4's "1–4 token" guess.
+- **Generator (§6, §12 order):** render PASS font → composite on real train-scene bg patch (text-free,
+  train-only) → degradation GEOMETRIC → PHOTOMETRIC → RESOLUTION/BLUR. ~4.5 ms/crop (200k ≈ 15 min).
+- **§7 distribution audit (before any training): PASS** — synthetic reaches real's hard tail on all 6
+  stats (sharpness/contrast/lum_mean/lum_std/height/bg_edge), centers within ~1 IQR, **none
+  systematically cleaner than real**. (Verdict encodes §7's asymmetric stated intent — the danger is
+  "synthetic cleaner than real"; benign under-reach of the *easy* extreme is not a fail. Raw percentiles
+  in `data/crops/synth10k/manifest.json` for audit.)
+
+### Gate A — `[NEGATIVE RESULT — RED, recorded not buried]` (2026-07-11)
+Operating point (EVAL_PROTOCOL §6): document-pretrained pbcquoc `vgg_transformer` → fine-tuned on full
+VinText-real train (25,742 crops) **+ 10,000 synthetic** = 35,742. **Firewall 3: SAME pre-registered HP,
+iters=12,000 FIXED** (= baseline's training compute; only synthetic count varies). k=3 seeds {0,1,2}.
+Eval rec-only, test-500, NFC/axes-NFD, frozen denominator **10,068 / 37,254**.
+Scripts: `scripts/train_gateA.py` + `scripts/aggregate_gateA.py`. Manifest: `data/crops/synth10k/manifest.json`.
+
+| metric | baseline mean ± 95%CI | **gateA mean ± 95%CI** | Δ (gate−base) | CIs |
+|---|---|---|---|---|
+| **CER** | 9.381 ± 0.368 | **9.521 ± 0.895** | **+0.140** (worse) | OVERLAP |
+| WER | 19.291 ± 0.797 | 19.353 ± 1.000 | +0.062 | OVERLAP |
+| exact-match | 81.870 ± 0.757 | 81.850 ± 0.838 | −0.020 | OVERLAP |
+| Axis1 base | 94.114 ± 0.391 | 94.041 ± 0.656 | −0.072 | OVERLAP |
+| Axis2 modifier | 96.252 ± 0.274 | 96.252 ± 0.600 | +0.000 | OVERLAP |
+| **Axis3 tone** | 94.410 ± 0.281 | **94.374 ± 0.553** | **−0.036** (flat) | OVERLAP |
+
+Per-seed CER — gateA: 9.373 / 9.932 / 9.258 (median **9.373**); baseline: 9.395 / 9.226 / 9.521
+(median **9.395**). Two of three synth seeds are marginally *better* than baseline median; seed1 (9.932)
+inflates the mean + variance.
+
+- **Pre-registered GATE-A condition (EVAL_PROTOCOL §7): NOT met.** Non-overlapping 95% CI on **both** CER
+  and tone is required; **neither** separates (both OVERLAP), and neither improves. → **RED.**
+- **Added instability:** the synth-augmented CER 95%CI (±0.895) is **~2.4× the baseline's** (±0.368) —
+  adding 10k synthetic *raised* run-to-run variance rather than lowering error.
+- **The §7 audit passed but Gate A is flat** — matching marginal crop image-statistics did **not**
+  translate into a real-data recognition gain. This is the key diagnostic the brain adjudicates (§8):
+  coverage of image statistics is necessary-but-not-sufficient; candidates include (a) at fixed compute,
+  10k synth dilutes real data without adding signal the document prior lacks; (b) degradation realism
+  matches *statistics* but not the *mechanism* real capture destroys; (c) the domain-transfer thesis
+  needs scale/curriculum not reachable at 10k.
+
+> **BRAIN CHECKPOINT — reported, NOT self-adjudicated.** Per BUILD_PLAN Stage 2 + EVAL_PROTOCOL §7, a RED
+> means **STOP, do not scale to 200k**; the design brain reads the red diagnosis and picks the ONE §8 fix
+> (degradation-first) before a re-gate at 10k. No engine change or re-gate was made unilaterally.

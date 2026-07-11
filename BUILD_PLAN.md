@@ -55,17 +55,24 @@ LAST DONE     : Stage 1 CER-decomposition (kill-test) + stratifications + detect
                     Off-the-shelf db_resnet50 (~48% F1) gives an UPPER bound on detection-induced error —
                     wrong side for the §7 decision, so producing no e2e number was the CORRECT call.
                 DATA_ENGINE.md §12 (Stage-1 findings) added by brain. In repo.
-NEXT ACTION   : Gate-A k=3 TRAINING IN FLIGHT (10k generated + committed; manifest + §7-audit PASS).
-                When all 3 seeds land -> run scripts/aggregate_gateA.py -> STOP and report to brain
-                (non-overlapping 95% CI vs baseline on CER AND tone; frozen floor: CER 9.381±0.368,
-                tone 94.410±0.281; need ~≥0.7pp CER + tone movement). Do NOT self-declare or start Stage 3.
-IN-FLIGHT     : Gate-A training real(25,742)+synth10k(10,000)=35,742, FIXED HP/iters=12000, k=3 seeds.
-                seed0 launched detached (pid 17376); chained watcher (bg task b9b3vwkiv) runs seeds 1,2 after.
-                Results -> runs/gateA_synth10k_seed{0,1,2}/result.json. Aggregator + trainer committed.
-                PROTOCOL FLAG for brain: iters held FIXED at baseline's 12000 (equal compute, conservative
-                vs false-GREEN); epoch-constant alt (scale iters by data ratio) is the Stage-3 curve's
-                open iters-policy question. Also: §7 audit verdict was expressed as §7's ASYMMETRIC intent
-                (reach hard tail + not-cleaner), not a strict full-envelope — flagged above.
+NEXT ACTION   : ⛔ GATE A = RED. STOP — awaiting BRAIN adjudication of the red diagnosis (§8). Do NOT
+                scale to 200k, do NOT start Stage 3, do NOT unilaterally change the engine + re-gate.
+                Reported to brain 2026-07-11 (RESULTS.md Stage 2 + runs/gateA_synth10k_summary.json).
+GATE A RESULT (k=3, rec-only test-500, frozen denom 10,068/37,254; FIXED HP iters=12000 = baseline):
+                CER  base 9.381±0.368 -> gateA 9.521±0.895  (Δ +0.140, WORSE, CIs OVERLAP)
+                tone base 94.410±0.281 -> gateA 94.374±0.553 (Δ -0.036, FLAT, CIs OVERLAP)
+                per-seed CER gateA 9.373/9.932/9.258 (med 9.373) vs base 9.395/9.226/9.521 (med 9.395).
+                Pre-registered non-overlap condition on BOTH CER and tone: NOT met -> RED.
+                Notable: gateA CER CI ±0.895 = ~2.4x baseline's -> 10k synth ADDED variance, no lift.
+                Key diagnostic for brain: §7 audit PASSED (synthetic covers real, not cleaner) yet Gate A
+                is flat -> matching crop image-STATISTICS != a real recognition gain. Suspects (DATA_ENGINE
+                §8 ranked): (a) at fixed compute 10k synth dilutes real w/o new signal beyond the doc prior;
+                (b) degradation matches statistics not the capture MECHANISM; (c) thesis needs scale/curriculum
+                not reachable at 10k. Brain picks the ONE §8 fix (degradation-first) before a re-gate at 10k.
+                PROTOCOL FLAGS carried into that decision: (1) iters held FIXED at 12000 (equal compute,
+                conservative vs false-GREEN); epoch-constant alt is an open policy Q. (2) §7 verdict encodes
+                §7's ASYMMETRIC stated intent (reach-hard-tail + not-cleaner), not a strict full-envelope.
+IN-FLIGHT     : none. All 3 Gate-A seeds complete; engine v0 + Gate-A scripts committed.
 PARALLEL/LATER: (a) GOLD manual double-pass (2,437-instance sheet ready, empty) — needed before the FINAL
                 curve numbers + the model-vs-label artifact (§4). NOT blocking Stage 2.
                 (b) DBNet fine-tune -> e2e number (§5) — deferred; pipeline-completeness, not the flagship.
