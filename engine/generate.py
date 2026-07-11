@@ -34,6 +34,9 @@ def main():
     ap.add_argument("--n", type=int, default=10000)
     ap.add_argument("--seed", type=int, default=100)
     ap.add_argument("--name", type=str, default=None)
+    ap.add_argument("--strata", action="store_true",
+                    help="DATA_ENGINE §8.3: over-represent the MEASURED failure strata "
+                         "(tilt/low-contrast/tiny/short) instead of matching real's marginals")
     args = ap.parse_args()
     name = args.name or f"synth{args.n // 1000}k"
 
@@ -43,7 +46,9 @@ def main():
 
     fonts = load_fonts()
     bg = load_bg_index()
-    gen = Generator(Corpus(seed=args.seed), fonts, bg, seed=args.seed)
+    # strata mode also over-samples the short (1-2 char) crop stratum in the corpus
+    corpus = Corpus(seed=args.seed, short_rate=0.20 if args.strata else 0.0)
+    gen = Generator(corpus, fonts, bg, seed=args.seed, strata=args.strata)
 
     lines = []
     stats = []
@@ -78,6 +83,11 @@ def main():
 
     manifest = dict(
         name=name, count=n, seed=args.seed,
+        strata_targeted=bool(args.strata),
+        strata_note=("DATA_ENGINE §8.3 Attempt 1: generation re-weighted to OVER-REPRESENT the "
+                     "measured failure strata (geometric tilt / contrast<0.20 / height<12px / "
+                     "1-2-char), NOT to match real's marginals." if args.strata else
+                     "marginal-matched to real (§7 audit)"),
         generation_seconds=round(gen_s, 1), ms_per_crop=round(1000 * gen_s / n, 2),
         font_misses=miss,
         annotation=ann, image_dir=imgdir,

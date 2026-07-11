@@ -103,9 +103,14 @@ LETTER_GLYPHS = "aăâbcdđeêghiklmnoôơpqrstuưvxy"
 
 
 class Corpus:
-    def __init__(self, seed=0, source_b_prob=SOURCE_B_PROB):
+    def __init__(self, seed=0, source_b_prob=SOURCE_B_PROB, single_char_rate=SINGLE_CHAR_RATE,
+                 short_rate=0.0):
+        """short_rate: extra probability of forcing a 1-2 char string (DATA_ENGINE §8.3 strata
+        targeting -- the measured 1-2-char / small-crop failure stratum)."""
         self.rng = random.Random(seed)
         self.source_b_prob = source_b_prob
+        self.single_char_rate = single_char_rate
+        self.short_rate = short_rate
         self.scene = [ln.rstrip("\n") for ln in open(SCENE_TXT, encoding="utf-8") if ln.strip()]
         self.wiki, w = [], []
         for ln in open(WIKI_TSV, encoding="utf-8"):
@@ -130,9 +135,17 @@ class Corpus:
         ch = self.rng.choice(LETTER_GLYPHS)
         return ch.upper() if self.rng.random() < CASE_UPPER else ch
 
-    def sample(self) -> str:
-        if self.rng.random() < SINGLE_CHAR_RATE:
+    def _short(self) -> str:
+        """A 1-2 character string (the measured short-crop failure stratum)."""
+        if self.rng.random() < 0.45:
             return self._single_char()
+        return self._single_char() + self._single_char()
+
+    def sample(self) -> str:
+        if self.rng.random() < self.single_char_rate:
+            return self._single_char()
+        if self.short_rate and self.rng.random() < self.short_rate:
+            return self._short()
         if self.rng.random() < self.source_b_prob:
             # Source B: a real scene transcript, verbatim (case already scene-realistic)
             return self.rng.choice(self.scene)

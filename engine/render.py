@@ -113,8 +113,17 @@ _H_BUCKETS = [(8, 12), (12, 19), (19, 28), (28, 40), (40, 60), (60, 105), (105, 
 _H_WEIGHTS = [0.13, 0.15, 0.20, 0.18, 0.14, 0.11, 0.09]
 
 
+# DATA_ENGINE §8.3 Attempt 1: over-represent the MEASURED failure strata instead of matching
+# real's marginals. A marginal-matched generator reproduces real's RATE of hard crops, so 10k
+# adds only a few hundred hard examples on top of the ~1,300 already in the 25.7k real crops --
+# a rounding error. Here each crop is deliberately pushed INTO one failure stratum.
+# One stratum at a time (legibility -- the §8.2 lesson); §12 priority order.
+STRATA_W = dict(geometric=0.40, photometric=0.30, resolution=0.30)
+
+
 class Generator:
-    def __init__(self, corpus, fonts, bg_index, seed=0, cfg=None):
+    def __init__(self, corpus, fonts, bg_index, seed=0, cfg=None, strata=False):
+        self.strata = strata
         self.corpus = corpus
         self.fonts = fonts
         if isinstance(bg_index, tuple):
@@ -328,6 +337,19 @@ class Generator:
             img = cv2.imdecode(enc, cv2.IMREAD_COLOR)
         return img
 
+    def _crush_contrast(self, img, lo=0.13, hi=0.22):
+        """Force Michelson contrast into the measured <0.20 failure stratum (still legible)."""
+        g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY).astype(np.float32)
+        p5, p95 = np.percentile(g, 5), np.percentile(g, 95)
+        cur = (p95 - p5) / (p95 + p5 + 1e-6)
+        f = img.astype(np.float32)
+        if cur > 1e-3:
+            a = min(1.0, self.rng.uniform(lo, hi) / cur)
+            mean = f.mean()
+            f = mean + (f - mean) * a
+        f = f + self.rng.uniform(-25, 25)
+        return np.clip(f, 0, 255).astype(np.uint8)
+
     # ---- one crop ------------------------------------------------------------
     def generate(self):
         for _ in range(6):  # retry on rare font/empty-mask misses
@@ -335,8 +357,16 @@ class Generator:
             font = self._pick_font(text)
             if font is None:
                 continue
-            target_h = self._target_height()
-            clean = self.rng.random() < self.cfg["p_clean"]
+            # ---- §8.3 strata targeting -------------------------------------
+            stratum = None
+            if self.strata:
+                names = list(STRATA_W)
+                stratum = self.rng.choices(names, weights=[STRATA_W[n] for n in names], k=1)[0]
+            if stratum == "resolution":
+                target_h = self.rng.randint(8, 12)      # the measured <12px stratum
+            else:
+                target_h = self._target_height()
+            clean = (not self.strata) and self.rng.random() < self.cfg["p_clean"]
             # bias supersample low (ss^2) so most crops stay sharp; clean crops near 1x
             ss = 1.0 + (self.rng.random() ** 2) * (self.cfg["supersample_max"] - 1.0)
             if clean:
@@ -346,13 +376,28 @@ class Generator:
             if mask is None or mask.shape[1] < 3:
                 continue
             crop, _ = self._compose(mask)
-            crop = self._geometric(crop, light=clean)   # geometry always applies (scene angles)
+            if stratum == "geometric":
+                # push INTO the tilt/perspective stratum (the worst measured, 30.3% CER)
+                old = (self.cfg["rot_deg"], self.cfg["persp_jitter"], self.cfg["shear"])
+                self.cfg["rot_deg"], self.cfg["persp_jitter"], self.cfg["shear"] = 28.0, 0.16, 0.30
+                crop = self._geometric(crop)
+                self.cfg["rot_deg"], self.cfg["persp_jitter"], self.cfg["shear"] = old
+            else:
+                crop = self._geometric(crop, light=clean)  # geometry always applies (scene angles)
             # per-crop severity latent (biased low); scales photometric + sensor coherently so
             # crops are mild-OR-hard, not independently-destroyed on every axis (legibility hygiene)
             sev = self.rng.random() ** self.cfg["sev_bias"]
+            if self.strata:
+                # The STRATUM carries the difficulty. Everything else must stay MILD, or the
+                # crop is destroyed and becomes training NOISE (the §8.2 lesson -- a first pass
+                # at sev 0.35-0.75 produced ~50% illegible crops, worse than the original RED set).
+                # Real crops in these strata are HARD BUT LEGIBLE; so are these.
+                sev = self.rng.uniform(0.05, 0.30)
             if not clean:
                 crop = self._photometric(crop, sev)
             crop = self._resolution(crop, target_h, clean=clean, sev=sev)
+            if stratum == "photometric":
+                crop = self._crush_contrast(crop)      # the measured contrast<0.20 stratum
             if crop.shape[0] < 3 or crop.shape[1] < 3:
                 continue
             return crop, text, font["family"]
