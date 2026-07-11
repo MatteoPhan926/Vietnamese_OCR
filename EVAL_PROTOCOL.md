@@ -603,3 +603,41 @@ in the write-up, because it preempts the obvious objection.
   the real-only-vs-r curve (linear in log r between adjacent measured points, never extrapolated beyond
   measured r) to find r′ where real-only(r′) matches real(r)+synth; **N = (r′ − r) × 25,742.** The
   deliverable is the gap-vs-r curve + this readout, whatever they turn out to be.
+
+### §14.2 Flagship closures (pre-registered 2026-07-12, BEFORE any closure run) — a first GREEN gets the MOST scrutiny, not the least
+
+**(C1) The corpus-budget confound — caught at brain adjudication; closed by a bar-raising robustness arm.**
+`synth10k_leg`'s Source B (65% of the corpus text) drew from the **FULL train transcript bank** — but
+transcripts ARE labels, and at budget r a practitioner holds only r% of them. The +synth arm at low r
+therefore used label-derived information beyond its stated budget. The eval firewall is intact (no test
+text/images anywhere); the issue is **claim scope**, not contamination.
+- **Budget model, stated:** LABELS (boxes + transcripts) are the scarce resource. Unlabeled imagery is
+  cheap: background patches from train images stay (text-free-region selection needs no transcripts and
+  could use any off-the-shelf detector). `wiki_vi` is free.
+- **The strict-bank arm:** regenerate the 10k with Source B restricted to the **r-subset's OWN
+  transcripts** (identical fonts/degradation config/procedure; new manifest), retrain the +synth arms at
+  the green points (r=10%, r=25%), k=3.
+- **Pre-commitment:** the **HEADLINE quotes the strict version.** The full-bank curve remains reported as
+  the pre-registered primary run, caveat stated. If strict kills a green, the finding becomes *"the
+  low-budget value is carried substantially by the in-domain text bank, not the renderer"* — reported at
+  the same prominence. Bar-raising → permitted (§15 asymmetry).
+
+**(C2) k=5 at the headline point, BOTH arms, pre-committed.** The r=10% real-only anchor is wide (±2.350)
+and sits under the headline number. Add 2 seeds per arm at r=10% (real-only AND strict-synth). The k=5
+numbers **REPLACE** the k=3 numbers regardless of direction — adding seeds after a green is honest only
+under that pre-commitment (it can kill the green; it cannot be used to shop for one).
+
+**(C3–C4) Queued, unchanged:** the gold double-pass (the noise floor this curve is read against), and the
+ERROR_ANALYSIS §8 per-axis before/after at r=10% (the mechanism half; per SCALING §9 the curve without it
+is half a result).
+
+**Reporting rules, locked now:**
+- The worth-readout is quoted as **≈ a range, never a 4-digit point** — propagate the anchor's CI by
+  re-running the §14.1 interpolation at the CI bounds, alongside the mean.
+- **CI-width comparisons across arms at k=3 are OBSERVATIONS, never mechanism claims** (a k=3 CI width is
+  itself high-variance). The r=10% tightening (±2.350 → ±0.290) may be reported as an observation; the
+  cross-r "stabilizer vs dead-weight" narrative may NOT — it compared against the pre-hygiene buggy run
+  (±0.895; the post-hygiene full-real synth arm was ±0.237, TIGHTER than baseline ±0.368), and r=50%
+  reverses it (+synth ±0.807 vs real-only ±0.200, 4× wider).
+- **Stated limitation:** one fixed nested subset draw per r — training-seed variance only; subset-draw
+  variance unquantified (standard for label-efficiency curves, but said out loud).

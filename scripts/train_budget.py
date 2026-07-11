@@ -37,6 +37,19 @@ SYNTH = "synth10k_leg"     # FROZEN: the same hygiene-clean 10k at every r
 ROOT = "data/crops"
 
 
+def synth_set(r, arm):
+    """The synthetic set this arm pools in.
+
+    arm=synth  -> synth10k_leg: Source B drawn from the FULL train transcript bank. The
+                  pre-registered primary run (§14.1).
+    arm=strict -> synth10k_strict_r{r}: EVAL_PROTOCOL §14.2 (C1). Source B restricted to the
+                  r-subset's OWN transcripts -- transcripts ARE labels, and a practitioner at
+                  budget r holds only r% of them. Identical fonts/degradation/seed; the bank is
+                  the ONLY variable. The HEADLINE quotes this arm.
+    """
+    return SYNTH if arm == "synth" else f"synth10k_strict_r{r}"
+
+
 def real_annotation(r):
     return "annotation_train.txt" if r == 100 else f"annotation_train_r{r}.txt"
 
@@ -46,9 +59,10 @@ def build_annotation(r, arm):
     real_ann = real_annotation(r)
     if arm == "real":
         return real_ann
-    out = f"annotation_budget_r{r}_synth.txt"
+    syn_name = synth_set(r, arm)
+    out = f"annotation_budget_r{r}_{arm}.txt"
     real = [ln for ln in open(os.path.join(ROOT, real_ann), encoding="utf-8") if ln.strip()]
-    syn = [ln for ln in open(os.path.join(ROOT, f"annotation_{SYNTH}.txt"), encoding="utf-8") if ln.strip()]
+    syn = [ln for ln in open(os.path.join(ROOT, f"annotation_{syn_name}.txt"), encoding="utf-8") if ln.strip()]
     with open(os.path.join(ROOT, out), "w", encoding="utf-8") as f:
         f.writelines(l if l.endswith("\n") else l + "\n" for l in real + syn)
     frac = 100.0 * len(syn) / (len(real) + len(syn))
@@ -60,16 +74,20 @@ def build_annotation(r, arm):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--r", type=int, required=True, choices=[10, 25, 50, 100])
-    ap.add_argument("--arm", choices=["real", "synth"], required=True)
+    ap.add_argument("--arm", choices=["real", "synth", "strict"], required=True)
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--iters", type=int, default=HP["iters"])   # FIXED = 12000
     args = ap.parse_args()
 
+    if args.arm == "strict" and args.r not in (10, 25):
+        raise SystemExit("strict-bank arm (§14.2 C1) is defined at the GREEN points r=10 and r=25 only")
+
     ann = build_annotation(args.r, args.arm)
     n_real = sum(1 for ln in open(os.path.join(ROOT, real_annotation(args.r)), encoding="utf-8") if ln.strip())
     n_syn = 0
-    if args.arm == "synth":
-        n_syn = sum(1 for ln in open(os.path.join(ROOT, f"annotation_{SYNTH}.txt"), encoding="utf-8") if ln.strip())
+    if args.arm != "real":
+        n_syn = sum(1 for ln in open(os.path.join(ROOT, f"annotation_{synth_set(args.r, args.arm)}.txt"),
+                                     encoding="utf-8") if ln.strip())
 
     dataset = f"budget_r{args.r}_{args.arm}"
     outdir = f"runs/{dataset}_seed{args.seed}"
@@ -118,7 +136,10 @@ def main():
     res = dict(
         budget_r=args.r, arm=args.arm, seed=args.seed, iters=args.iters, hp=HP,
         train_seconds=train_s, n_real=n_real, n_synth=n_syn,
-        synth_set=(SYNTH if args.arm == "synth" else None),
+        synth_set=(None if args.arm == "real" else synth_set(args.r, args.arm)),
+        source_b_bank=("full train transcript bank (§14.1 primary)" if args.arm == "synth" else
+                       f"STRICT: r={args.r}% subset transcripts ONLY (§14.2 C1)"
+                       if args.arm == "strict" else None),
         subset_manifest="data/crops/budget_subsets_manifest.json",
         augmentation="default image_aug (§6 operating point)",
         sampling="uniform pooled (§14.1)",

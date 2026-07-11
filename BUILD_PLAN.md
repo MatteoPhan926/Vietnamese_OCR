@@ -82,106 +82,63 @@ STEP-1 BUG-CHECKS DONE (2026-07-11, this session; §8.2 — do NOT burn an attem
   budget the brain locked to prevent p-hacking-by-iteration — so it is NOT started unilaterally even though
   pre-declared. AWAITING BRAIN DIRECTION (greenlight Attempt 1 as pre-declared, or adjust given the healthy RED).
   Attempt-1 plan is ready: re-weight generation toward tilt>=20deg, contrast<0.20, height<12px, 1-2 char crops.
-PRIOR 🧠 ADJ  : (history — all 3 NEXT STEPS below are now DONE; see STEP-1 / STEP-2)
-                🧠 ATTEMPT-1 RED ADJUDICATED BY BRAIN 2026-07-11 (3rd checkpoint). Stage 2 at
-                full-real is CLOSED — answered, not stuck. Moving to the pre-registered budget axis.
-                ADJUDICATIONS:
-                  • Comparator stronger-of-{A,B} PER METRIC: APPROVED (strictest, bar-raising reading).
-                  • Attempt accounting CONFIRMED: 1 of 2 spent (B was a control; bug-checks free).
-                  • ATTEMPT 2: HELD IN RESERVE, NOT spent. Budget = CEILING, not quota. No mechanism-backed
-                    full-real hypothesis remains: scale→forbidden + refuted by learned-but-no-transfer;
-                    renderer-jump→a new project, and C≈B says hard-crop realism isn't the bottleneck;
-                    sequential-pretrain-slot→thin, the model already learns synth fine. Chasing a green at
-                    full-real = the §8.1 p-hack. Reopen ONLY if the §14 curve surfaces a new mechanism.
-                  • B−A tradeoff is a coherent PATTERN, not yet a claim: per-metric CIs overlap (A's CER CI
-                    ±0.368 swallows B). It becomes a write-up claim only after step 1 below.
-                  • FINDING (full prominence in every write-up): for a document-pretrained recognizer with
-                    25.7k real crops, at matched augmentation, this synthetic engine adds NOTHING (C≈B) —
-                    and "just augment harder" is itself a tradeoff, not a free win (B−A pattern).
-                NEXT STEPS (in order):
-                1) INS/DEL DECOMPOSITION (free, existing predictions.tsv, ALL arms A/B/C): count ins/del/sub
-                   per arm. KEY: axes exclude INSERTIONS (CER-only) but deletions DO charge axes — so the
-                   "axes up + CER up" B−A pattern points at INSERTIONS specifically. Verify before write-up;
-                   if deletions drive it instead, restate the tradeoff.
-                2) START the §14 budget axis per the FROZEN §14.1 spec (EVAL_PROTOCOL): r ∈ {10,25,50}%
-                   nested fixed-seed subsets × {real-only, real+synth10k_leg} × k=3 = 18 runs (~9h).
-                   r=100% REUSED (A + leg run). Default §6 config (NOT strata-aug). UNIFORM pooled sampling
-                   (synth fraction growing as r shrinks IS the phenomenon). Full val-300 at every r; report
-                   val-curve sanity per r (~150 real-epochs at r=10% real-only; best-val export guards).
-                3) Deliverable: the LABEL-EFFICIENCY CURVE (gap vs r) + the pre-registered readout
-                   "synthetic ≈ worth N real crops at budget r" (§14.1 interpolation rule). Per-point rule
-                   unchanged: non-overlapping CI on CER AND tone. A green at r<100% is a label-efficiency
-                   claim ONLY; the r=100% null keeps full prominence everywhere.
-STEP-1 DONE (2026-07-11) — INS/DEL/SUB decomposition (free, existing predictions.tsv, k=3):
-  arm   sub/100ch     del/100ch     ins/100ch    CER%
-  A     6.806±0.326   1.461±0.239   1.114±0.116  9.381
-  B     6.926±0.177   1.362±0.020   1.348±0.112  9.637
-  C     6.848±0.064   1.365±0.114   1.407±0.130  9.620
-  B-A: sub +0.121, del -0.099, ins +0.234, CER +0.256  => the regression is 92% INSERTIONS.
-  MECHANISM CONFIRMED + SHARPENED: deletions IMPROVED, and deletions charge EVERY axis (a dropped
-  char = all-axes-wrong) while insertions charge NONE -> that is exactly why axes rise as CER falls.
-  Strata aug makes the model less willing to DROP a char (axes up) and more willing to HALLUCINATE
-  one (CER/WER up). Write-up states INSERTIONS specifically, not vague "length errors". [commit]
-  C-B: sub -0.079, del +0.004, ins +0.058, CER -0.017 -> nothing (consistent with the C≈B null).
-STEP-2 IN FLIGHT — §14 BUDGET AXIS (per FROZEN §14.1):
-  scripts/make_subsets.py: NESTED fixed-seed subsets, seed=20260711 (one shuffle -> prefixes;
-    10 sub 25 sub 50 ASSERTED). r10=2,574 | r25=6,436 | r50=12,871 | r100=25,742 (reused).
-  scripts/train_budget.py: arms real(r) vs real(r)+synth10k_leg (FROZEN, same set every r).
-    §6 operating config: DEFAULT image_aug (NOT strata aug), fixed HP iters=12000, best-val on FULL
-    val-300. UNIFORM pooled sampling (synth fraction 28%@r100 -> 79%@r10 = the phenomenon, not a confound).
-    Verified at launch: r=10% real-only => ~149.2 epochs (matches §14.1's ~150 prediction).
-  RUNS: 3r x 2 arms x 3 seeds = 18 (~9h). r=100% REUSED (real=baseline A; synth=the leg run).
-  Batching 2 runs/launch (bg jobs get killed ~60-90min). Batch 1 = r10 real seeds 0,1 (bg b4plq0yfg).
-  AGGREGATE (to write): scripts/aggregate_budget.py -> gap-vs-r curve + the PRE-REGISTERED readout
-    "synthetic ~ worth N real crops at budget r" (§14.1: interpolate real-only curve linear in log r
-    between MEASURED points, never extrapolate; N=(r'-r)x25,742). Per-point rule UNCHANGED:
-    non-overlapping 95% CI on CER AND tone. A green at r<100% is a LABEL-EFFICIENCY claim ONLY;
-    the r=100% null (C≈B) keeps FULL prominence everywhere.
-STEP-2 ✅ COMPLETE (2026-07-12) — ALL 18/18 CELLS TRAINED. THE LABEL-EFFICIENCY CURVE:
-  (mean ± 95%CI, k=3; rec-only, test-500, frozen denom. runs/budget_curve_summary.json)
-    r     n_real   real-only CER   real+synth CER   GAP      tone gap   per-point rule (§7)
-    10%    2,574   16.538±2.350    13.181±0.290    +3.357    +2.651     GREEN (both CIs separate)
-    25%    6,436   12.373±0.337    11.434±0.349    +0.939    +0.645     GREEN (both CIs separate)
-    50%   12,871   10.430±0.200    10.478±0.807    -0.047    -0.013     red (overlap, flat)
-   100%   25,742    9.381±0.368     9.419±0.237    -0.038    +0.158     red (overlap, flat)
-  => GAP IS MONOTONE IN r (+3.36 -> +0.94 -> -0.05 -> -0.04). This is the §14 pre-registered
-     "gap WIDENS as r shrinks" branch: synthetic SUBSTITUTES for real labels, ONLY when labels are scarce.
-  PRE-REGISTERED READOUT (§14.1 interpolation, never extrapolated):
-     r=10%  -> real-only equivalent r'=20.9%  => synthetic is worth ~ +2,813 real crops
-     r=25%  -> real-only equivalent r'=34.9%  => synthetic is worth ~ +2,560 real crops
-     r=50%/100% -> ~0 (nil). Purchasing power ~0.27 real crops per synthetic crop at r=10%, decaying to 0.
-  SECONDARY (reported, not headlined): synth STABILIZES the scarce fit — r=10% CER CI ±2.350 -> ±0.290
-     (~8x tighter). Opposite sign to Gate A at r=100% (synth RAISED variance ±0.368 -> ±0.895). Same
-     mechanism: the synth pool matters when real is thin, is dead weight when it is not.
-  ⚠ LABEL-EFFICIENCY CLAIM ONLY (r<=25%). Does NOT rehabilitate the full-real null (C≈B). Per §14 the
-     r=100% RED keeps FULL prominence in the same breath. NEVER claimable: "synthetic improves Vietnamese OCR".
-  WRITTEN UP: RESULTS "Stage 2c" (full protocol + tables) · SCALING §11 (what was delivered vs the
-     never-run count curve; §7's "+X% on top of full real" headline is RETIRED, X=0).
-NEXT ACTION   : 🧠 BRAIN CHECKPOINT — THE LABEL-EFFICIENCY CURVE IS COMPLETE AND REPORTED, NOT ADJUDICATED.
-                Per CLAUDE.md §9.8 the curve goes back to the design brain for the protocol/plausibility
-                check BEFORE any headline is declared. Questions for the brain, in order:
-                1) Is the monotone gap (+3.36/+0.94/-0.05/-0.04) accepted as THE flagship result, with the
-                   r=100% null at full prominence? (§14's "gap widens as r shrinks" branch, as pre-committed.)
-                2) Does the curve surface a NEW mechanism that reopens Attempt 2? Standing rule (2026-07-11):
-                   Attempt 2 reopens ONLY on a mechanism, never to chase a green. Reading here: it does NOT —
-                   the curve CONFIRMS the redundancy mechanism (synth pays only when real is thin) rather than
-                   contradicting it. Recommend: keep Attempt 2 UNSPENT, close Stage 2.
-                3) Sanity flag for the brain: r=10% real-only CI is wide (±2.350, seeds 17.62/16.11/15.88).
-                   The GREEN does not depend on it (CIs still separate; the synth arm is ±0.290), but k=3 at
-                   a scarce budget is the thinnest evidence in the curve. Option: +2 seeds at r=10% real-only
-                   to tighten the anchor (~1h). Cheap insurance on the headline number — brain's call.
-                THEN (once adjudicated, in order): (a) GOLD double-pass -> the noise floor the curve is read
-                against + the model-vs-label artifact; (b) ERROR_ANALYSIS §8 per-axis before/after at r=10%
-                (the MECHANISM half of the deliverable — SCALING §9: a curve without it is half a result);
-                (c) write-up. Stage 3/on-device stays CUT (CLAUDE.md A4).
-IN-FLIGHT     : nothing. GPU is free. Attempt 2 HELD IN RESERVE (not spent — see the §14-reopen condition).
+NEXT ACTION   : 🧠 §14 CURVE ADJUDICATED BY BRAIN 2026-07-12 (4th checkpoint). Curve VERIFIED
+                independently (readouts reproduce exactly under the frozen §14.1 rule: N≈2,814 @ r=10%,
+                N≈2,561 @ r=25%; daylight +0.717pp / +0.253pp). Shape = the §14 pre-committed branch.
+                ADJUDICATIONS on the three questions:
+                  1) FLAGSHIP-SHAPED: YES — but the headline is NOT declarable until the §14.2 closures
+                     (C1 strict-bank, C2 k=5, C3 gold, C4 mechanism-half) resolve. A first green gets the
+                     MOST scrutiny.
+                  2) ATTEMPT 2: stays UNSPENT; Stage 2 CLOSED. The curve confirms the redundancy
+                     mechanism; nothing reopens full-real.
+                  3) Extra seeds: APPROVED as C2 — BOTH arms at r=10%, k=5 REPLACES k=3 regardless of
+                     direction (pre-committed; no seed-shopping).
+                BRAIN'S CATCH (locked as EVAL_PROTOCOL §14.2 C1): the CORPUS-BUDGET CONFOUND. Source B
+                  (65% of corpus text) drew from the FULL train transcript bank — transcripts ARE labels;
+                  an r-budget practitioner holds r% of them. Eval firewall intact (claim-scope issue, not
+                  contamination). Budget model stated: labels scarce; unlabeled imagery cheap (bg patches
+                  stay); wiki_vi free.
+                VARIANCE NARRATIVE DOWNGRADED (§14.2): the "stabilizer vs dead-weight" story compared
+                  against the pre-hygiene BUGGY run and r=50% reverses it (+synth CI 4x WIDER than
+                  real-only). r=10% tightening reportable as observation only.
+                EXECUTION QUEUE (in order):
+                1) C1 strict-bank: regenerate 10k with Source B ⊆ r-subset transcripts (same config/fonts;
+                   new manifest; ~1 min each) -> retrain +synth arms at r=10% and r=25%, k=3 (6 runs ≈3h).
+                   HEADLINE quotes strict; full-bank stays as pre-registered primary with caveat.
+                2) C2 (only after strict survives at r=10%): +2 seeds real-only(r10) and +2 seeds
+                   strict-synth(r10) (4 runs ≈2h). Headline row = k=5 vs k=5.
+                3) Report both to brain with the recomputed worth-RANGE (interpolation at CI bounds,
+                   §14.2 reporting rule) before any headline sentence is written.
+                4) THEN: C3 gold double-pass (USER's manual work — now genuinely blocking the write-up) and
+                   C4 ERROR_ANALYSIS §8 per-axis before/after at r=10% (SCALING §9: the mechanism half).
+C1 STRICT-BANK — IN FLIGHT (2026-07-12, this session):
+  BUILT: engine/corpus.py build_strict_scene_bank(r) — Source B = the r-subset's OWN transcripts
+    (from data/crops/annotation_train_r{r}.txt) -> data/synth/corpus/scene_phrases_r{r}.txt.
+    engine/generate.py --strict-bank-r {10,25}; scripts/train_budget.py --arm strict.
+    ONE variable: the bank. Same fonts / degradation DEFAULT_CFG / seed=100 / n=10,000 as synth10k_leg.
+  GENERATED: data/crops/synth10k_strict_r10 + synth10k_strict_r25. §7 distribution audit: PASS both
+    (reach real's hard tail, not cleaner than real) — so the strict sets are not degraded artifacts.
+  BUDGET AUDIT (the point of C1) — beyond-budget transcript text in the pooled synth labels:
+    r=10%: leg 37.0% -> strict 11.0%   |   r=25%: leg 21.3% -> strict 6.0%
+    The residual is NOT a leak: 0 labels are unexplained by {the r-subset's own bank, free wiki_vi
+    tokens, generated 1-2-char strings}. It is coincidental vocabulary overlap with FREE text, which
+    the §14.2 budget model explicitly permits. Verified, not assumed.
+  RUNS: r in {10,25} x arm=strict x k=3 = 6 runs (~3h) via run_c1.sh (single-instance lock + per-cell
+    lmdb purge; see the incident below). Then scripts/aggregate_budget.py.
+  ⚠ INCIDENT (fixed, no bad data): the driver got launched TWICE 21s apart; both raced the SAME cell
+    and vietocr's lmdb cache (keyed by dataset NAME only, reused whenever ./train_<dataset> exists,
+    never checked against the annotation) was read half-written -> num-samples=None crash. Killed both,
+    purged the partial lmdb + partial run dirs, RELAUNCHED once. The 18 primary results were untouched
+    (verified 18/18 result.json intact). run_c1.sh now takes an atomic mkdir lock and purges the cell's
+    lmdb before every attempt — a STALE lmdb would otherwise be trained on silently, which is exactly
+    the class of bug that could corrupt a headline number.
+IN-FLIGHT     : C1 strict-bank grid, 6 runs (run_c1.sh, log runs/c1_strict.log). Started 06:25.
 PARALLEL/LATER: (a) GOLD manual double-pass (2,437-instance sheet ready, empty) — needed before the FINAL
                 curve numbers + the model-vs-label artifact (§4). NOT blocking Stage 2.
                 (b) DBNet fine-tune -> e2e number (§5) — deferred; pipeline-completeness, not the flagship.
 BLOCKERS/Q    : HOST: C: drive full (46 MB free); uv cache / TORCH_HOME / TMP / checkpoints -> E:.
-NEXT 🧠 CHKPT : ⬅ **NOW.** The §14 label-efficiency curve, complete (18/18). See NEXT ACTION for the three
-                questions. (Gate-A checkpoint: DONE 2026-07-11, RED, adjudicated. Attempt-1 RED: DONE,
-                adjudicated. This is the 4th checkpoint and the last one before the write-up.)
+NEXT 🧠 CHKPT : Gate A result (green/red + number + provenance). **THE gate.** Brain confirms green is real
+                (non-overlapping CI) or reads the red diagnosis (DATA_ENGINE §8, geometric-first).
 ```
 
 ---

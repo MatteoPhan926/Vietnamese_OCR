@@ -24,7 +24,7 @@ sys.path.insert(0, ".")
 sys.stdout.reconfigure(encoding="utf-8")
 
 from engine.audit import real_stats, report  # noqa: E402
-from engine.corpus import SCENE_TXT, WIKI_TSV, Corpus  # noqa: E402
+from engine.corpus import SCENE_TXT, WIKI_TSV, Corpus, build_strict_scene_bank  # noqa: E402
 from engine.imstats import crop_stats, summarize  # noqa: E402
 from engine.render import DEFAULT_CFG, Generator, load_bg_index, load_fonts  # noqa: E402
 
@@ -37,6 +37,10 @@ def main():
     ap.add_argument("--strata", action="store_true",
                     help="DATA_ENGINE §8.3: over-represent the MEASURED failure strata "
                          "(tilt/low-contrast/tiny/short) instead of matching real's marginals")
+    ap.add_argument("--strict-bank-r", type=int, default=None, choices=[10, 25, 50],
+                    help="EVAL_PROTOCOL §14.2 (C1): restrict Source B to the r-subset's OWN "
+                         "transcripts (transcripts ARE labels -- a budget-r practitioner holds "
+                         "only r%% of them). Everything else identical.")
     args = ap.parse_args()
     name = args.name or f"synth{args.n // 1000}k"
 
@@ -46,8 +50,14 @@ def main():
 
     fonts = load_fonts()
     bg = load_bg_index()
+
+    # §14.2 (C1): Source B from the r-subset's own transcripts, or the full train bank (default).
+    scene_bank = None
+    if args.strict_bank_r is not None:
+        scene_bank = build_strict_scene_bank(args.strict_bank_r)
+
     # strata mode also over-samples the short (1-2 char) crop stratum in the corpus
-    corpus = Corpus(seed=args.seed, short_rate=0.20 if args.strata else 0.0)
+    corpus = Corpus(seed=args.seed, short_rate=0.20 if args.strata else 0.0, scene_bank=scene_bank)
     gen = Generator(corpus, fonts, bg, seed=args.seed, strata=args.strata)
 
     lines = []
@@ -96,9 +106,14 @@ def main():
         corpus=dict(
             source_A="wiki_vi (HF wikimedia/wikipedia 20231101.vi, rev b04c8d1)",
             source_A_bank=WIKI_TSV,
-            source_B="VinText TRAIN-split transcripts (verbatim, firewall=train only)",
-            source_B_bank=SCENE_TXT,
-            source_B_prob=Corpus(seed=0).source_b_prob,
+            source_B=("VinText TRAIN-split transcripts (verbatim, firewall=train only)"
+                      if scene_bank is None else
+                      f"STRICT-BANK (§14.2 C1): ONLY the r={args.strict_bank_r}% subset's own "
+                      f"transcripts -- no label text beyond the stated budget"),
+            source_B_bank=scene_bank or SCENE_TXT,
+            source_B_bank_size=len(corpus.scene),
+            source_B_prob=corpus.source_b_prob,
+            strict_bank_r=args.strict_bank_r,
         ),
         degradation_config=DEFAULT_CFG,
         bg_patches="data/synth/bg (text-free, VinText TRAIN images only, texture-weighted)",

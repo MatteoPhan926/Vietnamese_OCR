@@ -93,6 +93,38 @@ def build_scene_bank():
     return len(seen)
 
 
+def strict_bank_path(r: int) -> str:
+    return os.path.join(CORPUS_DIR, f"scene_phrases_r{r}.txt")
+
+
+def build_strict_scene_bank(r: int) -> str:
+    """EVAL_PROTOCOL §14.2 (C1) — the STRICT-BANK Source B.
+
+    The full bank (SCENE_TXT) holds all 25,742 train transcripts. But transcripts ARE labels: a
+    practitioner at real-label budget r holds only the r-subset's transcripts, so a generator that
+    draws Source B from the full bank spends label information beyond its stated budget. This
+    builds Source B from the r-subset's OWN transcripts only -- the crop-level nested subset that
+    the +synth arm at budget r actually trains on (data/crops/annotation_train_r{r}.txt).
+
+    Everything else about the corpus is unchanged (same wiki bank, same source_b_prob, same case /
+    length sampling): one variable at a time.
+    """
+    ann = os.path.join("data", "crops", f"annotation_train_r{r}.txt")
+    seen = []
+    for ln in open(ann, encoding="utf-8"):
+        ln = ln.rstrip("\n")
+        if not ln.strip():
+            continue
+        t = ud.normalize("NFC", ln.split("\t", 1)[1])
+        if all(c in VOCAB for c in t):
+            seen.append(t)
+    out = strict_bank_path(r)
+    with open(out, "w", encoding="utf-8") as f:
+        f.write("\n".join(seen) + "\n")
+    print(f"strict scene bank r={r}%: {len(seen)} transcripts (r-subset ONLY) -> {out}")
+    return out
+
+
 # ----------------------------------------------------------------- the sampler
 # measured scene case mix (VinText train)
 CASE_UPPER, CASE_TITLE = 0.68, 0.16  # remainder -> keep-as-is (lower/mixed)
@@ -104,14 +136,18 @@ LETTER_GLYPHS = "aăâbcdđeêghiklmnoôơpqrstuưvxy"
 
 class Corpus:
     def __init__(self, seed=0, source_b_prob=SOURCE_B_PROB, single_char_rate=SINGLE_CHAR_RATE,
-                 short_rate=0.0):
+                 short_rate=0.0, scene_bank=None):
         """short_rate: extra probability of forcing a 1-2 char string (DATA_ENGINE §8.3 strata
-        targeting -- the measured 1-2-char / small-crop failure stratum)."""
+        targeting -- the measured 1-2-char / small-crop failure stratum).
+
+        scene_bank: path to the Source-B transcript bank. Default = the FULL train bank (the
+        pre-registered primary run). §14.2 (C1) passes an r-restricted bank instead."""
         self.rng = random.Random(seed)
         self.source_b_prob = source_b_prob
         self.single_char_rate = single_char_rate
         self.short_rate = short_rate
-        self.scene = [ln.rstrip("\n") for ln in open(SCENE_TXT, encoding="utf-8") if ln.strip()]
+        self.scene_bank = scene_bank or SCENE_TXT
+        self.scene = [ln.rstrip("\n") for ln in open(self.scene_bank, encoding="utf-8") if ln.strip()]
         self.wiki, w = [], []
         for ln in open(WIKI_TSV, encoding="utf-8"):
             tok, c = ln.rstrip("\n").split("\t")
