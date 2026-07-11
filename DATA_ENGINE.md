@@ -234,3 +234,41 @@ whose value is **document→scene domain transfer**, proven by the rec-only real
 other languages, other domains (handwriting/historical), or that synthetic teaches Vietnamese from
 scratch (the prior does). The engine's contribution is scene realism on top of a document prior —
 stated exactly, nothing more.
+
+---
+
+## §12. Stage-1 findings — the MEASURED priorities supersede §3/§5's anticipations (2026-07-10)
+
+Stage-1 error analysis (Run 0, real-only baseline, public labels, k=3) ran and **refuted several
+predictions baked into this doc**. Per §3 ("priorities come from Stage 1, not assumption"), the engine is
+built on the measurement below, not the anticipations it corrects.
+
+**`[LOCKED]` Measured priority order** (by CER-share of the worst strata; overall CER 9.40%), replacing
+the font-coverage / stacked-diacritic-curriculum focus §3/§5 anticipated:
+1. **Geometric (tilt / perspective) FIRST** — worst stratum, tilt ≥20° = **30.34%** CER.
+2. **Photometric (contrast / lighting)** — contrast <0.20 = **27.55%**.
+3. **Resolution / blur** — height <12 px = **22.86%**, and the mechanism behind tone failure (below).
+
+Font coverage is **demoted to a correctness prerequisite** (generation must render ệ/ữ or it poisons
+training, §5) but is **NOT where the error lives** — do not spend the degradation budget there.
+
+**`[LOCKED]` Corrected mechanisms (refuted predictions — do NOT target these):**
+- **Tone failure is DROP, not confusion.** hỏi↔ngã (the "canonical confusion" §3.3/ERROR_ANALYSIS §3.3
+  predicted) is essentially absent (4+4 pairs); tone error is presence/absence (215 drops + 174
+  hallucinations vs 199 tone-to-tone). → the resolution/blur fix is about **mark VISIBILITY** (the mark
+  surviving real capture), NOT similar-tone over-sampling.
+- **No "horn drop."** Horn (ơ ư) is the BEST modifier class (2.87% error); §5's horn-drop signature is
+  refuted. Worst modifier is breve (ă, 11.16%) but on only 242 positions (wide error bar) — do not
+  over-index on it.
+- **Small text is a GENERAL legibility failure, not tone-specific.** Base falls hardest at small size
+  (−11.4 pp vs tone −10.0 pp), refuting §3's "tone falls off a cliff at small sizes." Isolated 1-char
+  crops destroy letter identity (tone untouched at 94.57%) → **include very short / 1-char crops** in
+  generation.
+- **Case-augmentation validated:** pure-case is 8.88% of all edits — the model makes real case errors, so
+  §4's UPPERCASE / Title-case augmentation earns its place.
+
+**Robustness caveat (§4 still open):** base-dominates-diacritics (base-only 39.48% vs diacritic-only
+16.12% of edits, ~2.5×) is on **public labels** — an *upper bound* on the model's base share (label noise
+inflates base errors). Gold (§4, pending manual pass) can only **shrink** the base share; a flip would need
+>50% of base errors to be label noise, implausible → the **ordering is robust**, Stage 2 proceeds on it,
+and gold re-runs the decomposition before the final numbers are believed.

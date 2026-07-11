@@ -15,64 +15,42 @@
 ## ▶ RESUME POINTER  (the agent overwrites this block every session — read it FIRST)
 
 ```
-CURRENT STAGE : Stage 1 — Error analysis Run 0.  (Stage 0 ☑ and BRAIN-ADJUDICATED 2026-07-10.)
-LAST DONE     : Stage-0 🧠 brain checkpoint PASSED. Baseline + noise floor accepted; adjudications below.
-                REAL-ONLY BASELINE (rec-only, test-500, NFC/axes NFD, n=10,068/37,254, k=3):
-                  CER 9.395% (std 0.148pp) | base 94.081% | modifier 96.207% | tone 94.423% (std 0.113pp)
-                  WER 19.307% | exact 81.943%.  Gate-A noise floor FROZEN (§13 E11): CER std 0.148pp,
-                  tone std 0.113pp  =>  a synth run needs CER improvement ~>=0.7pp AND tone movement to
-                  clear §7's non-overlapping-CI rule.
+CURRENT STAGE : Stage 2 — Synthetic engine v0 + Gate A @ 10k.  (Stage 1 core ☑, BRAIN-ADJUDICATED 2026-07-10.)
+LAST DONE     : Stage 1 CER-decomposition (kill-test) + stratifications + detection probe.
+                RESULT: CLAUDE.md §5 "diacritics dominate" CONJECTURE **REFUTED** — base-only subs 39.48%
+                vs diacritic-only 16.12% of all edits (~2.5×). BUT three-axis metric VINDICATED: tone is
+                the most fragile axis per-position (5.577% err vs base 4.881% case-insens); base is the
+                largest total contributor (2.5:1 more positions, 32,267 vs 12,875). Only the decomposition
+                shows both. Case LEAD resolved: 17.5% of base weakness was pure case; on case-insensitive,
+                tone is the worst axis (as G2 predicted).
+                REFUTED doc-predictions (do NOT target — DATA_ENGINE §12): hỏi↔ngã confusion is ABSENT
+                (tone is DROPPED not confused → resolution/blur = mark visibility); NO horn-drop (horn is
+                the BEST modifier); NO tone-cliff-at-small-size (base falls hardest; small text is general
+                legibility).
+                MEASURED priority (worst strata by CER): GEOMETRIC (tilt≥20° 30.3%) > PHOTOMETRIC
+                (contrast<0.2 27.6%) > RESOLUTION/BLUR (height<12px 22.9%). Font coverage = correctness
+                prerequisite, NOT the error driver. Recorded in DATA_ENGINE §12.
                 BRAIN ADJUDICATIONS (2026-07-10):
-                  • E2 / E8 / E10 freezes + insertion-handling (CER-only, no axis denominator): APPROVED.
-                  • E9 disjointness: APPROVED POSTURE — write "no contamination detected by a zero-shot
-                    probe", NEVER "verified disjoint". Lean on DOMAIN-disjointness (document pretrain vs
-                    scene test) as PRIMARY; the zero-shot probe is weak, direction-ambiguous corroboration.
-                  • Base case-sensitivity: keep BOTH; case-INSENSITIVE is the reference for axis-weakness.
-                  • The [LEAD] (base weakest by axis accuracy) is NOT settled — see NEXT ACTION.
-                ERROR_ANALYSIS.md is now IN REPO (brain delivered it). CLAUDE.md amendments A1–A4 applied.
-                Stage 1 §3 (axes, CER decomposition, confusions, per-class) DONE and §6 (stratifications) DONE.
-                ERROR_ANALYSIS.md "RUN 0 REPORT" + RESULTS.md Stage-1 section filled.
-
-                *** THE KILL-TEST ANSWER: CLAUDE.md §5's "diacritics dominate" is REFUTED. ***
-                  base-only subs 39.48% of all edits vs diacritic-only 16.12% (~2.5x).
-                  BUT tone is still the LEAST ACCURATE axis (err 5.577% vs base(ci) 4.881%) — base
-                  positions outnumber tone-bearing 2.5:1 (32,267 vs 12,875). The three-axis metric
-                  is what made BOTH facts visible; it is vindicated, not undermined.
-                  Also refuted: hoi<->nga confusion is ABSENT (4 and 4) — tone fails by DROP (215) +
-                  HALLUCINATION (174), not shape confusion (199). Horn is the BEST modifier (2.87%),
-                  not the predicted "horn drop"; breve is worst (11.16%). Tone does NOT fall off a
-                  cliff at small size relative to base — base falls hardest (-11.4pp vs -10.0pp).
-                  Worst strata: tilt>=20deg CER 30.34% | contrast<0.20 27.55% | 1-char 25.89% |
-                  height<12px 22.86%. Base is the worst-hit axis in all but 1-char.
-                  PROVISIONAL priority: degradation realism, GEOMETRIC first, then photometric, then
-                  resolution/blur. NOT the font-coverage/stacked-diacritic curriculum anticipated.
-NEXT ACTION   : Close the two open [LOCKED] sections, then the priority list is final:
-                  A. §5 det-vs-rec: DBNet INSTALLED + det evaluator BUILT (scripts/detect_eval.py:
-                     polygon IoU, ### = don't care per E2). BLOCKED on FINE-TUNING: off-the-shelf doctr
-                     db_resnet50 (English-trained) scores only F1@0.5 ~= 48% on VinText, and input size
-                     is RULED OUT as the cause (48.0% @1280, 48.0% @1600, 41.6% @2048). Using it for the
-                     attribution would manufacture a false 'detection is the bottleneck' finding and
-                     redirect the whole engine. NEXT: fine-tune DBNet on the VinText TRAIN split only,
-                     then measure e2e CER - rec-only CER and state the e2e ceiling.
-                  B. §4 gold cross-check: BLOCKED on the USER's manual double-pass of the 2,437-instance
-                     sheet (data/gold/transcription_sheet.tsv; gold_pass1/gold_pass2 are empty).
-                Then STOP at the brain checkpoint with the FINAL ranked priority list.
+                  • "Act on priorities while gold open?" -> YES. Ordering robust (gold only shrinks base
+                    share; a flip needs >50% base errors = label noise, implausible). Stage 2 proceeds.
+                  • "Fine-tune DBNet now?" -> NO, DEFER. §5 e2e does not block the rec-only flagship.
+                    Off-the-shelf db_resnet50 (~48% F1) gives an UPPER bound on detection-induced error —
+                    wrong side for the §7 decision, so producing no e2e number was the CORRECT call.
+                DATA_ENGINE.md §12 (Stage-1 findings) added by brain. In repo.
+NEXT ACTION   : Start Stage 2 per DATA_ENGINE.md (+ §12 measured priorities). Build the crop generator:
+                corpus (wiki_vi + train-labels, scene-leaning, case-aug, INCLUDE 1-char/short crops); font
+                pipeline (3-check coverage -> 15-20 clean, correctness prerequisite only); degradation in
+                the §12 order — GEOMETRIC first (tilt/perspective), then PHOTOMETRIC (contrast/lighting),
+                then RESOLUTION/BLUR (mark visibility for tone-drop + small text). Generate 10k ->
+                distribution audit BEFORE training (§7) -> fine-tune on the baseline -> Gate A
+                (EVAL_PROTOCOL §7: non-overlapping CI vs the frozen floor, on CER AND tone). Time the 10k loop.
 IN-FLIGHT     : none.
-BLOCKERS/Q    : (1) 🧠 §4 gold cross-check BLOCKED — gold labels do not exist; NOT fabricated. Every Run-0
-                    number is public-label = model error + label error, ENTANGLED. Label noise inflates
-                    base errors + insertions specifically, so the 39.48% base share is an UPPER BOUND.
-                    The kill-test must be re-run against gold before it is treated as settled.
-                (2) §5 OPEN: DBNet is installed + the det evaluator is written, but the detector is NOT
-                    fine-tuned on VinText (F1@0.5 ~= 48%, a real domain gap, not a resolution artifact).
-                    NO e2e/attribution number is reported: an un-fine-tuned detector is a LOWER BOUND on
-                    detection, so its e2e gap is an UPPER BOUND on detection-induced error -- useless for
-                    the decision §7 needs. e2e ceiling remains UNSTATED. Fine-tune on train split first.
-                (3) §6 stylized-vs-plain BLOCKED, not dropped: VinText ships no style annotation and no
-                    defensible proxy exists without one.
-                (4) HOST: C: drive full (46 MB free); uv cache / TORCH_HOME / TMP / checkpoints -> E:.
-NEXT 🧠 CHKPT : end of Stage 1 — the FINAL ranked priority list (after §5 closes). The kill-test answer
-                above (REFUTED) is the headline; the engine's design forks on it. Brain must also rule on
-                whether the priority list may be acted on while §4 (gold) is still open.
+PARALLEL/LATER: (a) GOLD manual double-pass (2,437-instance sheet ready, empty) — needed before the FINAL
+                curve numbers + the model-vs-label artifact (§4). NOT blocking Stage 2.
+                (b) DBNet fine-tune -> e2e number (§5) — deferred; pipeline-completeness, not the flagship.
+BLOCKERS/Q    : HOST: C: drive full (46 MB free); uv cache / TORCH_HOME / TMP / checkpoints -> E:.
+NEXT 🧠 CHKPT : Gate A result (green/red + number + provenance). **THE gate.** Brain confirms green is real
+                (non-overlapping CI) or reads the red diagnosis (DATA_ENGINE §8, geometric-first).
 ```
 
 ---
@@ -125,7 +103,7 @@ frozen via dated amendments · disjointness confirmed.
 
 ---
 
-## Stage 1 — Error analysis Run 0 → the engine's priority list  ◐
+## Stage 1 — Error analysis Run 0 → the engine's priority list  ☐
 **Goal:** the ranked failure profile of the real-only baseline that tells the engine what to generate.
 **Obeys:** ERROR_ANALYSIS (all) — especially §3 (three-axis + CER decomposition), §4 (gold cross-check),
 §5 (det-vs-rec + e2e ceiling), §6 (stratifications), §7 (findings→priorities).
