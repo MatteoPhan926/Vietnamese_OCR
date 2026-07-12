@@ -187,26 +187,40 @@ it was, so a reviewer can see the curve was designed honestly *before* it was ca
 
 **The curve that WAS delivered is the LABEL-EFFICIENCY curve** — the pre-registered contingency axis
 (EVAL_PROTOCOL §14, frozen §14.1, written **before** its first run). It varies the **real-label budget**
-r ∈ {10, 25, 50, 100}% with the synthetic set held **frozen** at the hygiene-clean 10k, k=3 seeds, 18 runs.
-**Full protocol, table, and readout: RESULTS "Stage 2c".** The headline shape:
+r ∈ {10, 25, 50, 100}% with the synthetic set held **frozen** at the hygiene-clean 10k, 18 runs.
+**Full protocol, tables, and readouts: RESULTS "Stage 2c" + the §14.2 (C1)/(C2) closures.**
 
-| r (real budget) | n_real | **ΔCER (real+synth − real-only)** | **Δtone** | per-point rule (§7) |
-|---|---|---|---|---|
-| **10%** | 2,574 | **+3.357 pp better** | **+2.651 pp** | **GREEN** |
-| **25%** | 6,436 | **+0.939 pp better** | **+0.645 pp** | **GREEN** |
-| 50% | 12,871 | −0.047 (flat) | −0.013 | red |
-| **100%** | 25,742 | **−0.038 (flat)** | +0.158 | **red** |
+**The primary run and the budget-honest correction, side by side.** The §14.1 primary run drew the
+generator's Source B from the **full** train transcript bank — but transcripts **are** labels, and a
+practitioner at budget r holds only r% of them (the §14.2 (C1) corpus-budget confound; a **claim-scope**
+defect, not contamination — the eval firewall was intact). The **STRICT** arm rebuilds Source B from the
+r-subset's **own** transcripts, with fonts/degradation/seed/count identical. **Per §14.2 the headline
+quotes STRICT.**
 
-**The gap is monotone in r.** Pre-registered readout: synthetic is **worth ≈2,800 real crops at r=10%** and
-**≈0 at r≥50%**. Per §14's pre-committed reading, *gap-widens-as-r-shrinks* = **synthetic SUBSTITUTES for
-real labels** — but only where labels are scarce.
+| r (real budget) | n_real | ΔCER full-bank (primary) | **ΔCER STRICT (headline)** | **Δtone STRICT** | rule (§7: CER **and** tone) |
+|---|---|---|---|---|---|
+| **10%** (k=5) | 2,574 | +3.328 | **+2.783** | **+2.033** | **GREEN — survives** |
+| **25%** | 6,436 | +0.939 (GREEN) | +0.752 (separated) | **+0.515 (overlap)** | **red — DIES** |
+| 50% | 12,871 | −0.047 (flat) | — | — | red |
+| **100%** | 25,742 | **−0.038 (flat)** | — | — | **red** |
+
+**The strict bank splits the curve.** At **r=10% the green survives** (84% of the full-bank gain retained,
+both CIs separated, at **k=5** after the C2 seed-raise). At **r=25% it does not** — CER still separates but
+**tone does not**, and the rule requires both. That green was substantially carried by **label-derived text
+the budget did not entitle it to.** Reported at full prominence, per the §14.2 pre-commitment. **The claim
+therefore shrinks to the single r=10% point.**
 
 **The honest headline (and the sentence that must always travel with it):** *"On real VinText held-out
-(rec-only, NFC, k=3), the synthetic engine is worth ≈2,800 real annotations at a 2,574-crop label budget
-(CER 16.54 → 13.18; tone 89.34 → 91.99; non-overlapping 95% CIs). Its value decays monotonically with the
-real budget and is **NIL at full real data**, where it does not beat a real-only baseline."* The r=100% null
-keeps **full prominence** (§14) — it is not a footnote to the green points. **Never claimable:** "synthetic
-improves Vietnamese OCR."
+(rec-only, NFC-normalized, **k=5**), a synthetic engine whose corpus, fonts, backgrounds and degradations
+are all derived **within a 2,574-crop label budget** is worth **≈2,195 additional real annotations**
+(95% CI [+2,095 .. +2,297]): CER 16.51 → 13.73 and tone accuracy 89.46 → 91.50, both with non-overlapping
+95% CIs over 5 seeds. That value **decays monotonically with the real budget** and is **NIL at full real
+data**, where the engine does not beat a real-only baseline."* The r=100% null keeps **full prominence**
+(§14) — it is not a footnote to the green point. **Never claimable:** "synthetic improves Vietnamese OCR."
+
+**Two limitations that travel with the number:** the worth-range propagates only the +synth arm's CI (the
+real-only curve is inverted at its means), so it is a **lower bound** on the true uncertainty; and
+**subset-draw variance is unquantified** — one fixed nested draw per r, training-seed variance only.
 
 **Why §7's headline sentence is void.** §7 pre-committed to *"+X% CER from the synthetic engine on top of a
 VinText-real fine-tune."* **X = 0.** That sentence is retired, not reworded to survive; the label-efficiency

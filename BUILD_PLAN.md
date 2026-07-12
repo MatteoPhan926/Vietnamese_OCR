@@ -155,15 +155,37 @@ C1 ✅ COMPLETE (2026-07-12, 6/6): THE STRICT BANK SPLITS THE CURVE — r=10 SUR
   BUG FIXED in aggregate_budget.py: Student t was HARDCODED at 2 dof (k=3). C2 makes the headline
      point k=5, where t(4)=2.776 — the k=3 constant would have inflated that CI by ~55% and could
      have manufactured (or hidden) a separation. Now keyed by dof. Caught BEFORE C2 lands.
-IN-FLIGHT     : C2 (k=5 at r=10%, BOTH arms, seeds 3+4 = 4 runs, ~2h) — run_c2.sh, log runs/c2_k5.log.
-                Authorized ONLY because strict survived at r=10%. `[PRE-COMMITTED]` the k=5 numbers
-                REPLACE k=3 REGARDLESS OF DIRECTION — they can KILL the green, never shop for one.
+C2 ✅ COMPLETE (2026-07-12, 4/4): k=5 AT THE HEADLINE POINT — THE GREEN SURVIVES.
+  `[PRE-COMMITTED]` k=5 REPLACES k=3 regardless of direction (it could have killed the green).
+    r=10% arm        k=3 (superseded)        k=5 (REPLACES)     per-seed CER (k=5)
+    real-only        16.538±2.350            16.509±0.933       17.622/16.108/15.883/15.980/16.950
+    STRICT (HEADLINE)13.728±0.166            13.726±0.096       13.690/13.690/13.810/13.810/13.640
+    gap              +2.810 CER/+2.164 tone  +2.783 CER/+2.033 tone     => GREEN, both CIs separated
+  The MEANS barely moved (real-only -0.03, strict -0.00); the ANCHOR'S SPREAD collapsed ±2.350->±0.933.
+  The k=3 anchor was UNDER-SAMPLED, not biased. Nearest CI edges 15.58 vs 13.82 = 1.75pp apart: the
+  separation is NOT marginal.
+  HEADLINE WORTH (k=5, strict, §14.2 range rule): ≈ +2,195 real crops (r'=18.5%), 95% CI [+2,095..+2,297].
+IN-FLIGHT     : none. GPU free. C1+C2 both COMPLETE and committed.
 PARALLEL/LATER: (a) GOLD manual double-pass (2,437-instance sheet ready, empty) — needed before the FINAL
                 curve numbers + the model-vs-label artifact (§4). NOT blocking Stage 2.
                 (b) DBNet fine-tune -> e2e number (§5) — deferred; pipeline-completeness, not the flagship.
 BLOCKERS/Q    : HOST: C: drive full (46 MB free); uv cache / TORCH_HOME / TMP / checkpoints -> E:.
-NEXT 🧠 CHKPT : Gate A result (green/red + number + provenance). **THE gate.** Brain confirms green is real
-                (non-overlapping CI) or reads the red diagnosis (DATA_ENGINE §8, geometric-first).
+NEXT 🧠 CHKPT : ⬅ **NOW (5th).** C1 + C2 COMPLETE — the two closures the brain made the headline
+                conditional on. Per the brain's own queue step 3: REPORT both with the recomputed
+                worth-RANGE **before any headline sentence is written**. Nothing declared here.
+                WHAT THE BRAIN MUST RULE ON:
+                1) The claim SHRANK: the r=25% GREEN **died** under the strict bank (tone CIs overlap;
+                   the rule needs BOTH). Only r=10% survives. Accept the narrowed single-point claim?
+                2) The r=10% green SURVIVED strict (84% of the gain retained) AND k=5 (gap +2.783 CER /
+                   +2.033 tone, both separated). Headline worth ≈ +2,195 crops [+2,095 .. +2,297].
+                3) Is an r=10%-only claim enough to headline, or should the remaining budget map WHERE
+                   the value dies (an r=15/20% point)? NOT started unilaterally — that is a NEW axis,
+                   not a closure, and the brain owns that call.
+                (Gate A: DONE 2026-07-11 RED, adjudicated. Attempt-1 RED: adjudicated. §14 curve:
+                adjudicated 2026-07-12 -> produced C1-C4. This checkpoint closes C1+C2.)
+                THEN (both blocking the write-up): C3 gold double-pass (USER's manual work) + C4
+                ERROR_ANALYSIS §8 per-axis before/after at r=10% (the MECHANISM half; SCALING §9 —
+                a curve without it is half a result).
 ```
 
 ---

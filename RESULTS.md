@@ -718,3 +718,36 @@ The +synth arm's 95% CI is propagated through the §14.1 inversion (a lower CER 
 > **subset-draw variance is unquantified.** Standard for label-efficiency curves, but said out loud.
 
 > **BRAIN CHECKPOINT — reported, NOT adjudicated.** No headline sentence is written until C2 lands.
+
+### §14.2 (C2) — k=5 at the headline point, BOTH arms `[2026-07-12]`
+
+Pre-committed (§14.2): **the k=5 numbers REPLACE the k=3 numbers regardless of direction.** Adding seeds
+after a green is honest only under that pre-commitment — it can *kill* the green; it cannot shop for one.
+Seeds {3,4} added to real-only(r=10%) and strict(r=10%). Driver: `run_c2.sh`. Aggregator t-statistic is
+now keyed by dof (t(4)=2.776 at k=5; the previously-hardcoded t(2)=4.303 would have inflated the k=5 CI
+by ~55%).
+
+| r=10% arm | k=3 (superseded) | **k=5 (REPLACES it)** | per-seed CER |
+|---|---|---|---|
+| real-only | 16.538 ± 2.350 | **16.509 ± 0.933** | 17.622 / 16.108 / 15.883 / 15.980 / 16.950 |
+| **strict (headline)** | 13.728 ± 0.166 | **13.726 ± 0.096** | 13.690 / 13.690 / 13.810 / 13.810 / 13.640 |
+| **gap** | +2.810 CER / +2.164 tone | **+2.783 CER / +2.033 tone** | — |
+| verdict | GREEN | **GREEN — both CIs separated** | — |
+
+**The green SURVIVES k=5.** The means barely moved (real-only −0.03, strict −0.00); what changed is the
+anchor's spread, which **collapsed from ±2.350 to ±0.933** — the k=3 anchor was simply under-sampled, not
+biased. The two arms are separated by ~2.8 pp with the nearest CI edges (15.58 vs 13.82) **1.75 pp apart**,
+so the separation is not marginal.
+
+### `[LOCKED]` The headline worth-readout, k=5, strict bank, as a RANGE
+**≈ +2,195 real crops (r′=18.5%), 95% CI [+2,095 .. +2,297]** — tightened from C1's k=3
+[+2,031 .. +2,379] by the k=5 anchor. (Full-bank, for comparison: ≈ +2,807, CI [+2,472 .. +3,164].)
+
+> **Unchanged limitations** (both still stated): only the +synth arm's CI is propagated through the
+> inversion (the real-only curve is inverted at its means), so the range remains a **lower bound** on true
+> uncertainty; and **subset-draw variance is unquantified** (one fixed nested draw per r).
+
+> **BRAIN CHECKPOINT — reported, NOT adjudicated.** C1+C2 are complete; no headline sentence is written
+> until the brain rules. Remaining closures: **C3** (gold double-pass — the USER's manual work, now
+> genuinely blocking the final numbers) and **C4** (ERROR_ANALYSIS §8 per-axis before/after at r=10% — the
+> mechanism half; per SCALING §9 the curve without it is half a result).
