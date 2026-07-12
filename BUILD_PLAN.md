@@ -132,7 +132,32 @@ C1 STRICT-BANK — IN FLIGHT (2026-07-12, this session):
     (verified 18/18 result.json intact). run_c1.sh now takes an atomic mkdir lock and purges the cell's
     lmdb before every attempt — a STALE lmdb would otherwise be trained on silently, which is exactly
     the class of bug that could corrupt a headline number.
-IN-FLIGHT     : C1 strict-bank grid, 6 runs (run_c1.sh, log runs/c1_strict.log). Started 06:25.
+C1 ✅ COMPLETE (2026-07-12, 6/6): THE STRICT BANK SPLITS THE CURVE — r=10 SURVIVES, r=25 DOES NOT.
+    r      arm                        CER            ΔCER    tone           Δtone    rule (CER AND tone)
+    10%    real-only            16.538±2.350            —   89.336±1.704        —    (comparator)
+           full-bank (primary)  13.181±0.290       +3.357   91.987±0.099   +2.651    GREEN
+           STRICT (HEADLINE)    13.728±0.166       +2.810   91.500±0.363   +2.164    GREEN  <- SURVIVES
+    25%    real-only            12.373±0.337            —   92.432±0.357        —    (comparator)
+           full-bank (primary)  11.434±0.349       +0.939   93.077±0.126   +0.645    GREEN
+           STRICT (HEADLINE)    11.621±0.374  +0.752 sep.   92.948±0.403  +0.515 OVERLAP  red <- DIES
+  => r=10%: 84% of the full-bank gain RETAINED, both CIs separated. The low-budget value is carried
+     MOSTLY BY THE RENDERER, not the in-domain text bank — but ~16% WAS the bank, now measured.
+  => r=25%: `[NEGATIVE RESULT, FULL PROMINENCE]` CER still separates but TONE DOES NOT (rule needs BOTH).
+     The r=25% green does NOT survive a budget-honest bank -> that value was substantially carried by
+     label-derived text the budget did not entitle it to. The claim SHRINKS to the r=10% point.
+  PRE-TRAINING AUDITS (both PASS -> a null could NOT have been blamed on a degraded generator):
+     §7 distribution audit PASS on both strict sets; budget audit: beyond-budget transcript text
+     37.0%->11.0% (r10) / 21.3%->6.0% (r25), with 0 labels unexplained by {r-subset bank, FREE wiki,
+     1-2-char strings} -> coincidental overlap with free text (permitted), NOT leakage. Verified.
+  WORTH READOUT as a RANGE (§14.2; +synth CI propagated through the §14.1 inversion):
+     r=10% STRICT (headline): ≈ +2,202 real crops (r'=18.6%), 95% CI [+2,031 .. +2,379]
+     r=10% full-bank:         ≈ +2,813 real crops (r'=20.9%), 95% CI [+2,480 .. +3,169]
+  BUG FIXED in aggregate_budget.py: Student t was HARDCODED at 2 dof (k=3). C2 makes the headline
+     point k=5, where t(4)=2.776 — the k=3 constant would have inflated that CI by ~55% and could
+     have manufactured (or hidden) a separation. Now keyed by dof. Caught BEFORE C2 lands.
+IN-FLIGHT     : C2 (k=5 at r=10%, BOTH arms, seeds 3+4 = 4 runs, ~2h) — run_c2.sh, log runs/c2_k5.log.
+                Authorized ONLY because strict survived at r=10%. `[PRE-COMMITTED]` the k=5 numbers
+                REPLACE k=3 REGARDLESS OF DIRECTION — they can KILL the green, never shop for one.
 PARALLEL/LATER: (a) GOLD manual double-pass (2,437-instance sheet ready, empty) — needed before the FINAL
                 curve numbers + the model-vs-label artifact (§4). NOT blocking Stage 2.
                 (b) DBNet fine-tune -> e2e number (§5) — deferred; pipeline-completeness, not the flagship.

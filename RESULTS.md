@@ -655,3 +655,66 @@ matters when real data is thin and is dead weight when it is not.
 
 > **BRAIN CHECKPOINT — the curve is REPORTED here, not adjudicated here.** Per CLAUDE.md §9.8 the numbers go
 > back to the design brain for the protocol/plausibility check before any headline is declared.
+
+### §14.2 (C1) — the STRICT-BANK closure: the corpus-budget confound `[2026-07-12]`
+
+**The defect (caught at brain adjudication, locked as EVAL_PROTOCOL §14.2).** `synth10k_leg`'s Source B
+(65% of the corpus text) drew from the **full** train transcript bank. But **transcripts ARE labels**: a
+practitioner at real-label budget r holds only r% of them, so the +synth arm was using label-derived text
+beyond its stated budget. The eval firewall was intact (no test text/images anywhere) — this is a
+**claim-scope** defect, not contamination. Per §14.2, **the headline must quote the strict version.**
+
+**The strict arm.** Source B restricted to the **r-subset's OWN transcripts**
+(`data/synth/corpus/scene_phrases_r{r}.txt`, built from `annotation_train_r{r}.txt`). Fonts, degradation
+config (`DEFAULT_CFG`), seed (100), and count (10,000) **identical** to `synth10k_leg` — the bank is the
+only variable. Sets: `data/crops/synth10k_strict_r{10,25}`. Scripts: `engine/generate.py --strict-bank-r`,
+`scripts/train_budget.py --arm strict`, `run_c1.sh`. k=3, rec-only, test-500, frozen denominator.
+
+**Pre-training audits (both PASS — so a null could not be blamed on a degraded generator):**
+- **§7 distribution audit: PASS** on both strict sets (reach real's hard tail on all 6 stats; not
+  systematically cleaner than real).
+- **Budget audit.** Beyond-budget transcript text among the 10k synthetic labels: **r=10% 37.0% → 11.0%**;
+  **r=25% 21.3% → 6.0%**. The residual is **not leakage**: **0** labels are unexplained by {the r-subset's
+  own bank, free `wiki_vi` tokens, generated 1–2-char strings} — coincidental overlap with **free** text,
+  which the §14.2 budget model explicitly permits. Verified, not assumed.
+
+| r | arm | CER | ΔCER | tone | Δtone | per-point rule (§7: CER **and** tone) |
+|---|---|---|---|---|---|---|
+| **10%** | real-only (k=3) | 16.538 ± 2.350 | — | 89.336 ± 1.704 | — | (comparator) |
+| | full-bank (§14.1 primary) | 13.181 ± 0.290 | +3.357 | 91.987 ± 0.099 | +2.651 | GREEN |
+| | **STRICT (headline)** | **13.728 ± 0.166** | **+2.810** | **91.500 ± 0.363** | **+2.164** | **GREEN** (both separated) |
+| **25%** | real-only (k=3) | 12.373 ± 0.337 | — | 92.432 ± 0.357 | — | (comparator) |
+| | full-bank (§14.1 primary) | 11.434 ± 0.349 | +0.939 | 93.077 ± 0.126 | +0.645 | GREEN |
+| | **STRICT (headline)** | 11.621 ± 0.374 | +0.752 (sep.) | 92.948 ± 0.403 | +0.515 (**overlap**) | **red** |
+
+### `[C1 VERDICT]` The r=10% green SURVIVES; the r=25% green DOES NOT
+- **r=10%: GREEN under the strict bank.** Gap +2.810 pp CER (was +3.357), **84% of the full-bank gain
+  retained**, both CIs separated. The low-budget value is carried **mostly by the renderer, not by the
+  in-domain text bank** — but ~16% of it *was* the bank, and that is now measured rather than assumed.
+- **r=25%: RED under the strict bank** — `[NEGATIVE RESULT, reported at full prominence]`. CER still
+  separates (+0.752) but **tone does not** (+0.515, CIs overlap), and the pre-registered rule requires
+  **both**. The r=25% green in the primary curve **does not survive** the budget-honest bank. Per §14.2's
+  pre-commitment this is reported at the same prominence as the surviving green: at r=25% the measured
+  value was **substantially carried by label-derived text the budget did not entitle it to.**
+- The C1 correction therefore **shrinks the claim to the r=10% point.** The bar was raised after seeing the
+  result (§15 asymmetry permits this); it was never lowered.
+
+### `[LOCKED]` The worth-readout, as a RANGE (§14.2 reporting rule — never a 4-digit point)
+The +synth arm's 95% CI is propagated through the §14.1 inversion (a lower CER inverts to a higher r′).
+
+| r | arm | CER | worth (mean) | 95% CI range |
+|---|---|---|---|---|
+| **10%** | full-bank | 13.181 | ≈ +2,813 crops (r′=20.9%) | [+2,480 .. +3,169] |
+| **10%** | **STRICT (headline)** | **13.728** | **≈ +2,202 crops (r′=18.6%)** | **[+2,031 .. +2,379]** |
+| 25% | full-bank | 11.434 | ≈ +2,560 crops (r′=34.9%) | [+1,508 .. +3,752] |
+| 25% | STRICT (**red** — no claim) | 11.621 | ≈ +1,980 crops (r′=32.7%) | [+928 .. +3,181] |
+
+> **Stated limitation:** only the +synth arm's CI is propagated; the real-only curve being inverted is
+> taken at its per-point **means** (its own seed spread — notably ±2.350 at r=10% — is not folded in). The
+> quoted range is therefore a **lower bound on the true uncertainty**, not a full error budget. **C2 (k=5
+> at r=10%, both arms) is running to tighten exactly that anchor.**
+
+> **Stated limitation (§14.2):** one fixed nested subset draw per r → **training-seed variance only**;
+> **subset-draw variance is unquantified.** Standard for label-efficiency curves, but said out loud.
+
+> **BRAIN CHECKPOINT — reported, NOT adjudicated.** No headline sentence is written until C2 lands.

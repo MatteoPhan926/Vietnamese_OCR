@@ -23,7 +23,12 @@ import sys
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-T = 4.302652729911275   # Student t, 2 dof, 95%
+# Student t, 95% two-sided, by dof = k-1. k is NOT always 3: §14.2 (C2) raises the r=10% headline
+# point to k=5, where t(4 dof)=2.776 -- using the k=3 constant there would inflate the CI by ~55%
+# and could manufacture a separation failure (or hide one). Keyed by dof, never hardcoded.
+T_BY_DOF = {1: 12.706204736432095, 2: 4.302652729911275, 3: 3.182446305284263,
+            4: 2.776445105198166, 5: 2.570581835636197, 6: 2.446911850791612,
+            7: 2.364624251592785, 8: 2.306004135204166, 9: 2.262157162798205}
 N_FULL = 25742          # the full real train split (frozen, EVAL_PROTOCOL §13 E1)
 RS = [10, 25, 50, 100]
 METRICS = [("cer", "CER", True), ("axis3_tone", "tone", False),
@@ -33,9 +38,11 @@ METRICS = [("cer", "CER", True), ("axis3_tone", "tone", False),
 
 def ci(vals):
     m = st.mean(vals)
-    if len(vals) < 2:
+    n = len(vals)
+    if n < 2:
         return m, float("nan")
-    return m, T * st.stdev(vals) / (len(vals) ** 0.5)
+    t = T_BY_DOF[n - 1]
+    return m, t * st.stdev(vals) / (n ** 0.5)
 
 
 def load(pattern):
@@ -48,7 +55,14 @@ def load(pattern):
 
 
 def arm_runs(r, arm):
-    """r=100% is REUSED per §14.1: real -> Stage-0 baseline A; synth -> the leg re-gate run."""
+    """r=100% is REUSED per §14.1: real -> Stage-0 baseline A; synth -> the leg re-gate run.
+
+    arm=strict (§14.2 C1) exists only at the green points r=10/25 -- Source B restricted to the
+    r-subset's OWN transcripts. Per §14.2 the HEADLINE quotes this arm; `synth` (full train
+    transcript bank) remains the pre-registered primary, reported with its caveat.
+    """
+    if arm == "strict" and r not in (10, 25):
+        return []
     if r == 100:
         return load("runs/baseline_seed[0-9]/result.json" if arm == "real"
                     else "runs/gateA_synth10k_leg_seed[0-9]/result.json")
@@ -75,10 +89,44 @@ def invert_realonly(curve, y):
     return None
 
 
+ARMS = ("real", "synth", "strict")
+LABEL = {"synth": "full-bank (§14.1 primary)", "strict": "STRICT-bank (§14.2 C1 — HEADLINE)"}
+
+
+def worth(realonly_cer, r, cer_mean, cer_half):
+    """§14.2 reporting rule: quote the worth as a RANGE, never a 4-digit point.
+
+    Propagate the +synth arm's 95% CI through the §14.1 interpolation: invert the real-only curve
+    at the arm's CER mean AND at both CI bounds. A LOWER CER inverts to a HIGHER r' (more real
+    crops), so the CI's low end gives the optimistic N and its high end the pessimistic N.
+
+    Stated limitation: only the +synth arm's CI is propagated. The real-only curve being inverted
+    is taken at its per-point MEANS -- its own seed spread (notably r=10%, ±2.350) is NOT folded in,
+    so this range is a LOWER bound on the true uncertainty, not a full error budget.
+    """
+    out = {}
+    for tag, y in (("mean", cer_mean), ("hi", cer_mean + cer_half), ("lo", cer_mean - cer_half)):
+        rp = invert_realonly(realonly_cer, y)
+        out[tag] = None if rp is None else dict(r_prime=rp, n=(rp - r) / 100.0 * N_FULL)
+    return out
+
+
+def fmt_worth(w):
+    if w["mean"] is None:
+        return "OUTSIDE the measured real-only range -> NOT extrapolated (no claim)"
+    m = w["mean"]["n"]
+    lo, hi = w["lo"], w["hi"]
+    if lo is None or hi is None:
+        return (f"≈ {m:+,.0f} real crops (r'={w['mean']['r_prime']:.1f}%); a CI bound falls "
+                f"outside the measured range -> range truncated, not extrapolated")
+    return (f"≈ {m:+,.0f} real crops (r'={w['mean']['r_prime']:.1f}%), "
+            f"95% CI range [{hi['n']:+,.0f} .. {lo['n']:+,.0f}]")
+
+
 def main():
     data = {}
     for r in RS:
-        for arm in ("real", "synth"):
+        for arm in ARMS:
             runs = arm_runs(r, arm)
             if not runs:
                 continue
@@ -87,10 +135,15 @@ def main():
             data[(r, arm)]["_n_real"] = runs[0].get("n_real", N_FULL)
 
     print("§14 LABEL-EFFICIENCY CURVE — rec-only · VinText test-500 · NFC/axes-NFD · frozen denom")
-    print("§6 operating config (DEFAULT aug) · iters=12,000 FIXED · uniform pooled sampling · k=3\n")
-    print(f"{'r':>5s} {'real crops':>11s} | {'real-only CER':>16s} {'real+synth CER':>16s} "
-          f"{'GAP(CER)':>9s} | {'real-only tone':>15s} {'real+synth tone':>16s} {'GAP':>7s}")
-    print("-" * 108)
+    print("§6 operating config (DEFAULT aug) · iters=12,000 FIXED · uniform pooled sampling\n")
+    print("ARMS: real-only(r)  |  +synth full-bank (§14.1 primary)  |  +synth STRICT-bank (§14.2 C1)")
+    print("  STRICT = Source B drawn ONLY from the r-subset's own transcripts (transcripts ARE labels;")
+    print("  a practitioner at budget r holds only r% of them). Per §14.2 the HEADLINE quotes STRICT.\n")
+
+    hdr = (f"{'r':>5s} {'real crops':>11s} {'arm':>28s} {'k':>2s} | {'CER':>15s} "
+           f"{'ΔCER':>8s} | {'tone':>15s} {'Δtone':>7s} | {'per-point rule':>14s}")
+    print(hdr)
+    print("-" * len(hdr))
 
     realonly_cer = {}
     rows = {}
@@ -100,50 +153,76 @@ def main():
         ro = data[(r, "real")]
         realonly_cer[r] = ro["cer"][0]
         n_real = ro["_n_real"]
-        if (r, "synth") not in data:
-            print(f"{r:4d}% {n_real:11d} | {ro['cer'][0]:8.3f}±{ro['cer'][1]:.3f} "
-                  f"{'(pending)':>16s}")
-            continue
-        sy = data[(r, "synth")]
-        gap_cer = ro["cer"][0] - sy["cer"][0]        # >0 = synth reduces CER (helps)
-        gap_tone = sy["axis3_tone"][0] - ro["axis3_tone"][0]   # >0 = synth improves tone
-        print(f"{r:4d}% {n_real:11d} | {ro['cer'][0]:8.3f}±{ro['cer'][1]:5.3f} "
-              f"{sy['cer'][0]:8.3f}±{sy['cer'][1]:5.3f} {gap_cer:+9.3f} | "
-              f"{ro['axis3_tone'][0]:7.3f}±{ro['axis3_tone'][1]:5.3f} "
-              f"{sy['axis3_tone'][0]:8.3f}±{sy['axis3_tone'][1]:5.3f} {gap_tone:+7.3f}")
-        rows[r] = dict(gap_cer=gap_cer, gap_tone=gap_tone,
-                       cer_sep=not overlap(ro["cer"], sy["cer"]),
-                       tone_sep=not overlap(ro["axis3_tone"], sy["axis3_tone"]),
-                       real_only={k: data[(r, 'real')][k] for k, _, _ in METRICS},
-                       real_synth={k: data[(r, 'synth')][k] for k, _, _ in METRICS},
-                       n_real=n_real)
+        print(f"{r:4d}% {n_real:11d} {'real-only':>28s} {ro['_n']:2d} | "
+              f"{ro['cer'][0]:8.3f}±{ro['cer'][1]:5.3f} {'':>8s} | "
+              f"{ro['axis3_tone'][0]:8.3f}±{ro['axis3_tone'][1]:5.3f} {'':>7s} | {'(comparator)':>14s}")
+        rows[r] = dict(n_real=n_real, real_only={k: ro[k] for k, _, _ in METRICS}, k_real=ro["_n"])
 
-    print("\nPER-POINT GATE RULE (§7, unchanged): non-overlapping 95% CI on CER *and* tone")
+        for arm in ("synth", "strict"):
+            if (r, arm) not in data:
+                continue
+            sy = data[(r, arm)]
+            gap_cer = ro["cer"][0] - sy["cer"][0]                   # >0 = synth reduces CER (helps)
+            gap_tone = sy["axis3_tone"][0] - ro["axis3_tone"][0]    # >0 = synth improves tone
+            cer_sep = not overlap(ro["cer"], sy["cer"])
+            tone_sep = not overlap(ro["axis3_tone"], sy["axis3_tone"])
+            green = cer_sep and gap_cer > 0 and tone_sep and gap_tone > 0
+            print(f"{'':4s}  {'':11s} {LABEL[arm]:>28s} {sy['_n']:2d} | "
+                  f"{sy['cer'][0]:8.3f}±{sy['cer'][1]:5.3f} {gap_cer:+8.3f} | "
+                  f"{sy['axis3_tone'][0]:8.3f}±{sy['axis3_tone'][1]:5.3f} {gap_tone:+7.3f} | "
+                  f"{'GREEN' if green else 'red':>14s}")
+            rows[r][f"{arm}_arm"] = dict(
+                gap_cer=gap_cer, gap_tone=gap_tone, cer_sep=cer_sep, tone_sep=tone_sep,
+                green=green, k=sy["_n"], metrics={k: sy[k] for k, _, _ in METRICS})
+        print()
+
+    print("PER-POINT GATE RULE (§7, unchanged): non-overlapping 95% CI on CER *and* tone, both arms")
     for r in sorted(rows):
-        d = rows[r]
-        cer_ok = d["cer_sep"] and d["gap_cer"] > 0
-        tone_ok = d["tone_sep"] and d["gap_tone"] > 0
-        print(f"  r={r:3d}%  CER: {'PASS' if cer_ok else 'no':4s} (Δ{d['gap_cer']:+.3f}, "
-              f"CIs {'separated' if d['cer_sep'] else 'overlap'})   "
-              f"tone: {'PASS' if tone_ok else 'no':4s} (Δ{d['gap_tone']:+.3f}, "
-              f"CIs {'separated' if d['tone_sep'] else 'overlap'})   "
-              f"=> {'GREEN' if (cer_ok and tone_ok) else 'red'}")
+        for arm in ("synth", "strict"):
+            d = rows[r].get(f"{arm}_arm")
+            if not d:
+                continue
+            print(f"  r={r:3d}% {LABEL[arm]:>28s}  CER Δ{d['gap_cer']:+.3f} "
+                  f"({'separated' if d['cer_sep'] else 'overlap'})   "
+                  f"tone Δ{d['gap_tone']:+.3f} ({'separated' if d['tone_sep'] else 'overlap'})   "
+                  f"=> {'GREEN' if d['green'] else 'red'}")
 
     if len(realonly_cer) >= 2:
-        print("\n`[LOCKED]` PRE-REGISTERED READOUT (§14.1): \"synthetic ≈ worth N real crops at budget r\"")
-        print("  (invert the real-only curve, linear in log r between MEASURED points; never extrapolated)")
+        print("\n`[LOCKED]` PRE-REGISTERED READOUT (§14.1) + the §14.2 RANGE rule:")
+        print("  \"synthetic ≈ worth N real crops at budget r\" — invert the real-only curve (linear in")
+        print("  log r between MEASURED points, NEVER extrapolated); the CI of the +synth arm is")
+        print("  propagated through the inversion. The real-only curve is inverted at its MEANS, so the")
+        print("  range is a LOWER bound on the true uncertainty (its own seed spread is not folded in).")
         for r in sorted(rows):
-            y = rows[r]["real_synth"]["cer"][0]      # CER achieved by real(r)+synth
-            rp = invert_realonly(realonly_cer, y)
-            if rp is None:
-                print(f"  r={r:3d}%: real+synth CER {y:.3f} lies OUTSIDE the measured real-only "
-                      f"range -> NOT extrapolated (no claim)")
+            for arm in ("synth", "strict"):
+                d = rows[r].get(f"{arm}_arm")
+                if not d:
+                    continue
+                cm, ch = d["metrics"]["cer"]
+                w = worth(realonly_cer, r, cm, ch)
+                rows[r][f"{arm}_arm"]["worth"] = w
+                print(f"  r={r:3d}% {LABEL[arm]:>28s}: CER {cm:.3f} -> {fmt_worth(w)}")
+
+        # C1's actual question: how much of the full-bank gain survives the strict bank?
+        print("\nC1 VERDICT (§14.2): does the low-budget value survive when Source B is held to the")
+        print("  r-subset's OWN transcripts? (If strict kills a green, the value was carried by the")
+        print("  in-domain TEXT BANK, not the renderer — reported at the same prominence.)")
+        for r in sorted(rows):
+            f_arm, s_arm = rows[r].get("synth_arm"), rows[r].get("strict_arm")
+            if not (f_arm and s_arm):
                 continue
-            n = (rp - r) / 100.0 * N_FULL
-            print(f"  r={r:3d}%: real+synth CER {y:.3f} == real-only at r'={rp:.1f}%  "
-                  f"=> synthetic ≈ worth {n:+,.0f} real crops")
+            retained = 100.0 * s_arm["gap_cer"] / f_arm["gap_cer"] if f_arm["gap_cer"] else float("nan")
+            print(f"  r={r:3d}%: full-bank gap {f_arm['gap_cer']:+.3f} -> strict gap "
+                  f"{s_arm['gap_cer']:+.3f} pp  ({retained:.0f}% of the gain RETAINED)  "
+                  f"strict verdict: {'GREEN' if s_arm['green'] else 'red'}")
 
     print("\n" + "=" * 100)
+    print("§14.2 OBSERVATION-ONLY (never a mechanism claim): CI-width comparisons across arms at k=3")
+    print("are themselves high-variance. The r=10% tightening is reportable as an OBSERVATION; the")
+    print("cross-r 'stabilizer vs dead-weight' narrative is NOT (r=50% reverses it).")
+    print("STATED LIMITATION: one fixed nested subset draw per r -> training-seed variance only;")
+    print("subset-draw variance is UNQUANTIFIED (standard for label-efficiency curves; said out loud).")
+    print()
     print("HONEST READING (§14, pre-committed): gap WIDENS as r shrinks -> synthetic substitutes for")
     print("labels. Gap FLAT at every r -> the generator produces no usable signal at any budget (a clean")
     print("negative result). r=100% IS a point on this curve and its RED is reported at full prominence.")
