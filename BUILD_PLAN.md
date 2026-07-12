@@ -82,79 +82,74 @@ STEP-1 BUG-CHECKS DONE (2026-07-11, this session; §8.2 — do NOT burn an attem
   budget the brain locked to prevent p-hacking-by-iteration — so it is NOT started unilaterally even though
   pre-declared. AWAITING BRAIN DIRECTION (greenlight Attempt 1 as pre-declared, or adjust given the healthy RED).
   Attempt-1 plan is ready: re-weight generation toward tilt>=20deg, contrast<0.20, height<12px, 1-2 char crops.
-NEXT ACTION   : 🧠 C1/C2 ADJUDICATED BY BRAIN 2026-07-12 (5th checkpoint). Verified independently:
-                worth-point reproduces (N=2,195 under §14.1 with the k=5 anchor); daylight 1.75pp real.
-                  • Q1 ACCEPTED: the claim NARROWS TO r=10% (single point). r=25% recorded at full
-                    prominence as "directionally positive under strict (CER +0.752, separated) but below
-                    the pre-registered two-metric bar (tone overlaps)" — NOT "bank-carried": bank cost is
-                    uniform ~16-20% at BOTH points (EVAL_PROTOCOL §14.3). Green dies in (10%,25%].
-                  • Q2 NO: die-off mapping (r=15/20%) deferred — new axis, not a closure; optional
-                    post-write-up polish, pre-registered if ever run.
-                  • t(dof) fix RATIFIED (no prior number affected — all earlier runs k=3).
-                  • N-RANGE CORRECTED (§14.3): both-arm corner propagation -> ≈ +2.2k, range [1.68k,2.55k].
-                    The quoted [2,095..2,297] under-propagated (anchor held fixed). Use the wide range.
-                QUEUE:
-                1) C4 NOW (analysis-only, free — predictions.tsv for both k=5 arms exist): ERROR_ANALYSIS
-                   §8 per-axis before/after at r=10%, real-only(k=5) vs strict-synth(k=5): which axes and
-                   strata carry the +2.78pp? Tone/small-crops = mechanism confirmed; uniform = generic-
-                   prior story. The curve without this is half a result (SCALING §9).
-                2) C3 GOLD = the USER's manual double-pass (2,437-instance sheet) — now THE critical path;
-                   all remaining GPU work is done or analysis-only.
-                3) Stage 5 write-up draft after C4, gold slots marked pending.
-§14.3 AMENDMENTS APPLIED (2026-07-12, this session):
-  • N-range CORRECTED to both-arm corner propagation (aggregate_budget.worth). Headline now
-    ≈ +2,195, both-arm 95% range [+1,678 .. +2,553] — REPRODUCES the brain's [1.68k, 2.55k] exactly.
-    The old synth-only [+2,095..+2,297] held the anchor fixed and UNDER-propagated -> superseded,
-    marked [SUPERSEDED] in RESULTS rather than quietly deleted. Point estimate unchanged.
-  • r=25% FRAMING CORRECTED in RESULTS + SCALING + the aggregator. My earlier wording ("substantially
-    carried by label-derived text the budget did not entitle it to") OVER-READ the numbers and is
-    RETRACTED IN PLACE. Correct record: bank cost is uniform ~16-20% at BOTH green points; r=25% is
-    directionally positive under strict (CER +0.752, separated) but BELOW the two-metric bar (tone
-    overlaps). Green dies in (10%, 25%].
-  • t(dof) fix ratified (no earlier number affected — all prior runs were k=3).
+NEXT ACTION   : 🧠 C4 ADJUDICATED BY BRAIN 2026-07-12 (6th checkpoint).
+                  • Mechanism finding ACCEPTED: the +2.783 is real (strict+k=5, untouched); mechanism =
+                    decoder premature-<eos> repair on long crops (54.3% of gain; severe truncation
+                    24.7%->6.9%), NOT the geometric stack (rank-1 stratum: 2.8%, not sig). This is the
+                    pre-stated generic-prior branch — the write-up fork is settled by the control below.
+                  • DECISION = (b): CLEAN-RENDER CONTROL per EVAL_PROTOCOL §14.4(A) — degradation OFF,
+                    same corpus/fonts/strict-bank/seed, r=10%, k=3 (~1h). Pre-registered readings locked.
+                    NOT a §8.1 attempt; §7 audit recorded but non-gating; headline untouched.
+                    Free adjunct: count >=9-char items in the strict 10k corpus.
+                  • C3 GOLD TOOL approved per §14.4(B): PUBLIC-LABEL prefill ONLY (model output BANNED
+                    from UI), ~12% blind subset, pass-2 = edits+blind+10% after >=24h, UNREADABLE
+                    category, NFC+charset on save, crash-safe, eval-identical crop rectification.
+                  • Agent's r=25% retraction + both-arm N-range adoption: CONFIRMED.
+                QUEUE: 1) build gold tool + 20-row smoke test ON A COPY of the sheet -> hand to user.
+                       2) clean-render control WHILE user does pass 1 -> report split vs §14.4(A).
+                       3) user pass1 + (>=24h) pass2 -> gold report (noise floor as LOWER BOUND;
+                          blind-vs-assisted) -> ERROR_ANALYSIS §4 re-run at the headline point.
+                       4) Stage 5 write-up draft (gold slots last to fill).
+C3 GOLD TOOL ✅ BUILT + SMOKE-TESTED (2026-07-12) — READY FOR THE USER. tools/gold_tool.py
+  ▶ USAGE (the user's manual pass):
+        python tools/gold_tool.py              # pass 1 -> http://localhost:8765 (opens a browser)
+        python tools/gold_tool.py --pass 2     # pass 2; REFUSES to start until >=24h after pass 1
+        python tools/gold_tool.py --report     # the gold report (edit rates, blind-vs-assisted)
+        python tools/gold_tool.py --smoke      # 23-check self-test ON A COPY (live sheet untouched)
+    Keys: Enter = accept & next · U = unreadable · B = back · C = context image. Once you start
+    TYPING, U/B/C become literal characters -> use Alt+U / Alt+B / Alt+C. (Deliberate: bare single
+    keys would otherwise be unusable inside a text box; the accept path stays one keystroke.)
+    Stop with Ctrl+C at any time — every action is saved immediately and restart resumes.
+  PROTOCOL (§14.4(B)) ENFORCED IN CODE: box prefilled with the PUBLIC LABEL ONLY; NO model output
+    anywhere (a smoke check greps the serving code for checkpoint/prediction tokens and FAILS if any
+    appear); ~12% stratified BLIND subset (seed 20260712, persisted `blind` column, empty box +
+    public label HIDDEN); UNREADABLE is a stored outcome; every save strips zero-width/format
+    codepoints, NFC-normalizes, and charset-warns (never blocks); randomized order (seed 20260712,
+    NOT grouped by source image); append-only runs/gold_events.jsonl + atomic sheet rewrite on EVERY
+    action (crash-safe, resumable). Pass 2 queue = all EDITED + all BLIND + fixed-seed 10% of
+    accepted; pass1≠pass2 rows loop in a resolve queue. Crops served are data/gold/crops/ — the ones
+    gold_sample.py rectified via scripts.crops.crop_quad = THE EVAL'S OWN CODE PATH.
+  ⚠ BUG CAUGHT IN BUILD (would have been silent + catastrophic): the first version used Python's
+    csv module to read/write the sheet. Two real VinText labels contain a BARE DOUBLE-QUOTE (`"Độc`,
+    `TƯỞNG"`); csv reads those as FIELD QUOTES and swallows every line until the next one — it
+    collapsed the 2,437-row sheet to 1,465 (40% of the gold set silently gone) and would have
+    RE-QUOTED the surviving labels on save. Replaced with plain split/join TSV (no quoting, no
+    escaping; tabs/newlines stripped on write). Regression guards added to the smoke test: every row
+    must load, save->reload must be lossless, quote-bearing labels must survive verbatim.
+  STATUS: 23/23 smoke checks PASS. data/gold/transcription_sheet.tsv still has ZERO judgments
+    (verified: gold_pass1/gold_pass2 both empty across all 2,437 rows). No gold value fabricated.
 
-C4 ✅ COMPLETE (2026-07-12) — THE MECHANISM, and it is NOT the one the engine was built for.
-  scripts/c4_before_after.py -> runs/c4_before_after_r10.json. Analysis-only (k=5 predictions existed).
-  BEFORE real-only(r10) k=5 vs AFTER +strict-synth k=5. Question pre-stated (tone/small/tilted =
-  mechanism confirmed | uniform = generic prior). ALL THREE AXES move ~equally:
-    CER +2.783±0.938 | base +1.605±0.577 | modifier +1.808±0.678 | tone +2.033±0.655  (all clear noise)
-  1,037 chars fixed. WHERE THE GAIN LIVES (share of those 1,037):
-    tilt>=20deg (DATA_ENGINE §12 RANK-1 driver): +1.60±1.94 -> DOES NOT CLEAR NOISE, only 2.8% of gain.
-    tilt<5deg (the EASY, common case): 77.1% of the gain.  height>=48px: 20.4%.
-    LONG CROPS (>=9 chars, only 296/10,068 instances): 54.3% OF THE ENTIRE GAIN. Length was NEVER a
-      targeted knob (synth corpus is 99% single-token, median 3 chars).
-  MECHANISM MEASURED (not inferred): the scarce-budget decoder TRUNCATES. On >=9-char crops, mean pred
-    length 8.37 vs GT 11.19, 24.7% severely truncated -> with synth: 10.25, 6.9%. Premature <eos> on
-    long strings (phone numbers/URLs). A DELETION charges EVERY axis -> that is exactly why all three
-    axes rise together instead of tone alone.
-  => Lands on the GENERIC-PRIOR side of the pre-stated fork: "at a scarce budget, more crops of almost
-     any kind fix decoder under-training." The +2.783pp is REAL (survives strict + k=5), but this
-     WEAKENS the domain-transfer/realism-knobs framing. LIVE THREAT: a cheap non-scene control (same
-     10k rendered WITHOUT the degradation stack) might buy much of the same gain. NOT RUN — brain's call.
-IN-FLIGHT     : none. GPU free.
+§14.4(A) CLEAN-RENDER CONTROL — IN FLIGHT (2026-07-12):
+  GENERATED data/crops/synth10k_clean_r10 (--no-degrade): render + real-bg composite + plain resize;
+    NO geometric, NO photometric, NO blur/JPEG. Same corpus/fonts/strict-bank(r10)/seed=100 as
+    synth10k_strict_r10. PROVENANCE CHECK: the two sets' LABEL SETS ARE IDENTICAL (227 items >=9
+    chars, 44 >=13, max len 18, same examples) -> the ONLY difference between them is PIXELS.
+  §7 AUDIT: **FAIL** — sharpness MISSES real's hard tail and is CLEANER than real, exactly as
+    §14.4(A) pre-registered. RECORDED, NON-GATING (clean by design; not a training-set candidate).
+  FREE ADJUNCT (§14.4(A)): the strict 10k contains 227 items >=9 chars (2.27%) incl. phone numbers,
+    vs 77 (2.99%) in the 2,574-crop real r10 subset -> ~3x MORE long examples in absolute count.
+    So the C4 long-crop repair is via EXPOSURE to long sequences, not pure sequence regularization.
+  RUNS: r=10%, arm=clean, k=3 (run_control.sh -> scripts/aggregate_control.py). seed0 CER=13.83,
+    seed1 CER=13.92 (strict k=5 = 13.726±0.096; real-only k=5 = 16.509±0.933). seed2 pending.
+    EARLY READ (NOT a verdict — brain adjudicates): clean is tracking the SHIPPED arm closely, which
+    points at the >=80% branch = the realism machinery is NOT load-bearing at this operating point.
+IN-FLIGHT     : clean-render control, seed 2 of 3 (run_control.sh, log runs/control_clean.log).
 PARALLEL/LATER: (a) GOLD manual double-pass (2,437-instance sheet ready, empty) — needed before the FINAL
                 curve numbers + the model-vs-label artifact (§4). NOT blocking Stage 2.
                 (b) DBNet fine-tune -> e2e number (§5) — deferred; pipeline-completeness, not the flagship.
 BLOCKERS/Q    : HOST: C: drive full (46 MB free); uv cache / TORCH_HOME / TMP / checkpoints -> E:.
-NEXT 🧠 CHKPT : ⬅ **NOW (6th).** C4 is done and it CHANGES THE STORY. Reported, NOT adjudicated.
-                THE ONE THING THE BRAIN MUST RULE ON:
-                  The +2.783pp is REAL (survives the strict bank AND k=5; all three axes clear noise).
-                  But the MECHANISM is NOT domain transfer: 54.3% of the gain is long-crop TRUNCATION
-                  repair (a decoder under-training effect), the rank-1 targeted stratum (tilt>=20deg)
-                  shows NO significant gain (+1.60±1.94) and carries 2.8%, and 77% of the gain sits in
-                  the EASY tilt<5deg bin. On the PRE-STATED fork this is the GENERIC-PRIOR branch, not
-                  "the realism knobs worked."
-                  Q: does the write-up (a) claim LABEL-EFFICIENCY ONLY and drop the domain-transfer
-                  mechanism claim; or (b) spend ~1h GPU on the CONTROL that decides it — regenerate 10k
-                  with the DEGRADATION STACK OFF (clean renders; same corpus/fonts/strict bank/seed)
-                  and retrain at r=10%, k=3? If the clean control buys most of the +2.78pp, the
-                  engine's realism machinery is NOT what paid and the write-up must say so; if it does
-                  not, the degradations ARE load-bearing and the domain-transfer claim survives.
-                  The control is a NEW RUN (pre-registerable), so it is NOT started unilaterally.
-                (Gate A RED: adjudicated. Attempt-1 RED: adjudicated. §14 curve: adjudicated -> C1-C4.
-                C1+C2: adjudicated 2026-07-12 -> §14.3 applied. This checkpoint is C4.)
-                THEN: C3 gold double-pass (USER's manual work — the remaining critical path) + the
-                Stage-5 write-up with gold slots marked pending.
+NEXT 🧠 CHKPT : Gate A result (green/red + number + provenance). **THE gate.** Brain confirms green is real
+                (non-overlapping CI) or reads the red diagnosis (DATA_ENGINE §8, geometric-first).
 ```
 
 ---

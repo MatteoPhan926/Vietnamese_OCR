@@ -122,8 +122,22 @@ STRATA_W = dict(geometric=0.40, photometric=0.30, resolution=0.30)
 
 
 class Generator:
-    def __init__(self, corpus, fonts, bg_index, seed=0, cfg=None, strata=False):
+    def __init__(self, corpus, fonts, bg_index, seed=0, cfg=None, strata=False, no_degrade=False):
+        """no_degrade (EVAL_PROTOCOL §14.4(A), the clean-render CONTROL): turn the ENTIRE degradation
+        stack OFF -- no geometric (rotation/perspective/shear), no photometric (contrast/lighting/
+        glare/noise), no resolution/blur/JPEG. Text is rendered onto a real background patch and
+        resized to the target height, nothing else.
+
+        This is NOT the cfg['p_clean'] path, which still applies LIGHT geometry and a light JPEG --
+        that path covers real's sharp end and is part of the shipped generator. The control must
+        ablate the stack completely, or it does not attribute anything.
+
+        ATTRIBUTION ONLY. The set is clean by design, so it is expected to FAIL the §7 audit
+        (cleaner than real); §14.4(A) makes that audit non-gating here. It is not a training-set
+        candidate and the headline does not move.
+        """
         self.strata = strata
+        self.no_degrade = no_degrade
         self.corpus = corpus
         self.fonts = fonts
         if isinstance(bg_index, tuple):
@@ -376,6 +390,19 @@ class Generator:
             if mask is None or mask.shape[1] < 3:
                 continue
             crop, _ = self._compose(mask)
+
+            # §14.4(A) CONTROL: render + background composite only, then a plain resize.
+            # No geometric, no photometric, no blur/JPEG.
+            if self.no_degrade:
+                crop = np.clip(crop, 0, 255).astype(np.uint8)
+                H, W = crop.shape[:2]
+                scale = target_h / H
+                tw = max(4, int(round(W * scale)))
+                crop = cv2.resize(crop, (tw, target_h),
+                                  interpolation=cv2.INTER_AREA if scale < 1 else cv2.INTER_CUBIC)
+                if crop.shape[0] < 3 or crop.shape[1] < 3:
+                    continue
+                return crop, text, font["family"]
             if stratum == "geometric":
                 # push INTO the tilt/perspective stratum (the worst measured, 30.3% CER)
                 old = (self.cfg["rot_deg"], self.cfg["persp_jitter"], self.cfg["shear"])

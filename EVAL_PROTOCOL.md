@@ -658,3 +658,36 @@ is half a result).
   somewhere in **(10%, 25%]**.
 - **Die-off mapping (r=15/20%) DEFERRED.** A new axis, not a closure; optional post-write-up polish. If
   ever run: pre-registered first, each point reported whatever it says (no green-shopping).
+
+### §14.4 Mechanism-attribution control + assisted-gold protocol (pre-registered 2026-07-12, before either runs)
+
+**(A) The clean-render control (C4 follow-up).** Regenerate the strict-bank 10k with the ENTIRE
+degradation stack OFF (same corpus, fonts, strict bank, generation seed; new manifest), retrain at r=10%,
+k=3, same HP/iters. Attribution only — pre-committed readings:
+- clean buys **≥ ~80%** of the +2.783 → the realism machinery is not load-bearing at this operating
+  point; the claim is **label-efficiency via decoder-training signal** (premature-`<eos>` repair), stated.
+- clean buys **< ~50%** → the degradations are load-bearing; the domain-transfer framing survives
+  alongside the decoder mechanism.
+- between → report the measured split.
+Accounting: an **ABLATION FOR ATTRIBUTION** of an already-green result — NOT a §8.1 re-gate attempt
+(those govern changes aimed at turning a gate green), and it does NOT touch the headline (+2.783 stands
+regardless). The §7 audit is run and recorded but **not gating** here (the set is clean by design; it is
+not a training-set candidate). Free adjunct: count ≥9-char items in the shipped strict 10k — long-crop
+repair via exposure (~100+ long items) vs pure sequence regularization (~0) is one write-up sentence.
+
+**(B) Assisted gold (C3) — §5 amended for throughput WITHOUT model anchoring.**
+- **Prefill = the PUBLIC LABEL ONLY.** Model predictions — any arm, any checkpoint, any external OCR —
+  are **BANNED from the tool's UI**: OCR-prefilled gold inherits model errors via anchoring and biases
+  model-vs-gold comparisons in the flattering direction, the one direction that voids the artifact.
+- Bias direction stated: public-label anchoring undercounts label noise → the noise floor is quoted as a
+  **lower bound** ("public labels contain ≥ X% …"), conservative for every downstream claim.
+- Anchoring **quantified, not assumed**: a ~12% stratified BLIND subset (fixed seed, `blind` column, no
+  prefill, public label hidden) typed from scratch in pass 1. The blind rate is the unbiased noise-floor
+  estimator; blind-vs-assisted rates on matched strata are reported.
+- **Pass 2 (≥24h later):** all EDITED + all BLIND + a fixed-seed 10% sample of accepted rows; pass1≠pass2
+  rows loop in a resolve queue. Full-sheet double-typing superseded (dated amendment to §5) — the double
+  pass's error-catching function is preserved exactly where it has power.
+- **UNREADABLE is a legitimate outcome** (stored as unscoreable, counted, reported) — never a forced guess.
+- Every save: strip format codepoints, NFC-normalize, charset-check (warn, never block). Randomized
+  presentation order (fixed seed), not grouped by source image. Event-log + TSV materialization on every
+  action (crash-safe, resumable). Gold crops are extracted/rectified by the SAME code path the eval uses.

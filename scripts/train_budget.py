@@ -46,7 +46,14 @@ def synth_set(r, arm):
                   r-subset's OWN transcripts -- transcripts ARE labels, and a practitioner at
                   budget r holds only r% of them. Identical fonts/degradation/seed; the bank is
                   the ONLY variable. The HEADLINE quotes this arm.
+    arm=clean  -> synth10k_clean_r{r}: EVAL_PROTOCOL §14.4(A) CLEAN-RENDER CONTROL. Identical to the
+                  strict set (same corpus/fonts/strict bank/seed) except the ENTIRE degradation stack
+                  is OFF. ATTRIBUTION ONLY: does the realism machinery carry the +2.783pp, or does any
+                  10k of extra crops? The headline does not move either way, and this is NOT a §8.1
+                  re-gate attempt.
     """
+    if arm == "clean":
+        return f"synth10k_clean_r{r}"
     return SYNTH if arm == "synth" else f"synth10k_strict_r{r}"
 
 
@@ -74,13 +81,15 @@ def build_annotation(r, arm):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--r", type=int, required=True, choices=[10, 25, 50, 100])
-    ap.add_argument("--arm", choices=["real", "synth", "strict"], required=True)
+    ap.add_argument("--arm", choices=["real", "synth", "strict", "clean"], required=True)
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--iters", type=int, default=HP["iters"])   # FIXED = 12000
     args = ap.parse_args()
 
     if args.arm == "strict" and args.r not in (10, 25):
         raise SystemExit("strict-bank arm (§14.2 C1) is defined at the GREEN points r=10 and r=25 only")
+    if args.arm == "clean" and args.r != 10:
+        raise SystemExit("clean-render control (§14.4 A) is defined at the headline point r=10 only")
 
     ann = build_annotation(args.r, args.arm)
     n_real = sum(1 for ln in open(os.path.join(ROOT, real_annotation(args.r)), encoding="utf-8") if ln.strip())
@@ -139,7 +148,10 @@ def main():
         synth_set=(None if args.arm == "real" else synth_set(args.r, args.arm)),
         source_b_bank=("full train transcript bank (§14.1 primary)" if args.arm == "synth" else
                        f"STRICT: r={args.r}% subset transcripts ONLY (§14.2 C1)"
-                       if args.arm == "strict" else None),
+                       if args.arm in ("strict", "clean") else None),
+        degradation=("OFF -- §14.4(A) clean-render CONTROL (attribution ablation; §7 audit FAILs by "
+                     "design, non-gating; headline unaffected)" if args.arm == "clean" else
+                     "ON (shipped generator)" if args.arm != "real" else None),
         subset_manifest="data/crops/budget_subsets_manifest.json",
         augmentation="default image_aug (§6 operating point)",
         sampling="uniform pooled (§14.1)",

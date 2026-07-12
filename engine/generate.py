@@ -37,6 +37,11 @@ def main():
     ap.add_argument("--strata", action="store_true",
                     help="DATA_ENGINE §8.3: over-represent the MEASURED failure strata "
                          "(tilt/low-contrast/tiny/short) instead of matching real's marginals")
+    ap.add_argument("--no-degrade", action="store_true",
+                    help="EVAL_PROTOCOL §14.4(A) CONTROL: the ENTIRE degradation stack OFF "
+                         "(no geometric/photometric/blur/JPEG). Attribution ablation only -- the "
+                         "§7 audit is RECORDED but NON-GATING (the set is clean by design and is "
+                         "not a training-set candidate).")
     ap.add_argument("--strict-bank-r", type=int, default=None, choices=[10, 25, 50],
                     help="EVAL_PROTOCOL §14.2 (C1): restrict Source B to the r-subset's OWN "
                          "transcripts (transcripts ARE labels -- a budget-r practitioner holds "
@@ -58,7 +63,8 @@ def main():
 
     # strata mode also over-samples the short (1-2 char) crop stratum in the corpus
     corpus = Corpus(seed=args.seed, short_rate=0.20 if args.strata else 0.0, scene_bank=scene_bank)
-    gen = Generator(corpus, fonts, bg, seed=args.seed, strata=args.strata)
+    gen = Generator(corpus, fonts, bg, seed=args.seed, strata=args.strata,
+                    no_degrade=args.no_degrade)
 
     lines = []
     stats = []
@@ -90,9 +96,20 @@ def main():
     synth = summarize(stats)
     print(f"\n=== §7 audit on generated {name} ({len(stats)} sampled) ===")
     audit_pass = bool(report(real, synth))
+    if args.no_degrade:
+        print("\n§14.4(A): this is the CLEAN-RENDER CONTROL. The §7 audit is RECORDED but NON-GATING "
+              "-- a FAIL (cleaner than real) is EXPECTED and is the point of the ablation. This set "
+              "is NOT a training-set candidate; it exists to attribute the r=10% gain.")
 
     manifest = dict(
         name=name, count=n, seed=args.seed,
+        no_degrade=bool(args.no_degrade),
+        no_degrade_note=("EVAL_PROTOCOL §14.4(A) CLEAN-RENDER CONTROL: the ENTIRE degradation stack "
+                         "is OFF (no geometric / photometric / resolution-blur / JPEG). Render + real "
+                         "background composite + plain resize only. ATTRIBUTION ABLATION -- the §7 "
+                         "audit below is RECORDED but NON-GATING, and a cleaner-than-real FAIL is the "
+                         "EXPECTED outcome. Not a training-set candidate; the headline does not move."
+                         if args.no_degrade else None),
         strata_targeted=bool(args.strata),
         strata_note=("DATA_ENGINE §8.3 Attempt 1: generation re-weighted to OVER-REPRESENT the "
                      "measured failure strata (geometric tilt / contrast<0.20 / height<12px / "
