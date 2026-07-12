@@ -691,3 +691,23 @@ repair via exposure (~100+ long items) vs pure sequence regularization (~0) is o
 - Every save: strip format codepoints, NFC-normalize, charset-check (warn, never block). Randomized
   presentation order (fixed seed), not grouped by source image. Event-log + TSV materialization on every
   action (crash-safe, resumable). Gold crops are extracted/rectified by the SAME code path the eval uses.
+---
+
+### §16. Context baselines (pre-registered 2026-07-12, BEFORE the first run)
+
+- **SCOPE:** rec-only, GT-box crops, same test-500, same frozen denominator, NFC, **OUR** three-axis
+  scorer. **MANDATORY:** each system runs in **RECOGNITION-ONLY** mode (Tesseract `--psm 7/8`; EasyOCR
+  recognizer-only path; PaddleOCR rec-only). Feeding a word-crop to a full e2e pipeline and scoring its
+  empty return as a catastrophic error is a **STRAWMAN and is forbidden**.
+- **SMOKE TEST FIRST:** 20 easy, high-contrast crops per system. If a system returns empty on clearly
+  legible text, that is **OUR API-mode bug, not its result** — fix before the full run.
+- **FREE ROW, include it:** zero-shot pbcquoc (21.33% CER / tone 85.88%, already measured at Stage 0).
+  The same model *before* fine-tuning is the most informative yardstick on the page.
+- **THE DELIVERABLE IS THE THREE-AXIS BREAKDOWN** (base / modifier / tone per system), **not** a CER
+  ranking. The interesting question is WHERE off-the-shelf Vietnamese OCR fails, and that is what the
+  scorer exists to answer.
+- **FRAMING, verbatim on the page: "context, not a contest."** These systems were not trained on VinText;
+  ours was. This table measures the task's difficulty and demos the scorer. It is **NOT** a superiority
+  claim and must never be written as one.
+- **Version-pin** every system + model weights (moving baselines). Report install/network failures **as
+  failures**; fake no row.
