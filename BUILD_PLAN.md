@@ -82,110 +82,79 @@ STEP-1 BUG-CHECKS DONE (2026-07-11, this session; §8.2 — do NOT burn an attem
   budget the brain locked to prevent p-hacking-by-iteration — so it is NOT started unilaterally even though
   pre-declared. AWAITING BRAIN DIRECTION (greenlight Attempt 1 as pre-declared, or adjust given the healthy RED).
   Attempt-1 plan is ready: re-weight generation toward tilt>=20deg, contrast<0.20, height<12px, 1-2 char crops.
-NEXT ACTION   : 🧠 §14 CURVE ADJUDICATED BY BRAIN 2026-07-12 (4th checkpoint). Curve VERIFIED
-                independently (readouts reproduce exactly under the frozen §14.1 rule: N≈2,814 @ r=10%,
-                N≈2,561 @ r=25%; daylight +0.717pp / +0.253pp). Shape = the §14 pre-committed branch.
-                ADJUDICATIONS on the three questions:
-                  1) FLAGSHIP-SHAPED: YES — but the headline is NOT declarable until the §14.2 closures
-                     (C1 strict-bank, C2 k=5, C3 gold, C4 mechanism-half) resolve. A first green gets the
-                     MOST scrutiny.
-                  2) ATTEMPT 2: stays UNSPENT; Stage 2 CLOSED. The curve confirms the redundancy
-                     mechanism; nothing reopens full-real.
-                  3) Extra seeds: APPROVED as C2 — BOTH arms at r=10%, k=5 REPLACES k=3 regardless of
-                     direction (pre-committed; no seed-shopping).
-                BRAIN'S CATCH (locked as EVAL_PROTOCOL §14.2 C1): the CORPUS-BUDGET CONFOUND. Source B
-                  (65% of corpus text) drew from the FULL train transcript bank — transcripts ARE labels;
-                  an r-budget practitioner holds r% of them. Eval firewall intact (claim-scope issue, not
-                  contamination). Budget model stated: labels scarce; unlabeled imagery cheap (bg patches
-                  stay); wiki_vi free.
-                VARIANCE NARRATIVE DOWNGRADED (§14.2): the "stabilizer vs dead-weight" story compared
-                  against the pre-hygiene BUGGY run and r=50% reverses it (+synth CI 4x WIDER than
-                  real-only). r=10% tightening reportable as observation only.
-                EXECUTION QUEUE (in order):
-                1) C1 strict-bank: regenerate 10k with Source B ⊆ r-subset transcripts (same config/fonts;
-                   new manifest; ~1 min each) -> retrain +synth arms at r=10% and r=25%, k=3 (6 runs ≈3h).
-                   HEADLINE quotes strict; full-bank stays as pre-registered primary with caveat.
-                2) C2 (only after strict survives at r=10%): +2 seeds real-only(r10) and +2 seeds
-                   strict-synth(r10) (4 runs ≈2h). Headline row = k=5 vs k=5.
-                3) Report both to brain with the recomputed worth-RANGE (interpolation at CI bounds,
-                   §14.2 reporting rule) before any headline sentence is written.
-                4) THEN: C3 gold double-pass (USER's manual work — now genuinely blocking the write-up) and
-                   C4 ERROR_ANALYSIS §8 per-axis before/after at r=10% (SCALING §9: the mechanism half).
-C1 STRICT-BANK — IN FLIGHT (2026-07-12, this session):
-  BUILT: engine/corpus.py build_strict_scene_bank(r) — Source B = the r-subset's OWN transcripts
-    (from data/crops/annotation_train_r{r}.txt) -> data/synth/corpus/scene_phrases_r{r}.txt.
-    engine/generate.py --strict-bank-r {10,25}; scripts/train_budget.py --arm strict.
-    ONE variable: the bank. Same fonts / degradation DEFAULT_CFG / seed=100 / n=10,000 as synth10k_leg.
-  GENERATED: data/crops/synth10k_strict_r10 + synth10k_strict_r25. §7 distribution audit: PASS both
-    (reach real's hard tail, not cleaner than real) — so the strict sets are not degraded artifacts.
-  BUDGET AUDIT (the point of C1) — beyond-budget transcript text in the pooled synth labels:
-    r=10%: leg 37.0% -> strict 11.0%   |   r=25%: leg 21.3% -> strict 6.0%
-    The residual is NOT a leak: 0 labels are unexplained by {the r-subset's own bank, free wiki_vi
-    tokens, generated 1-2-char strings}. It is coincidental vocabulary overlap with FREE text, which
-    the §14.2 budget model explicitly permits. Verified, not assumed.
-  RUNS: r in {10,25} x arm=strict x k=3 = 6 runs (~3h) via run_c1.sh (single-instance lock + per-cell
-    lmdb purge; see the incident below). Then scripts/aggregate_budget.py.
-  ⚠ INCIDENT (fixed, no bad data): the driver got launched TWICE 21s apart; both raced the SAME cell
-    and vietocr's lmdb cache (keyed by dataset NAME only, reused whenever ./train_<dataset> exists,
-    never checked against the annotation) was read half-written -> num-samples=None crash. Killed both,
-    purged the partial lmdb + partial run dirs, RELAUNCHED once. The 18 primary results were untouched
-    (verified 18/18 result.json intact). run_c1.sh now takes an atomic mkdir lock and purges the cell's
-    lmdb before every attempt — a STALE lmdb would otherwise be trained on silently, which is exactly
-    the class of bug that could corrupt a headline number.
-C1 ✅ COMPLETE (2026-07-12, 6/6): THE STRICT BANK SPLITS THE CURVE — r=10 SURVIVES, r=25 DOES NOT.
-    r      arm                        CER            ΔCER    tone           Δtone    rule (CER AND tone)
-    10%    real-only            16.538±2.350            —   89.336±1.704        —    (comparator)
-           full-bank (primary)  13.181±0.290       +3.357   91.987±0.099   +2.651    GREEN
-           STRICT (HEADLINE)    13.728±0.166       +2.810   91.500±0.363   +2.164    GREEN  <- SURVIVES
-    25%    real-only            12.373±0.337            —   92.432±0.357        —    (comparator)
-           full-bank (primary)  11.434±0.349       +0.939   93.077±0.126   +0.645    GREEN
-           STRICT (HEADLINE)    11.621±0.374  +0.752 sep.   92.948±0.403  +0.515 OVERLAP  red <- DIES
-  => r=10%: 84% of the full-bank gain RETAINED, both CIs separated. The low-budget value is carried
-     MOSTLY BY THE RENDERER, not the in-domain text bank — but ~16% WAS the bank, now measured.
-  => r=25%: `[NEGATIVE RESULT, FULL PROMINENCE]` CER still separates but TONE DOES NOT (rule needs BOTH).
-     The r=25% green does NOT survive a budget-honest bank -> that value was substantially carried by
-     label-derived text the budget did not entitle it to. The claim SHRINKS to the r=10% point.
-  PRE-TRAINING AUDITS (both PASS -> a null could NOT have been blamed on a degraded generator):
-     §7 distribution audit PASS on both strict sets; budget audit: beyond-budget transcript text
-     37.0%->11.0% (r10) / 21.3%->6.0% (r25), with 0 labels unexplained by {r-subset bank, FREE wiki,
-     1-2-char strings} -> coincidental overlap with free text (permitted), NOT leakage. Verified.
-  WORTH READOUT as a RANGE (§14.2; +synth CI propagated through the §14.1 inversion):
-     r=10% STRICT (headline): ≈ +2,202 real crops (r'=18.6%), 95% CI [+2,031 .. +2,379]
-     r=10% full-bank:         ≈ +2,813 real crops (r'=20.9%), 95% CI [+2,480 .. +3,169]
-  BUG FIXED in aggregate_budget.py: Student t was HARDCODED at 2 dof (k=3). C2 makes the headline
-     point k=5, where t(4)=2.776 — the k=3 constant would have inflated that CI by ~55% and could
-     have manufactured (or hidden) a separation. Now keyed by dof. Caught BEFORE C2 lands.
-C2 ✅ COMPLETE (2026-07-12, 4/4): k=5 AT THE HEADLINE POINT — THE GREEN SURVIVES.
-  `[PRE-COMMITTED]` k=5 REPLACES k=3 regardless of direction (it could have killed the green).
-    r=10% arm        k=3 (superseded)        k=5 (REPLACES)     per-seed CER (k=5)
-    real-only        16.538±2.350            16.509±0.933       17.622/16.108/15.883/15.980/16.950
-    STRICT (HEADLINE)13.728±0.166            13.726±0.096       13.690/13.690/13.810/13.810/13.640
-    gap              +2.810 CER/+2.164 tone  +2.783 CER/+2.033 tone     => GREEN, both CIs separated
-  The MEANS barely moved (real-only -0.03, strict -0.00); the ANCHOR'S SPREAD collapsed ±2.350->±0.933.
-  The k=3 anchor was UNDER-SAMPLED, not biased. Nearest CI edges 15.58 vs 13.82 = 1.75pp apart: the
-  separation is NOT marginal.
-  HEADLINE WORTH (k=5, strict, §14.2 range rule): ≈ +2,195 real crops (r'=18.5%), 95% CI [+2,095..+2,297].
-IN-FLIGHT     : none. GPU free. C1+C2 both COMPLETE and committed.
+NEXT ACTION   : 🧠 C1/C2 ADJUDICATED BY BRAIN 2026-07-12 (5th checkpoint). Verified independently:
+                worth-point reproduces (N=2,195 under §14.1 with the k=5 anchor); daylight 1.75pp real.
+                  • Q1 ACCEPTED: the claim NARROWS TO r=10% (single point). r=25% recorded at full
+                    prominence as "directionally positive under strict (CER +0.752, separated) but below
+                    the pre-registered two-metric bar (tone overlaps)" — NOT "bank-carried": bank cost is
+                    uniform ~16-20% at BOTH points (EVAL_PROTOCOL §14.3). Green dies in (10%,25%].
+                  • Q2 NO: die-off mapping (r=15/20%) deferred — new axis, not a closure; optional
+                    post-write-up polish, pre-registered if ever run.
+                  • t(dof) fix RATIFIED (no prior number affected — all earlier runs k=3).
+                  • N-RANGE CORRECTED (§14.3): both-arm corner propagation -> ≈ +2.2k, range [1.68k,2.55k].
+                    The quoted [2,095..2,297] under-propagated (anchor held fixed). Use the wide range.
+                QUEUE:
+                1) C4 NOW (analysis-only, free — predictions.tsv for both k=5 arms exist): ERROR_ANALYSIS
+                   §8 per-axis before/after at r=10%, real-only(k=5) vs strict-synth(k=5): which axes and
+                   strata carry the +2.78pp? Tone/small-crops = mechanism confirmed; uniform = generic-
+                   prior story. The curve without this is half a result (SCALING §9).
+                2) C3 GOLD = the USER's manual double-pass (2,437-instance sheet) — now THE critical path;
+                   all remaining GPU work is done or analysis-only.
+                3) Stage 5 write-up draft after C4, gold slots marked pending.
+§14.3 AMENDMENTS APPLIED (2026-07-12, this session):
+  • N-range CORRECTED to both-arm corner propagation (aggregate_budget.worth). Headline now
+    ≈ +2,195, both-arm 95% range [+1,678 .. +2,553] — REPRODUCES the brain's [1.68k, 2.55k] exactly.
+    The old synth-only [+2,095..+2,297] held the anchor fixed and UNDER-propagated -> superseded,
+    marked [SUPERSEDED] in RESULTS rather than quietly deleted. Point estimate unchanged.
+  • r=25% FRAMING CORRECTED in RESULTS + SCALING + the aggregator. My earlier wording ("substantially
+    carried by label-derived text the budget did not entitle it to") OVER-READ the numbers and is
+    RETRACTED IN PLACE. Correct record: bank cost is uniform ~16-20% at BOTH green points; r=25% is
+    directionally positive under strict (CER +0.752, separated) but BELOW the two-metric bar (tone
+    overlaps). Green dies in (10%, 25%].
+  • t(dof) fix ratified (no earlier number affected — all prior runs were k=3).
+
+C4 ✅ COMPLETE (2026-07-12) — THE MECHANISM, and it is NOT the one the engine was built for.
+  scripts/c4_before_after.py -> runs/c4_before_after_r10.json. Analysis-only (k=5 predictions existed).
+  BEFORE real-only(r10) k=5 vs AFTER +strict-synth k=5. Question pre-stated (tone/small/tilted =
+  mechanism confirmed | uniform = generic prior). ALL THREE AXES move ~equally:
+    CER +2.783±0.938 | base +1.605±0.577 | modifier +1.808±0.678 | tone +2.033±0.655  (all clear noise)
+  1,037 chars fixed. WHERE THE GAIN LIVES (share of those 1,037):
+    tilt>=20deg (DATA_ENGINE §12 RANK-1 driver): +1.60±1.94 -> DOES NOT CLEAR NOISE, only 2.8% of gain.
+    tilt<5deg (the EASY, common case): 77.1% of the gain.  height>=48px: 20.4%.
+    LONG CROPS (>=9 chars, only 296/10,068 instances): 54.3% OF THE ENTIRE GAIN. Length was NEVER a
+      targeted knob (synth corpus is 99% single-token, median 3 chars).
+  MECHANISM MEASURED (not inferred): the scarce-budget decoder TRUNCATES. On >=9-char crops, mean pred
+    length 8.37 vs GT 11.19, 24.7% severely truncated -> with synth: 10.25, 6.9%. Premature <eos> on
+    long strings (phone numbers/URLs). A DELETION charges EVERY axis -> that is exactly why all three
+    axes rise together instead of tone alone.
+  => Lands on the GENERIC-PRIOR side of the pre-stated fork: "at a scarce budget, more crops of almost
+     any kind fix decoder under-training." The +2.783pp is REAL (survives strict + k=5), but this
+     WEAKENS the domain-transfer/realism-knobs framing. LIVE THREAT: a cheap non-scene control (same
+     10k rendered WITHOUT the degradation stack) might buy much of the same gain. NOT RUN — brain's call.
+IN-FLIGHT     : none. GPU free.
 PARALLEL/LATER: (a) GOLD manual double-pass (2,437-instance sheet ready, empty) — needed before the FINAL
                 curve numbers + the model-vs-label artifact (§4). NOT blocking Stage 2.
                 (b) DBNet fine-tune -> e2e number (§5) — deferred; pipeline-completeness, not the flagship.
 BLOCKERS/Q    : HOST: C: drive full (46 MB free); uv cache / TORCH_HOME / TMP / checkpoints -> E:.
-NEXT 🧠 CHKPT : ⬅ **NOW (5th).** C1 + C2 COMPLETE — the two closures the brain made the headline
-                conditional on. Per the brain's own queue step 3: REPORT both with the recomputed
-                worth-RANGE **before any headline sentence is written**. Nothing declared here.
-                WHAT THE BRAIN MUST RULE ON:
-                1) The claim SHRANK: the r=25% GREEN **died** under the strict bank (tone CIs overlap;
-                   the rule needs BOTH). Only r=10% survives. Accept the narrowed single-point claim?
-                2) The r=10% green SURVIVED strict (84% of the gain retained) AND k=5 (gap +2.783 CER /
-                   +2.033 tone, both separated). Headline worth ≈ +2,195 crops [+2,095 .. +2,297].
-                3) Is an r=10%-only claim enough to headline, or should the remaining budget map WHERE
-                   the value dies (an r=15/20% point)? NOT started unilaterally — that is a NEW axis,
-                   not a closure, and the brain owns that call.
-                (Gate A: DONE 2026-07-11 RED, adjudicated. Attempt-1 RED: adjudicated. §14 curve:
-                adjudicated 2026-07-12 -> produced C1-C4. This checkpoint closes C1+C2.)
-                THEN (both blocking the write-up): C3 gold double-pass (USER's manual work) + C4
-                ERROR_ANALYSIS §8 per-axis before/after at r=10% (the MECHANISM half; SCALING §9 —
-                a curve without it is half a result).
+NEXT 🧠 CHKPT : ⬅ **NOW (6th).** C4 is done and it CHANGES THE STORY. Reported, NOT adjudicated.
+                THE ONE THING THE BRAIN MUST RULE ON:
+                  The +2.783pp is REAL (survives the strict bank AND k=5; all three axes clear noise).
+                  But the MECHANISM is NOT domain transfer: 54.3% of the gain is long-crop TRUNCATION
+                  repair (a decoder under-training effect), the rank-1 targeted stratum (tilt>=20deg)
+                  shows NO significant gain (+1.60±1.94) and carries 2.8%, and 77% of the gain sits in
+                  the EASY tilt<5deg bin. On the PRE-STATED fork this is the GENERIC-PRIOR branch, not
+                  "the realism knobs worked."
+                  Q: does the write-up (a) claim LABEL-EFFICIENCY ONLY and drop the domain-transfer
+                  mechanism claim; or (b) spend ~1h GPU on the CONTROL that decides it — regenerate 10k
+                  with the DEGRADATION STACK OFF (clean renders; same corpus/fonts/strict bank/seed)
+                  and retrain at r=10%, k=3? If the clean control buys most of the +2.78pp, the
+                  engine's realism machinery is NOT what paid and the write-up must say so; if it does
+                  not, the degradations ARE load-bearing and the domain-transfer claim survives.
+                  The control is a NEW RUN (pre-registerable), so it is NOT started unilaterally.
+                (Gate A RED: adjudicated. Attempt-1 RED: adjudicated. §14 curve: adjudicated -> C1-C4.
+                C1+C2: adjudicated 2026-07-12 -> §14.3 applied. This checkpoint is C4.)
+                THEN: C3 gold double-pass (USER's manual work — the remaining critical path) + the
+                Stage-5 write-up with gold slots marked pending.
 ```
 
 ---

@@ -205,21 +205,26 @@ quotes STRICT.**
 | **100%** | 25,742 | **−0.038 (flat)** | — | — | **red** |
 
 **The strict bank splits the curve.** At **r=10% the green survives** (84% of the full-bank gain retained,
-both CIs separated, at **k=5** after the C2 seed-raise). At **r=25% it does not** — CER still separates but
-**tone does not**, and the rule requires both. That green was substantially carried by **label-derived text
-the budget did not entitle it to.** Reported at full prominence, per the §14.2 pre-commitment. **The claim
-therefore shrinks to the single r=10% point.**
+both CIs separated, at **k=5** after the C2 seed-raise). At **r=25% it does not** — CER still separates
+(+0.752) but **tone does not**, and the rule requires both.
+
+**`[LOCKED §14.3]` How r=25% must be framed** (this corrects an earlier, wrong reading): the strict bank
+costs a roughly **uniform ~16–20% of the gain at BOTH green points** (retention 83.6% CER at r=10%; 80.1%
+CER / 79.8% tone at r=25%). So r=25% is **NOT "carried by the text bank"** — its bank cost matches
+r=10%'s. What differs is the **remaining effect size versus the two-metric bar.** r=25% is recorded as
+*directionally positive under strict, but below the pre-registered bar.* **The claim narrows to the single
+r=10% point, and the two-metric green dies somewhere in (10%, 25%].**
 
 **The honest headline (and the sentence that must always travel with it):** *"On real VinText held-out
 (rec-only, NFC-normalized, **k=5**), a synthetic engine whose corpus, fonts, backgrounds and degradations
 are all derived **within a 2,574-crop label budget** is worth **≈2,195 additional real annotations**
-(95% CI [+2,095 .. +2,297]): CER 16.51 → 13.73 and tone accuracy 89.46 → 91.50, both with non-overlapping
+(both-arm 95% range **[+1,678 .. +2,553]**): CER 16.51 → 13.73 and tone accuracy 89.46 → 91.50, both with non-overlapping
 95% CIs over 5 seeds. That value **decays monotonically with the real budget** and is **NIL at full real
 data**, where the engine does not beat a real-only baseline."* The r=100% null keeps **full prominence**
 (§14) — it is not a footnote to the green point. **Never claimable:** "synthetic improves Vietnamese OCR."
 
-**Two limitations that travel with the number:** the worth-range propagates only the +synth arm's CI (the
-real-only curve is inverted at its means), so it is a **lower bound** on the true uncertainty; and
+**Two limitations that travel with the number:** the worth-range takes min/max over **both arms'** CI
+corners (§14.3), but the curve's *other* interpolation endpoints are still held at their means; and
 **subset-draw variance is unquantified** — one fixed nested draw per r, training-seed variance only.
 
 **Why §7's headline sentence is void.** §7 pre-committed to *"+X% CER from the synthetic engine on top of a

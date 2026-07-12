@@ -641,3 +641,20 @@ is half a result).
   reverses it (+synth ±0.807 vs real-only ±0.200, 4× wider).
 - **Stated limitation:** one fixed nested subset draw per r — training-seed variance only; subset-draw
   variance unquantified (standard for label-efficiency curves, but said out loud).
+
+### §14.3 Post-closure amendments (2026-07-12, at the C1/C2 checkpoint)
+
+- **N-range propagation corrected.** The worth-range takes **min/max over BOTH arms' CI corners**
+  (anchor ±CI × synth ±CI; the r=25% interpolation endpoint held at its mean, stated). At k=5/strict:
+  **N ≈ +2,195, both-arm range ≈ [+1.68k, +2.55k].** The synth-only range [+2,095..+2,297]
+  under-propagates (holds the ±0.933 anchor fixed) and is superseded.
+- **t(dof) fix ratified.** The aggregator hardcoded t(2)=4.303; now keyed by dof (t(4)=2.776 at k=5).
+  **No prior number is affected** — every earlier run was k=3, where t(2) was correct.
+- **r=25% framing rule.** The strict correction costs a roughly **uniform ~16–20%** of the measured gain
+  at BOTH green points (retention: 83.6% CER @ r=10%; 80.1% CER / 79.8% tone @ r=25%). r=25% is recorded
+  as *directionally positive under strict (CER separated, +0.752) but below the pre-registered two-metric
+  bar (tone overlaps)* — **not** as "carried by the text bank" (the bank cost there matches r=10%'s; what
+  differs is the remaining effect size vs the rule). The claim narrows to r=10%; the two-metric green dies
+  somewhere in **(10%, 25%]**.
+- **Die-off mapping (r=15/20%) DEFERRED.** A new axis, not a closure; optional post-write-up polish. If
+  ever run: pre-registered first, each point reported whatever it says (no green-shopping).

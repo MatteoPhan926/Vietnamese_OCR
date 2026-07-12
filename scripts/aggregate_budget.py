@@ -93,21 +93,39 @@ ARMS = ("real", "synth", "strict")
 LABEL = {"synth": "full-bank (§14.1 primary)", "strict": "STRICT-bank (§14.2 C1 — HEADLINE)"}
 
 
-def worth(realonly_cer, r, cer_mean, cer_half):
-    """§14.2 reporting rule: quote the worth as a RANGE, never a 4-digit point.
+def worth(realonly, r, cer_mean, cer_half):
+    """§14.3 CORRECTED propagation: min/max over BOTH arms' CI corners.
 
-    Propagate the +synth arm's 95% CI through the §14.1 interpolation: invert the real-only curve
-    at the arm's CER mean AND at both CI bounds. A LOWER CER inverts to a HIGHER r' (more real
-    crops), so the CI's low end gives the optimistic N and its high end the pessimistic N.
+    The §14.2 version propagated only the +synth arm's CI, holding the real-only ANCHOR fixed at
+    its mean -- which under-propagates, because the anchor at r is exactly the noisy quantity C2
+    was run to tighten. Superseded per §14.3.
 
-    Stated limitation: only the +synth arm's CI is propagated. The real-only curve being inverted
-    is taken at its per-point MEANS -- its own seed spread (notably r=10%, ±2.350) is NOT folded in,
-    so this range is a LOWER bound on the true uncertainty, not a full error budget.
+    Here the anchor point of the real-only curve (the value AT r) is moved to each of its CI
+    corners as well, and N is taken as min/max over the 2x2 corner grid. The curve's OTHER
+    interpolation endpoints are held at their means -- stated, not hidden.
+
+    `realonly` maps r -> (mean, half-width). A LOWER +synth CER, or a HIGHER real-only anchor,
+    both invert to a HIGHER r' (a larger N).
     """
-    out = {}
-    for tag, y in (("mean", cer_mean), ("hi", cer_mean + cer_half), ("lo", cer_mean - cer_half)):
-        rp = invert_realonly(realonly_cer, y)
-        out[tag] = None if rp is None else dict(r_prime=rp, n=(rp - r) / 100.0 * N_FULL)
+    base = {rr: realonly[rr][0] for rr in realonly}
+    out = {"mean": None, "lo": None, "hi": None}
+
+    rp = invert_realonly(base, cer_mean)
+    out["mean"] = None if rp is None else dict(r_prime=rp, n=(rp - r) / 100.0 * N_FULL)
+
+    ns, truncated = [], False
+    for anchor in (realonly[r][0] - realonly[r][1], realonly[r][0], realonly[r][0] + realonly[r][1]):
+        curve = dict(base)
+        curve[r] = anchor
+        for y in (cer_mean - cer_half, cer_mean, cer_mean + cer_half):
+            rp = invert_realonly(curve, y)
+            if rp is None:
+                truncated = True
+                continue
+            ns.append((rp - r) / 100.0 * N_FULL)
+    if ns:
+        out["lo"], out["hi"] = min(ns), max(ns)     # lo/hi are now N-values, not CER-corners
+    out["truncated"] = truncated
     return out
 
 
@@ -115,12 +133,12 @@ def fmt_worth(w):
     if w["mean"] is None:
         return "OUTSIDE the measured real-only range -> NOT extrapolated (no claim)"
     m = w["mean"]["n"]
-    lo, hi = w["lo"], w["hi"]
-    if lo is None or hi is None:
-        return (f"≈ {m:+,.0f} real crops (r'={w['mean']['r_prime']:.1f}%); a CI bound falls "
-                f"outside the measured range -> range truncated, not extrapolated")
+    if w["lo"] is None:
+        return f"≈ {m:+,.0f} real crops (r'={w['mean']['r_prime']:.1f}%); range not computable"
+    tail = "  [range TRUNCATED: a corner fell outside the measured range -> not extrapolated]" \
+        if w.get("truncated") else ""
     return (f"≈ {m:+,.0f} real crops (r'={w['mean']['r_prime']:.1f}%), "
-            f"95% CI range [{hi['n']:+,.0f} .. {lo['n']:+,.0f}]")
+            f"both-arm 95% range [{w['lo']:+,.0f} .. {w['hi']:+,.0f}]{tail}")
 
 
 def main():
@@ -145,13 +163,13 @@ def main():
     print(hdr)
     print("-" * len(hdr))
 
-    realonly_cer = {}
+    realonly_cer = {}       # r -> (mean, half-width); §14.3 propagates BOTH arms' CIs
     rows = {}
     for r in RS:
         if (r, "real") not in data:
             continue
         ro = data[(r, "real")]
-        realonly_cer[r] = ro["cer"][0]
+        realonly_cer[r] = ro["cer"]
         n_real = ro["_n_real"]
         print(f"{r:4d}% {n_real:11d} {'real-only':>28s} {ro['_n']:2d} | "
               f"{ro['cer'][0]:8.3f}±{ro['cer'][1]:5.3f} {'':>8s} | "
@@ -188,11 +206,12 @@ def main():
                   f"=> {'GREEN' if d['green'] else 'red'}")
 
     if len(realonly_cer) >= 2:
-        print("\n`[LOCKED]` PRE-REGISTERED READOUT (§14.1) + the §14.2 RANGE rule:")
+        print("\n`[LOCKED]` PRE-REGISTERED READOUT (§14.1) + the §14.3 CORRECTED range rule:")
         print("  \"synthetic ≈ worth N real crops at budget r\" — invert the real-only curve (linear in")
-        print("  log r between MEASURED points, NEVER extrapolated); the CI of the +synth arm is")
-        print("  propagated through the inversion. The real-only curve is inverted at its MEANS, so the")
-        print("  range is a LOWER bound on the true uncertainty (its own seed spread is not folded in).")
+        print("  log r between MEASURED points, NEVER extrapolated). The range takes min/max over BOTH")
+        print("  arms' CI corners (anchor ±CI × synth ±CI). The §14.2 synth-only range held the anchor")
+        print("  fixed at its mean and UNDER-propagated; it is superseded. The curve's other endpoints")
+        print("  are still held at their means — stated, not hidden.")
         for r in sorted(rows):
             for arm in ("synth", "strict"):
                 d = rows[r].get(f"{arm}_arm")
@@ -204,9 +223,8 @@ def main():
                 print(f"  r={r:3d}% {LABEL[arm]:>28s}: CER {cm:.3f} -> {fmt_worth(w)}")
 
         # C1's actual question: how much of the full-bank gain survives the strict bank?
-        print("\nC1 VERDICT (§14.2): does the low-budget value survive when Source B is held to the")
-        print("  r-subset's OWN transcripts? (If strict kills a green, the value was carried by the")
-        print("  in-domain TEXT BANK, not the renderer — reported at the same prominence.)")
+        print("\nC1 VERDICT (§14.2) + the §14.3 FRAMING RULE: how much of the gain survives when")
+        print("  Source B is held to the r-subset's OWN transcripts?")
         for r in sorted(rows):
             f_arm, s_arm = rows[r].get("synth_arm"), rows[r].get("strict_arm")
             if not (f_arm and s_arm):
@@ -215,6 +233,11 @@ def main():
             print(f"  r={r:3d}%: full-bank gap {f_arm['gap_cer']:+.3f} -> strict gap "
                   f"{s_arm['gap_cer']:+.3f} pp  ({retained:.0f}% of the gain RETAINED)  "
                   f"strict verdict: {'GREEN' if s_arm['green'] else 'red'}")
+        print("  `[LOCKED §14.3]` The bank costs a roughly UNIFORM ~16-20% of the gain at BOTH green")
+        print("  points. So r=25% is NOT 'carried by the text bank' -- its bank cost matches r=10%'s.")
+        print("  r=25% is recorded as: DIRECTIONALLY POSITIVE under strict (CER +0.752, separated) but")
+        print("  BELOW the pre-registered two-metric bar (tone overlaps). The claim narrows to r=10%;")
+        print("  the two-metric green dies somewhere in (10%, 25%].")
 
     print("\n" + "=" * 100)
     print("§14.2 OBSERVATION-ONLY (never a mechanism claim): CI-width comparisons across arms at k=3")

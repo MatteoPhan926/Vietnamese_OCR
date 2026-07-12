@@ -693,11 +693,17 @@ only variable. Sets: `data/crops/synth10k_strict_r{10,25}`. Scripts: `engine/gen
   in-domain text bank** — but ~16% of it *was* the bank, and that is now measured rather than assumed.
 - **r=25%: RED under the strict bank** — `[NEGATIVE RESULT, reported at full prominence]`. CER still
   separates (+0.752) but **tone does not** (+0.515, CIs overlap), and the pre-registered rule requires
-  **both**. The r=25% green in the primary curve **does not survive** the budget-honest bank. Per §14.2's
-  pre-commitment this is reported at the same prominence as the surviving green: at r=25% the measured
-  value was **substantially carried by label-derived text the budget did not entitle it to.**
-- The C1 correction therefore **shrinks the claim to the r=10% point.** The bar was raised after seeing the
-  result (§15 asymmetry permits this); it was never lowered.
+  **both**. The r=25% green in the primary curve **does not survive** the budget-honest bank.
+- **`[LOCKED §14.3 — CORRECTS the original wording of this bullet]`** r=25% is **NOT** "carried by the text
+  bank." The strict bank costs a roughly **uniform ~16–20% of the gain at BOTH green points** (retention:
+  83.6% CER @ r=10%; 80.1% CER / 79.8% tone @ r=25%) — the bank cost at r=25% *matches* r=10%'s. What
+  differs is the **remaining effect size vs the two-metric bar.** The correct record: *directionally
+  positive under strict (CER separated, +0.752), but below the pre-registered bar (tone overlaps).* The
+  original phrasing here — "substantially carried by label-derived text the budget did not entitle it to" —
+  **over-read the same numbers and is retracted**, in place, rather than quietly deleted.
+- The C1 correction therefore **shrinks the claim to the r=10% point**, and the two-metric green dies
+  somewhere in **(10%, 25%]**. The bar was raised after seeing the result (§15 asymmetry permits this); it
+  was never lowered.
 
 ### `[LOCKED]` The worth-readout, as a RANGE (§14.2 reporting rule — never a 4-digit point)
 The +synth arm's 95% CI is propagated through the §14.1 inversion (a lower CER inverts to a higher r′).
@@ -739,15 +745,96 @@ anchor's spread, which **collapsed from ±2.350 to ±0.933** — the k=3 anchor 
 biased. The two arms are separated by ~2.8 pp with the nearest CI edges (15.58 vs 13.82) **1.75 pp apart**,
 so the separation is not marginal.
 
-### `[LOCKED]` The headline worth-readout, k=5, strict bank, as a RANGE
-**≈ +2,195 real crops (r′=18.5%), 95% CI [+2,095 .. +2,297]** — tightened from C1's k=3
-[+2,031 .. +2,379] by the k=5 anchor. (Full-bank, for comparison: ≈ +2,807, CI [+2,472 .. +3,164].)
+### `[LOCKED]` The headline worth-readout, k=5, strict bank, as a RANGE — **§14.3 CORRECTED**
+**≈ +2,195 real crops (r′=18.5%), both-arm 95% range [+1,678 .. +2,553].**
+(Full-bank, for comparison: ≈ +2,807, range [+2,126 .. +3,286].)
 
-> **Unchanged limitations** (both still stated): only the +synth arm's CI is propagated through the
-> inversion (the real-only curve is inverted at its means), so the range remains a **lower bound** on true
-> uncertainty; and **subset-draw variance is unquantified** (one fixed nested draw per r).
+> **`[SUPERSEDED]`** The range first reported here, **[+2,095 .. +2,297]**, propagated only the **+synth**
+> arm's CI and held the real-only **anchor fixed at its mean** — which under-propagates, since the anchor
+> is exactly the noisy quantity C2 was run to tighten. §14.3 corrects the rule to **min/max over BOTH
+> arms' CI corners**, widening the range roughly 3×. The **point estimate is unchanged** (+2,195); only its
+> honesty about uncertainty improved. Independently reproduced against the brain's value.
+
+> **Remaining limitations** (stated, not hidden): the curve's *other* interpolation endpoints are still
+> held at their means; and **subset-draw variance is unquantified** (one fixed nested draw per r —
+> training-seed variance only).
 
 > **BRAIN CHECKPOINT — reported, NOT adjudicated.** C1+C2 are complete; no headline sentence is written
 > until the brain rules. Remaining closures: **C3** (gold double-pass — the USER's manual work, now
 > genuinely blocking the final numbers) and **C4** (ERROR_ANALYSIS §8 per-axis before/after at r=10% — the
 > mechanism half; per SCALING §9 the curve without it is half a result).
+
+---
+
+## C4 — ERROR_ANALYSIS §8 before/after at r=10%: THE MECHANISM `[2026-07-12]`
+
+The mechanism half of the flagship (SCALING §9: a curve without it is half a result). **BEFORE** =
+real-only(r=10%), k=5. **AFTER** = real(r=10%) + 10k **strict-bank** synthetic, k=5. Analysis-only (the
+`predictions.tsv` of both k=5 arms already existed). Script: `scripts/c4_before_after.py`; artifact:
+`runs/c4_before_after_r10.json`. Rec-only, test-500, NFC (CER) / NFD (axes), frozen denominator, base axis
+case-insensitive. Δ = unpaired 95% CI on the difference of two k=5 means.
+
+**The question was pre-stated so the answer could not be shopped:** gain concentrated on **tone + small /
+low-contrast / tilted** crops → the engine hit the DATA_ENGINE §12 failure strata (**mechanism confirmed**);
+gain **uniform** → the synthetic is a **generic prior** at a scarce budget, not targeted domain transfer
+(a real gain, but a *different* mechanism, and the write-up must say so).
+
+### The three axes all move, and by similar amounts
+
+| metric | before | after | Δ (95% CI) | clears noise? |
+|---|---|---|---|---|
+| CER | 16.509 ± 0.933 | 13.726 ± 0.096 | **+2.783 ± 0.938** | YES |
+| Axis1 base (ci) | 91.206 ± 0.570 | 92.811 ± 0.090 | **+1.605 ± 0.577** | YES |
+| Axis2 modifier | 92.385 ± 0.677 | 94.194 ± 0.024 | **+1.808 ± 0.678** | YES |
+| Axis3 tone | 89.463 ± 0.641 | 91.497 ± 0.134 | **+2.033 ± 0.655** | YES |
+
+Tone moves most, but **base and modifier move nearly as much** — this is not a tone-specific repair. Total
+character errors: **6,150 → 5,113 (1,037 chars fixed**, mean over 5 seeds).
+
+### `[FINDING — the engine's targeted strata are NOT what carries the gain]`
+Share of the 1,037 fixed characters, by stratum (`*` = ΔCER clears its own 95% CI):
+
+| stratum (DATA_ENGINE §12 rank) | bin | ΔCER | share of gain |
+|---|---|---|---|
+| **geometric (rank 1)** | **tilt ≥20°** | **+1.60 ± 1.94 — does NOT clear noise** | **2.8%** |
+| photometric (rank 2) | contrast <0.20 | +4.89 ± 2.97 `*` | 8.4% |
+| resolution (rank 3) | height <12px | +5.30 ± 2.47 `*` | 18.3% |
+| — | tilt <5° (the easy, common case) | +3.04 ± 0.99 `*` | **77.1%** |
+| **length (NOT a targeted knob)** | **9–12 chars** | **+16.79 ± 4.13** `*` | **41.9%** |
+| **length** | **≥13 chars** | **+17.66 ± 3.30** `*` | **12.4%** |
+| length | 1 char | −1.54 ± 6.51 (worse, within noise) | −0.8% |
+
+- **The #1 measured failure driver — geometric tilt ≥20° — did NOT significantly improve** (+1.60 ± 1.94,
+  CI includes zero) and contributes **2.8%** of the gain. The engine's geometric degradation, built because
+  Stage 1 ranked tilt the worst stratum, **is not what paid.**
+- **54.3% of the entire gain comes from long crops (≥9 chars)** — only 296 of 10,068 instances. Length was
+  **never a targeted knob** (the synthetic corpus is 99% single-token, char median 3).
+- Gains are otherwise **broad and roughly uniform** across height, contrast and tilt bins — including the
+  *easy* bins (77.1% of the gain sits at tilt <5°; 20.4% at height ≥48px).
+
+### `[MECHANISM — measured, not inferred]` The scarce-budget model TRUNCATES; the synthetic fixes it
+Long crops (≥9 chars, n=296), predicted vs GT length over k=5:
+
+| arm | mean GT length | mean predicted length | severely truncated (<60% of GT) |
+|---|---|---|---|
+| real-only (2,574 crops) | 11.19 | **8.37** | **24.7%** |
+| + strict synthetic | 11.19 | **10.25** | **6.9%** |
+
+Examples (GT | real-only | +synth): `0583.871197` | `0587.87` | `0583.871197` · `0905.871198` | `09.87` |
+`0905.87198` · `0913.889124` | `09.88` | `0913.889124`.
+
+At a 2,574-crop budget the **decoder terminates early** — it emits `<eos>` before finishing long strings
+(phone numbers, URLs), losing ~25% of the sequence. Adding 10k synthetic crops of *any* kind supplies the
+decoder training signal that fixes premature termination. **A deletion charges every axis** (a dropped
+character is all-axes-wrong), which is exactly why **all three axes rise together** rather than tone alone.
+
+> **`[HONEST READING — reported, NOT declared]`** On the pre-stated fork this lands on the **"generic
+> prior"** side, not "targeted domain transfer": the gain is broad, is dominated by a **sequence-length /
+> premature-termination** effect the engine never targeted, and is **absent on the geometric stratum the
+> engine was designed around.** The +2.783 pp is real, survives the strict bank, and survives k=5 — but the
+> honest causal story is *"at a scarce label budget, more crops of almost any kind fix decoder
+> under-training,"* which **weakens the claim that the engine's realism knobs are what did the work.**
+> This is a `[BRAIN CHECKPOINT]`. It is not self-adjudicated, and it is a live threat to the
+> domain-transfer framing — including the possibility that a **cheap non-scene control** (e.g. the same 10k
+> rendered without the degradation stack) would buy much of the same gain. That control was **not run**;
+> whether to run it is the brain's call.
