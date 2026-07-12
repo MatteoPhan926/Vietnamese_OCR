@@ -139,17 +139,49 @@ C3 GOLD TOOL ✅ BUILT + SMOKE-TESTED (2026-07-12) — READY FOR THE USER. tools
   FREE ADJUNCT (§14.4(A)): the strict 10k contains 227 items >=9 chars (2.27%) incl. phone numbers,
     vs 77 (2.99%) in the 2,574-crop real r10 subset -> ~3x MORE long examples in absolute count.
     So the C4 long-crop repair is via EXPOSURE to long sequences, not pure sequence regularization.
-  RUNS: r=10%, arm=clean, k=3 (run_control.sh -> scripts/aggregate_control.py). seed0 CER=13.83,
-    seed1 CER=13.92 (strict k=5 = 13.726±0.096; real-only k=5 = 16.509±0.933). seed2 pending.
-    EARLY READ (NOT a verdict — brain adjudicates): clean is tracking the SHIPPED arm closely, which
-    points at the >=80% branch = the realism machinery is NOT load-bearing at this operating point.
-IN-FLIGHT     : clean-render control, seed 2 of 3 (run_control.sh, log runs/control_clean.log).
-PARALLEL/LATER: (a) GOLD manual double-pass (2,437-instance sheet ready, empty) — needed before the FINAL
-                curve numbers + the model-vs-label artifact (§4). NOT blocking Stage 2.
-                (b) DBNet fine-tune -> e2e number (§5) — deferred; pipeline-completeness, not the flagship.
+§14.4(A) CLEAN-RENDER CONTROL — ☑ COMPLETE k=3 (2026-07-12), REPORTED NOT ADJUDICATED:
+  runs/control_clean_summary.json · run_control.sh -> scripts/aggregate_control.py · r=10%, k=3.
+    real-only(k=5)  CER 16.509 ± 0.933   tone 89.463 ± 0.641
+    +STRICT (k=5)   CER 13.726 ± 0.096   tone 91.497 ± 0.134   gain +2.783 / +2.033
+    +CLEAN  (k=3)   CER 13.900 ± 0.155   tone 91.231 ± 0.242   gain +2.609 / +1.768
+  ATTRIBUTION: clean recovers **93.7% of the CER gain, 86.9% of the tone gain**; shipped−clean
+    = 0.174 CER / 0.266 tone, CIs OVERLAP (not separable). Both arms separate from real-only.
+  => Per the §14.4(A) PRE-REGISTERED rule this is the **>=80% branch** ("the realism machinery is
+    NOT load-bearing at this operating point; the claim is label-efficiency via decoder-training
+    signal / premature-<eos> repair"). ⛔ NOT SELF-ADJUDICATED — the brain rules on the reading and
+    on what it does to the framing. Headline (+2.783) is untouched either way: attribution ablation,
+    not a re-gate; §8.1 attempts untouched.
+
+STAGE 5 — PUBLIC LAYER ☑ BUILT (2026-07-13, this session; obeys docs/PAGE_SPEC.md):
+  ☑ RESTRUCTURE: method docs -> docs/ via `git mv` (history preserved, UNEDITED). RESULTS.md stays at
+    root (docs/ = what was promised; RESULTS.md = what was found). Root CLAUDE.md is a stub that
+    @-imports docs/CLAUDE.md so the harness anchor still auto-loads. docs/README.md explains each doc
+    + how to verify the pre-registration ordering in git log. PAGE_SPEC.md also moved into docs/.
+  ☑ FIGURES (scripts/make_figures.py -> docs/figures/*.svg + *.png, rendered FROM the run artifacts,
+    zero hand-typed numbers): fig1 label-efficiency (both arms, CIs, the r=100% null at full weight,
+    strict vs full-bank marked); fig2 truncation (pred-vs-GT length + severe-truncation histogram).
+  ☑ SCORER PACKAGED: vi_three_axis_scorer.py — single file, stdlib-only, works on ANY Vietnamese OCR
+    output with no dataset. test_vi_three_axis_scorer.py = 26 tests incl. a PARITY test against
+    scripts/scorer.py (the artifact people copy out must BE the instrument that made RESULTS.md).
+    demo.py = image(s) -> prediction + three-axis breakdown; verified on 6 real crops (it independently
+    re-finds the im1501 label-noise case: model reads VỰC, public label says VỰ).
+  ☑ README.md (human-voiced, Act 0-7, negatives first, every number carries scope+n+k+CI).
+  ☑ SITE: docs/index.html (static, no framework, CVPR-ish, never claims to be a paper) + docs/.nojekyll.
+    GitHub Pages source = branch master, /docs. REPO_URL in the page's one <script> constant =
+    https://github.com/MatteoPhan926/ocr_engine (the user's account is MatteoPhan926).
+  [PENDING] SLOTS ON THE PAGE (marked as such, nothing fabricated):
+    1. GOLD noise floor — the manual double-pass (tools/gold_tool.py, 2,437 rows, still EMPTY). The
+       page states plainly that no noise-floor number exists and none is claimed.
+    2. CLEAN-RENDER control — numbers ARE on the page; the READING is marked awaiting adjudication.
+    3. CONTEXT baselines (Tesseract-vie / EasyOCR / PaddleOCR, same test-500, rec-only, our scorer) —
+       optional, ~2h inference, ASKED THE USER, not started.
+    4. e2e / detection number — deferred by design (un-fine-tuned detector = wrong-side bound).
+IN-FLIGHT     : nothing on GPU.
+PARALLEL/LATER: (a) GOLD manual double-pass (sheet ready, empty) — blocks the FINAL curve numbers +
+                the model-vs-label artifact (§4). (b) DBNet fine-tune -> e2e (§5) — deferred.
 BLOCKERS/Q    : HOST: C: drive full (46 MB free); uv cache / TORCH_HOME / TMP / checkpoints -> E:.
-NEXT 🧠 CHKPT : Gate A result (green/red + number + provenance). **THE gate.** Brain confirms green is real
-                (non-overlapping CI) or reads the red diagnosis (DATA_ENGINE §8, geometric-first).
+NEXT 🧠 CHKPT : (i) the clean-render attribution reading (>=80% branch) and what it does to the
+                framing; (ii) go/no-go on the optional context baselines.
 ```
 
 ---
