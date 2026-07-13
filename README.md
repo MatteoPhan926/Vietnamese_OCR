@@ -373,12 +373,18 @@ demonstrates the scorer on systems that are not mine. It is not a superiority cl
 |---|---|---|---|---|---|
 | EasyOCR 1.7.2 (`vi`, latin_g2) | 38.46 | 37.95 | 68.11 | 74.02 | 72.75 |
 | PaddleOCR 3.7.0 (`latin_PP-OCRv5_mobile_rec`) | 22.53 | 43.55 | **88.59** | **66.03** | **68.89** |
-| Tesseract-vie | **[install failed](RESULTS.md)** — binary needs elevation; reported, not faked | | | | |
+| Tesseract 5.4.0 (`vie`, `--psm 8`) | 57.18 | 32.28 | **62.14** | **75.29** | 70.19 |
 | pbcquoc `vgg_transformer`, **zero-shot** | 21.33 | 60.83 | 86.41 | 88.49 | 85.88 |
-| **ours** @ r=10% (2,574 real + 10k synth) | 13.73 | — | — | — | 91.50 |
-| **ours** @ full real data (25,742 crops) | **9.38** | 81.87 | 94.11 | 96.25 | 94.41 |
+| **ours** @ full real data (25,742 crops) | **9.40** | 81.94 | 94.08 | 96.21 | 94.42 |
 
-*(k=1 — single deterministic inference pass; these are not trained models, so there are no seeds and no CIs.)*
+*(External systems and the zero-shot checkpoint: k=1 — a single deterministic inference pass; they are not
+trained here, so there are no seeds and no CIs. The **ours** row is the median over k=3 seeds, the same
+statistic §0.5 reports. Every row in this table is computed from a run artifact by
+`scripts/context_baselines.py`; none is transcribed by hand.)*
+
+The r=10% arm is **not** in this table. It is one of my own study arms, not an external yardstick — it
+lives in the results tables, where its comparison is to my own baseline. This table exists to answer one
+question: **is 9.4% CER any good?**
 
 **And the scorer immediately found something a CER ranking would have buried.**
 
@@ -396,6 +402,21 @@ unable to write one.
 Now compare it with the zero-shot pbcquoc checkpoint. **Their CERs are nearly identical — 22.53 vs 21.33 —
 and a CER-only leaderboard would call them equivalent.** They are opposites: PaddleOCR reads the *letters*
 better (base 88.59 vs 86.41) and cannot write the *marks* (modifier 66.03 vs 88.49).
+
+**And Tesseract, now that it runs, makes the same point a second time — from the other direction.** It is
+the worst system here on CER (57.18), and the axes say *why*: its **base** score is the worst in the table
+(62.14) while its **modifier** score (75.29) *beats PaddleOCR's* (66.03). Its `vie` model has the full
+charset, so it can write the marks; what it cannot do is *read the glyphs* on in-the-wild scene text (its
+top tone error is `ngang → <del>` — dropping the character entirely). The two systems fail at **different
+levels of the problem**:
+
+| | base | modifier | the actual failure |
+|---|---|---|---|
+| PaddleOCR (latin) | **88.59** | 66.03 | reads the letters, **cannot represent** the marks — *charset* |
+| Tesseract (`vie`) | 62.14 | **75.29** | can represent the marks, **cannot read** the letters — *domain* |
+
+A CER ranking says "57.18 is worse than 22.53" and stops. The axes say one engine is failing at
+*representation* and the other at *perception* — which are not the same problem and do not have the same fix.
 
 **This is the takeaway the scorer exists for, and it is the one I would actually use tomorrow:** *if you
 are choosing an OCR engine for Vietnamese, CER will mislead you. It will not tell you that the engine

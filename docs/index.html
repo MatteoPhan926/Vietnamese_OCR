@@ -543,19 +543,23 @@
     <tr><td>PaddleOCR 3.7.0 (<code>latin_PP-OCRv5_mobile_rec</code>)</td><td class="n">22.53</td>
       <td class="n">43.55</td><td class="n"><strong>88.59</strong></td>
       <td class="n"><strong>66.03</strong></td><td class="n"><strong>68.89</strong></td></tr>
-    <tr><td>Tesseract-vie</td><td colspan="5"><span class="tag pending">[INSTALL FAILED]</span> binary
-      needs elevation — reported as a failure, no row faked</td></tr>
+    <tr><td>Tesseract 5.4.0 (<code>vie</code>, <code>--psm 8</code>)</td><td class="n">57.18</td>
+      <td class="n">32.28</td><td class="n"><strong>62.14</strong></td>
+      <td class="n"><strong>75.29</strong></td><td class="n">70.19</td></tr>
     <tr><td>pbcquoc <code>vgg_transformer</code>, <strong>zero-shot</strong></td><td class="n">21.33</td>
       <td class="n">60.83</td><td class="n">86.41</td><td class="n">88.49</td><td class="n">85.88</td></tr>
-    <tr class="hl"><td><strong>ours</strong> @ r=10% (2,574 real + 10k synth)</td>
-      <td class="n">13.73</td><td class="n">—</td><td class="n">—</td><td class="n">—</td>
-      <td class="n">91.50</td></tr>
     <tr class="hl"><td><strong>ours</strong> @ full real data (25,742 crops)</td>
-      <td class="n"><strong>9.38</strong></td><td class="n">81.87</td><td class="n">94.11</td>
-      <td class="n">96.25</td><td class="n">94.41</td></tr>
+      <td class="n"><strong>9.40</strong></td><td class="n">81.94</td><td class="n">94.08</td>
+      <td class="n">96.21</td><td class="n">94.42</td></tr>
   </table></div>
-  <p style="font-size:14px;color:var(--ink3)">k=1 — a single deterministic inference pass; these are not
-    trained models, so there are no seeds and no CIs.</p>
+  <p style="font-size:14px;color:var(--ink3)">External systems and the zero-shot checkpoint: k=1 — a single
+    deterministic inference pass; they are not trained here, so there are no seeds and no CIs. The
+    <strong>ours</strong> row is the median over k=3 seeds, the same statistic §0.5 reports. Every row is
+    computed from a run artifact by <code>scripts/context_baselines.py</code>; none is transcribed by hand.</p>
+
+  <p>The r=10% arm is <strong>not</strong> in this table. It is one of my own study arms, not an external
+    yardstick — it lives in the results tables, where its comparison is to my own baseline. This table
+    exists to answer one question: <strong>is 9.4% CER any good?</strong></p>
 
   <p><strong>And the scorer immediately found something a CER ranking would have buried.</strong></p>
 
@@ -571,6 +575,26 @@
       it is unable to write one.
     </figcaption>
   </figure>
+
+  <p><strong>And Tesseract, now that it runs, makes the same point a second time — from the other
+    direction.</strong> It is the worst system here on CER (57.18), and the axes say <em>why</em>: its
+    <b>base</b> score is the worst in the table (62.14) while its <b>modifier</b> score (75.29) <em>beats
+    PaddleOCR's</em> (66.03). Its <code>vie</code> model has the full charset, so it can write the marks;
+    what it cannot do is <em>read the glyphs</em> on in-the-wild scene text (its top tone error is
+    <code>ngang → &lt;del&gt;</code> — dropping the character outright). The two engines fail at
+    <strong>different levels of the problem</strong>:</p>
+
+  <div class="tw"><table>
+    <tr><th></th><th>base</th><th>modifier</th><th>the actual failure</th></tr>
+    <tr><td>PaddleOCR (latin)</td><td class="n"><strong>88.59</strong></td><td class="n">66.03</td>
+      <td>reads the letters, <strong>cannot represent</strong> the marks — <em>charset</em></td></tr>
+    <tr><td>Tesseract (<code>vie</code>)</td><td class="n">62.14</td><td class="n"><strong>75.29</strong></td>
+      <td>can represent the marks, <strong>cannot read</strong> the letters — <em>domain</em></td></tr>
+  </table></div>
+
+  <p>A CER ranking says "57.18 is worse than 22.53" and stops. The axes say one engine is failing at
+    <em>representation</em> and the other at <em>perception</em> — which are not the same problem and do not
+    have the same fix.</p>
 
   <p class="kicker">This is the takeaway the scorer exists for, and the one I would actually use tomorrow:
     <b>if you are choosing an OCR engine for Vietnamese, CER will mislead you. It will not tell you that

@@ -176,12 +176,31 @@ STAGE 5 — PUBLIC LAYER ☑ BUILT (2026-07-13, this session; obeys docs/PAGE_SP
     (so no system is strawmanned by being fed a word crop through an e2e pipeline).
       EasyOCR 1.7.2 (vi/latin_g2)          CER 38.46  exact 37.95  base 68.11  mod 74.02  tone 72.75
       PaddleOCR 3.7.0 (latin_PP-OCRv5)     CER 22.53  exact 43.55  base 88.59  mod 66.03  tone 68.89
+      Tesseract 5.4.0 (vie, --psm 8)       CER 57.18  exact 32.28  base 62.14  mod 75.29  tone 70.19
       pbcquoc ZERO-SHOT (free row)         CER 21.33  exact 60.83  base 86.41  mod 88.49  tone 85.88
-      ours r=10% (2,574 real + 10k synth)  CER 13.73                                      tone 91.50
-      ours FULL real (25,742)              CER  9.38  exact 81.87  base 94.11  mod 96.25  tone 94.41
-    ⛔ Tesseract-vie: INSTALL FAILED (binary needs elevation; winget exit 2 + silent NSIS exit 2).
-      REPORTED AS A FAILURE, NO ROW FAKED (§16). Closes with an elevated `winget install
-      UB-Mannheim.TesseractOCR`.
+      ours FULL real (25,742), k=3 MEDIAN  CER  9.40  exact 81.94  base 94.08  mod 96.21  tone 94.42
+    ✅ Tesseract-vie: install CLOSED. Elevated winget put v5.4.0 on the box; vie.traineddata lives in
+      E:\ocr_cache\tessdata via TESSDATA_PREFIX (C: is full). Smoke PASS 0/20 empty. The old "install
+      failed" note is RETIRED, not left standing. pytesseract shells out per crop (~35 min of pure
+      process-spawn overhead) -> switched to tesseract's own BATCH mode: 3m50s, verified byte-identical
+      to the per-crop path on a 300-crop subset (--no-batch), page-count mismatch RAISES.
+    ★ SECOND FINDING (free, from the same scorer): Tesseract is the WORST system on CER (57.18) but its
+      base (62.14, worst in table) / mod (75.29, BEATS PaddleOCR's 66.03) ordering is INVERTED vs
+      PaddleOCR's. Its vie model HAS the charset -- it can write the marks; it cannot READ the glyphs on
+      scene text (top tone error ngang-><del> 985 = dropping the char). So PaddleOCR fails at
+      REPRESENTATION (charset) and Tesseract at PERCEPTION (domain) -- different problems, different
+      fixes, and a CER ranking ("57 is worse than 22") sees neither.
+    ⚠ ours r=10% REMOVED from this table (§16 scope): it is one of OUR ARMS, not an external yardstick.
+      Mixing it in invites the head-to-head the "context, not a contest" framing forbids. It lives in the
+      RESULTS tables, where its comparator is our own baseline.
+    ⚠ NO HAND-TYPED NUMBERS: every row (incl. ours) is now computed by scripts/context_baselines.py from
+      a run artifact -- externals from live inference, zero-shot from runs/probe_contamination.json, ours
+      as the k=3 MEDIAN over runs/baseline_seed{0,1,2}/result.json. The old hand-typed ours row printed
+      nan for exact/base/mod (it came from a gate summary storing only CER+tone) and quoted the k=3 MEAN
+      while §0.5 quoted the MEDIAN; both now read the median. A nan now RAISES instead of printing.
+    ⚠ WRITER NOW MERGES PER SYSTEM. A single-system run used to OVERWRITE the whole file: the
+      easyocr+paddleocr run's rows were destroyed by a later run, and runs/ is GITIGNORED so git could
+      not restore them. Both were re-measured and reproduced EXACTLY (38.46 / 22.53). Cannot recur.
     ★ THE FINDING (and it is the SCORER's, not the CER's): PaddleOCR ships NO Vietnamese recognizer;
       the nearest is the multilingual LATIN model, whose output charset is MISSING ALL 90/90 of the
       Vietnamese precomposed block (U+1EA0-U+1EF9). It CANNOT EMIT a toned vowel -> its tone axis is
@@ -234,9 +253,9 @@ STAGE 5 — PUBLIC LAYER ☑ BUILT (2026-07-13, this session; obeys docs/PAGE_SP
   [PENDING] SLOTS ON THE PAGE (marked as such, nothing fabricated):
     1. GOLD noise floor — the manual double-pass (tools/gold_tool.py, 2,437 rows, still EMPTY). The
        page states plainly that no noise-floor number exists and none is claimed.
-    2. Tesseract-vie row — blocked on an elevated install (reported as a failure, not faked).
-    3. e2e / detection number — deferred by design (un-fine-tuned detector = wrong-side bound).
+    2. e2e / detection number — deferred by design (un-fine-tuned detector = wrong-side bound).
     (The clean-render slot is CLOSED — adjudicated, above.)
+    (The Tesseract slot is CLOSED — installed from an elevated shell and MEASURED, above.)
 IN-FLIGHT     : nothing on GPU.
 PARALLEL/LATER: (a) GOLD manual double-pass (sheet ready, empty) — blocks the FINAL curve numbers +
                 the model-vs-label artifact (§4). (b) DBNet fine-tune -> e2e (§5) — deferred.

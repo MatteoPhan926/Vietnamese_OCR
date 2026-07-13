@@ -862,17 +862,72 @@ word crop through an end-to-end pipeline.
 |---|---|---|---|---|---|---|---|
 | **EasyOCR** | 1.7.2, `vi` (latin_g2 rec) | 38.46 | 37.95 | 68.11 | 74.02 | 72.75 | 51 |
 | **PaddleOCR** | 3.7.0, `latin_PP-OCRv5_mobile_rec` | 22.53 | 43.55 | **88.59** | **66.03** | **68.89** | 55 |
-| **Tesseract-vie** | — | **[FAILED]** | | | | | |
+| **Tesseract-vie** | 5.4.0, `vie`, `--psm 8` | 57.18 | 32.28 | 62.14 | 75.29 | 70.19 | 248 |
 | pbcquoc `vgg_transformer` **zero-shot** (the free row) | no fine-tune | 21.33 | 60.83 | 86.41 | 88.49 | 85.88 | — |
-| **ours** @ r=10% (2,574 real + 10k synth) | k=5 mean | 13.73 | — | — | — | 91.50 | — |
-| **ours** @ full real data (25,742 crops) | k=3 mean | **9.38** | 81.87 | 94.11 | 96.25 | 94.41 | — |
+| **ours** @ full real data (25,742 crops) | **k=3 median** | **9.40** | 81.94 | 94.08 | 96.21 | 94.42 | — |
 
-### `[FAILURE, reported as a failure — no row is faked]` Tesseract-vie
-Not run. The `pytesseract` wrapper installs from pip but the **Tesseract binary does not**: it needs a
-system installer, and both `winget install UB-Mannheim.TesseractOCR` and a direct silent install of the
-NSIS package failed with **installer exit code 2 (requires elevation)** in this non-interactive shell.
-§16 says report install failures as failures. It is reported. An elevated
-`winget install UB-Mannheim.TesseractOCR` would close it.
+**Every row above is computed from a run artifact** by `scripts/context_baselines.py` — the external rows
+from a live inference pass, the zero-shot row from `runs/probe_contamination.json`, the **ours** row as the
+**median over `runs/baseline_seed{0,1,2}/result.json`** (per-seed CER 9.395 / 9.226 / 9.521). No number in
+this table is typed by hand, and the script now refuses to write a table containing a metric it did not
+compute.
+
+> **Why this table says 9.40 and the arm tables say 9.381.** Same three seeds, two different statistics,
+> both reported on purpose: the arm-vs-baseline tables adjudicate on **mean ± CI95** (9.381 ± 0.368) because
+> an overlap test needs means; this context table reports the **median** (9.395 → 9.40), the robust point
+> estimate §0.5 leads with. They differ by **0.014 pp** — two orders of magnitude inside the CI, and it
+> changes no verdict anywhere. Both are stored in `runs/context_baselines.json`.
+
+*(An earlier revision hand-typed the **ours** row from a gate summary that stored only CER and tone, which
+is why its exact/base/modifier cells printed `nan` — and why the row quoted the k=3 **mean** while §0.5
+quoted the **median**. Both now read the median, from the same artifacts.)*
+
+**The r=10% arm is deliberately NOT in this table.** It is one of my own study arms, not an external
+yardstick; its comparison is to my own baseline (§0.5, §C4), not to EasyOCR. Mixing an arm into a context
+table invites exactly the head-to-head this section's framing forbids. This table answers one question:
+**is 9.4% CER any good?**
+
+### `[RESOLVED — the install failure is closed]` Tesseract-vie
+Previously reported here as an install failure: `pytesseract` is only a wrapper, and the **Tesseract binary
+needs a system installer**, which failed with exit code 2 (requires elevation) in a non-interactive shell.
+It is now installed from an **elevated** shell (v5.4.0.20240606), with `vie.traineddata` placed in
+`E:\ocr_cache\tessdata` and reached via `TESSDATA_PREFIX` — the C: drive is full, so the language pack does
+not go next to the binary. **The row is now measured, and the failure note is retired rather than left
+standing.**
+
+**§16 smoke test — PASS: 0/20 empty returns.** On the easy high-contrast crops it reads `SẢNH`→`SANH`,
+`PHÒNG`→`PHONG`. It is being invoked correctly as a *recognizer* (`--psm 8`, single word); it is simply a
+document-OCR engine meeting scene text. Its 248 empty returns on the full set (vs 51 EasyOCR / 55 PaddleOCR)
+are a real result, not a mis-invocation.
+
+> **Runtime note (no effect on the numbers).** `pytesseract` shells out **once per crop**; at ~0.2 s of
+> process spawn each, the full test set took ~35 min of almost pure overhead. It now runs through
+> Tesseract's own **batch mode** (a file of image paths, one page of output per image, in input order):
+> **3m50s**, same binary, same `--psm 8`, same model. Verified equivalent, not assumed — on a 300-crop
+> subset both paths give byte-identical scores (CER 64.62 / base 57.94 / mod 70.39 / tone 63.20), and a
+> page-count mismatch **raises** rather than silently misaligning predictions against the wrong ground truth.
+
+### `[THE SECOND FINDING]` Tesseract fails at the *letters*; PaddleOCR fails at the *marks*
+
+Tesseract is the **worst system in the table on CER (57.18)** — and the three axes say *why*, in a way the
+CER cannot. Its **base** axis is the **worst of any system (62.14)**, while its **modifier** axis (75.29) is
+*better* than PaddleOCR's (66.03). Its dominant tone error is `ngang → <del>` (985) — deleting the character
+outright, not mis-toning it.
+
+So it is **not** failing the way PaddleOCR fails. PaddleOCR reads the letters well (base 88.59) and
+*structurally cannot write the marks* (modifier 66.03). Tesseract can write the marks perfectly well — its
+`vie` model has the full charset — but **cannot read the glyphs at all** on in-the-wild scene text. Two
+systems, and their base/modifier orderings are **inverted**:
+
+| | base | modifier | the actual failure |
+|---|---|---|---|
+| PaddleOCR (latin) | **88.59** | 66.03 | reads the letters, **cannot represent** the marks (charset) |
+| Tesseract (`vie`) | 62.14 | **75.29** | can represent the marks, **cannot read the letters** (domain) |
+
+A CER-only table would have said "Tesseract 57.18, PaddleOCR 22.53, Tesseract is worse" and stopped. The
+axes say the two are failing at *different levels of the problem* — one at representation, one at
+perception. **That is a third independent demonstration that one number is not enough**, and it costs
+nothing: it falls straight out of the same scorer, on a system that is not mine.
 
 ### `[THE FINDING — and it is the scorer's, not the CER's]` PaddleOCR cannot *represent* Vietnamese tones
 
