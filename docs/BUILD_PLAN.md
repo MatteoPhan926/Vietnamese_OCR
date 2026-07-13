@@ -206,6 +206,13 @@ STAGE 5 — PUBLIC LAYER ☑ BUILT (2026-07-13, this session; obeys docs/PAGE_SP
         The engine's own thesis is refuted by the engine's own measurements."
       • Act 7 concluded -> "Then I switched the whole thing off." + the practical advice: DON'T build
         this; at a low label budget you need text of the right length distribution, rendered legibly.
+      • "What I'd do differently" REWRITTEN to the two real lessons (brain, 2026-07-13): (a) the ORDER was
+        wrong, not the choice — the budget sweep is the CHEAPEST experiment here and should have run FIRST,
+        to find which regime holds the value before building an engine for a regime that couldn't use it;
+        (b) ABLATION-FIRST — build the minimum generator (text -> legible render), measure, then add each
+        piece of machinery WITH AN ABLATION ATTACHED, instead of building the whole stack and ablating at
+        the end. Every component here was justified by a coherent STORY; the stories were collectively
+        worth ~6%. "Coherence is not evidence." 
       • PaddleOCR PROMOTED from a table row to **fig3 (why CER is not enough)** — the strongest existing
         argument for the three-axis scorer. "Context, not a contest" kept verbatim.
   ☑ IMAGE_AUG QUESTION — VERIFIED IN CODE BEFORE THE CLAIM WAS WRITTEN (the brain asked; do NOT assume):
@@ -214,10 +221,16 @@ STAGE 5 — PUBLIC LAYER ☑ BUILT (2026-07-13, this session; obeys docs/PAGE_SP
     pools real+synth into ONE annotation/LMDB. => vietocr's DEFAULT aug WAS applied to the clean-render
     crops every epoch (InvertImg .2 / ColorJitter .2 / MotionBlur 3px .2 / RandomBrightnessContrast ±0.2 .2
     / Perspective 0.01-0.05 .5 / RandomDottedLine .5; NO rotation/shear/gaussian/noise/JPEG/downsample).
-    CONSEQUENCE, now stated on the page + RESULTS: the floor is IDENTICAL IN EVERY ARM so it is NOT a
-    confound for shipped-vs-clean (the 93.7% attribution stands), but the licensed claim is "the ENGINE's
-    stack is not load-bearing ABOVE A FLOOR of generic mild augmentation" — NOT "pixel realism is
-    irrelevant from zero." A true zero-aug arm was NEVER RUN and is NOT claimed.
+    BOUND SHARPENED (brain, 2026-07-13): the floor is IDENTICAL IN EVERY ARM (not a confound; the 93.7%
+    attribution stands), so what the control measures is MILD -> AGGRESSIVE. The floor is a MILD, GENERIC,
+    DOCUMENT-oriented suite (persp 0.01-0.05, fixed 3px motion blur, ±0.2 brightness, no rotation/shear).
+    Ours is AGGRESSIVE SCENE-REALISM (verified in engine/render.py DEFAULT_CFG: rot_deg=15.0,
+    persp_jitter=0.08, shear 0.18, motion_len=8, defocus_sigma=1.5, jpeg qmin=34, noise sigma 9.0,
+    p_real_bg=0.82). THE LICENSED SENTENCE: "a mild, generic, document-oriented augmentation floor is
+    SUFFICIENT; the aggressive scene-realism stack on top of it bought ~6%, not separable from zero."
+    That marginal mild->aggressive value is the decision a practitioner actually faces and is MORE
+    informative than a zero-aug arm. SCOPE: a true zero-augmentation arm was NEVER RUN and is NOT being
+    run; "pixel realism is irrelevant from zero" is NOT licensed and NOT claimed.
   [PENDING] SLOTS ON THE PAGE (marked as such, nothing fabricated):
     1. GOLD noise floor — the manual double-pass (tools/gold_tool.py, 2,437 rows, still EMPTY). The
        page states plainly that no noise-floor number exists and none is claimed.

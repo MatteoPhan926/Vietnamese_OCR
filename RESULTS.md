@@ -952,9 +952,24 @@ epoch**: InvertImg (p=.2), ColorJitter (.2), MotionBlur (fixed 3-px, .2), Random
 .2), Perspective (0.01–0.05, .5), RandomDottedLine (.5). (Absent from that default: rotation, shear,
 Gaussian/defocus blur, noise, JPEG, downsampling — measured at STEP 0.)
 
-**Consequence for the claim, stated rather than hidden:**
-- This floor is **identical in every arm** (same config, same loader, same pooled LMDB), so it is **not a
-  confound** for the shipped-vs-clean comparison. The 93.7% attribution stands.
-- But the licensed claim is *"**the engine's** degradation stack is not load-bearing **above a floor of
-  generic mild augmentation**"* — **NOT** *"pixel realism is irrelevant from zero."* A true zero-augmentation
-  arm was **never run** and that stronger claim is **not licensed.**
+**Consequence for the claim — the bound is SHARPENED, not merely stated.** The floor is **identical in
+every arm** (same config, same loader, same pooled LMDB), so it is **not a confound**; the 93.7%
+attribution stands. And because the floor is present in both arms, the contrast the control actually
+measures is **mild → aggressive**, which is the decision a practitioner faces:
+
+| | the FLOOR (vietocr `image_aug`) — in **both** arms | the ENGINE's stack (`engine/render.py` `DEFAULT_CFG`) — **shipped arm only** |
+|---|---|---|
+| character | mild, generic, **document**-oriented | aggressive **scene-realism** |
+| geometric | perspective 0.01–0.05; **no** rotation, **no** shear | rotation ±15° (`rot_deg=15.0`), perspective `persp_jitter=0.08`, shear 0.18, curve |
+| blur | fixed 3-px motion blur | motion blur `motion_len=8`, defocus `defocus_sigma=1.5` |
+| photometric | brightness/contrast ±0.2 | illumination gradients 0.32, contrast floor 0.42, glare, shadow |
+| sensor | — | JPEG `qmin=34`–93, Gaussian noise σ 9.0 |
+| background | — | composited onto **real scene backgrounds** (`p_real_bg=0.82`) |
+
+> **`[THE LICENSED SENTENCE]`** *"A **mild, generic, document-oriented augmentation floor is sufficient**;
+> the **aggressive scene-realism stack on top of it bought ~6%**, not separable from zero."*
+
+This marginal **mild→aggressive** value is **more informative than a zero-augmentation arm** would have
+been — nobody trains an OCR recognizer with no augmentation at all, so "is realism worth it *from zero*" is
+not a decision anyone actually faces. **Scope, explicit: a true zero-augmentation arm was NEVER RUN and is
+NOT being run.** The claim *"pixel realism is irrelevant from zero"* is **not licensed** and is not made.

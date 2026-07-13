@@ -289,18 +289,30 @@ unresolvable from noise. The text was ~94% of it.
 not need an elaborate generator. You need **text of the right length distribution, rendered legibly.**
 That is a far cheaper artifact than this one, and saying so is worth more than defending the machinery.
 
-> **One scope limit, stated precisely, because "the entire degradation stack off" could be read too
-> broadly.** The control switches off *the engine's* degradation stack (geometric, photometric, blur,
-> JPEG — the heavy, strata-targeted stack). It does **not** make the crops pixel-pristine at training
-> time: vietocr's default `image_aug` is applied by the training loader to **every** sample, real and
-> synthetic alike, with no branch between them
-> ([`trainer.py:80`](third_party/vietocr/vietocr/model/trainer.py) →
-> [`dataloader.py:121`](third_party/vietocr/vietocr/loader/dataloader.py)) — so the clean crops still
-> received mild perspective (0.01–0.05), a fixed 3-px motion blur, colour jitter and a dotted line, each
-> at p ≤ 0.5. That floor is **identical in every arm**, so it is not a confound for the shipped-vs-clean
-> comparison. But the honest claim is *"the engine's realism stack is not load-bearing **above a floor of
-> generic mild augmentation**"* — not *"pixel realism is irrelevant from zero."* The latter was not
-> tested and is not claimed.
+**What the control actually measures — and it is the more useful quantity.** "Degradation off" does not
+mean the crops were pixel-pristine at training time. vietocr's default `image_aug` is applied by the
+training loader to **every** sample, real and synthetic alike, with no branch between them
+([`trainer.py:80`](third_party/vietocr/vietocr/model/trainer.py) →
+[`dataloader.py:121`](third_party/vietocr/vietocr/loader/dataloader.py)), so the clean crops still received
+it. That means the two arms differ by exactly one thing — **mild versus aggressive**:
+
+| | the floor (vietocr `image_aug`, in **both** arms) | the engine's stack (**shipped arm only**) |
+|---|---|---|
+| character | mild, generic, **document**-oriented | aggressive **scene-realism** |
+| geometry | perspective 0.01–0.05, no rotation, no shear | rotation ±15°, perspective 0.08, shear 0.18 |
+| blur | fixed 3-px motion blur | motion blur len 8, defocus σ 1.5 |
+| photometric | brightness/contrast ±0.2 | illumination gradients, contrast floor 0.42, glare, shadow |
+| sensor | — | JPEG q34–93, Gaussian noise σ 9 |
+| background | — | composited onto real scene backgrounds (p=0.82) |
+
+So the licensed sentence is the one a practitioner actually has to decide:
+
+> **A mild, generic, document-oriented augmentation floor is sufficient. The aggressive scene-realism
+> stack on top of it bought ~6% of the gain — not separable from zero.**
+
+That marginal *mild → aggressive* value is more informative than a zero-augmentation arm would have been —
+nobody trains an OCR model with no augmentation at all, so "is realism worth it *from zero*" is not a
+question anyone faces. **A true zero-augmentation arm was not run, and that stronger claim is not made.**
 
 ---
 
@@ -398,22 +410,35 @@ encode the language you are pointing it at** — which is the more useful warnin
 
 ## What I'd do differently
 
-- **I chose the operating point before I knew how much of the domain gap the real fine-tune already
-  closed.** The document→scene gap is huge zero-shot (21.33% CER) and the real fine-tune closes most of it
-  (9.38%). Synthetic data was always going to be fighting for the remainder. Measuring that first would
-  have told me the full-data null was likely *before* I built the engine — and would have pointed me at
-  the label-budget axis on day one, where the effect actually lives.
+Two real lessons, and neither one is "I picked the wrong technique."
+
+**1. The order was wrong, not the choice. The cheap experiment should have gone first.** The budget sweep
+is the cheapest thing in this project — it is just the baseline retrained on subsets — and it is what
+locates *which regime holds the value*. I ran it last, as a contingency, after building an entire engine.
+Run first, it would have shown me in an afternoon that the value lives at a scarce label budget and that
+there is nothing at full data, and I would have known **before building the generator** that I was
+building it for a regime that could not use it. Find the regime, then build for the regime. I did it
+backwards and got the right answer anyway, which is luck, not method.
+
+**2. Ablation-first, not ablation-last.** I built the whole stack — the font-coverage gate, geometric
+degradation, photometric degradation, sensor noise, real-background compositing, the distribution audit —
+and then ablated it at the very end, where it told me ~94% of the gain survives without any of it. The
+right shape is the reverse: **build the minimum generator that could possibly work (text → legible render),
+measure it, then add each piece of machinery with an ablation attached to it.** Each component would have
+had to earn its place against a measurement at the moment it was added, for about an hour of compute each.
+Instead every one of them was justified by a *plausible story* about scene-text realism — and the stories
+were all coherent, and they were collectively worth ~6%, not separable from zero. Coherence is not
+evidence.
+
+The narrower ones, stated so they are not buried:
+
 - **The degradation stack was organised around a stratum ranking that turned out not to drive the gain.**
-  I ranked geometric distortion #1 from the error analysis, built the generator around it, and the
-  geometric stratum contributed 2.8% of the eventual gain (not significant). The error analysis told me
-  where the model *fails*; I assumed that was the same as where synthetic data *helps*. It isn't.
+  I ranked geometric distortion #1 from the error analysis and built the generator around it; that stratum
+  contributed 2.8% of the eventual gain, not significantly. The error analysis told me where the model
+  *fails*. I assumed that was the same as where synthetic data *helps*. It isn't — and that single
+  assumption is the most expensive line of reasoning in the project.
 - **One subset draw per budget point.** The curve carries training-seed variance only; **subset-draw
-  variance is unquantified.** This is standard for label-efficiency curves and it is still a real
-  limitation, so it is stated rather than buried.
-- **I would have run the clean-render control first, not last.** It costs about an hour and it goes
-  straight at the attribution question the entire engine rests on. Run at the start, it would have told me
-  the degradation stack was not the lever *before* I spent the project building and defending one — and
-  the honest version of this project would have been much smaller and just as informative.
+  variance is unquantified.** Standard for label-efficiency curves, still a real limitation.
 
 ## What this does not claim
 
