@@ -904,3 +904,57 @@ result.** That is the entire argument for the three-axis metric, made on systems
 > PaddleOCR's — it is evidence that **in-domain training data matters**, and that **an off-the-shelf
 > multilingual model may not even encode the language you are pointing it at.** The second of those is the
 > more useful warning.
+
+---
+
+## §14.4(A) — THE CLEAN-RENDER CONTROL: the engine's own thesis, refuted `[2026-07-13, ADJUDICATED]`
+
+Pre-registered readings (EVAL_PROTOCOL §14.4(A), written **before** the control was generated): clean buys
+**≥ ~80%** of the +2.783 → the realism machinery is **not load-bearing**; **< ~50%** → the degradations are
+load-bearing and the domain-transfer framing survives; between → report the split.
+
+**Provenance.** `data/crops/synth10k_clean_r10` (`engine/generate.py --no-degrade`): render → real-bg
+composite → plain resize. NO geometric, NO photometric, NO blur/JPEG. **Same corpus, fonts, strict bank
+(r10), generation seed (100)** as `synth10k_strict_r10` — and the two sets' **label sets are IDENTICAL**
+(227 items ≥9 chars, 44 ≥13, max len 18), so **the only difference between them is pixels.** r=10%, k=3,
+same HP/iters. `run_control.sh` → `scripts/aggregate_control.py` → `runs/control_clean_summary.json`.
+§7 audit on the clean set: **FAIL** (cleaner than real — by design; recorded, non-gating, not a training-set
+candidate). Rec-only, test-500, NFC, frozen denominator.
+
+| arm (r=10%) | k | CER ↓ | tone ↑ | gain vs real-only |
+|---|---|---|---|---|
+| real-only | 5 | 16.509 ± 0.933 | 89.463 ± 0.641 | — |
+| **+ STRICT synth (shipped, degradation ON)** | 5 | **13.726 ± 0.096** | **91.497 ± 0.134** | **+2.783 / +2.033** |
+| **+ CLEAN synth (degradation OFF)** | 3 | **13.900 ± 0.155** | **91.231 ± 0.242** | **+2.609 / +1.768** |
+
+- **Clean recovers 93.7% of the CER gain and 86.9% of the tone gain.**
+- **shipped − clean = 0.174 CER / 0.266 tone — CIs OVERLAP, not separable from zero.**
+- Both arms separate from real-only. → **the pre-registered ≥80% branch fires.**
+
+> **`[VERDICT — the pre-registered ≥80% branch]`** The realism machinery is **NOT load-bearing at this
+> operating point.** What the engine supplies at a scarce label budget is **sequence-level training signal**
+> — (text, length) pairs that teach the decoder not to terminate early — **not domain realism.** This is the
+> third of three independent measurements saying the same thing (§8.4 C≈B at full real; C4's 2.8%
+> not-significant geometric stratum vs 54.3% from long crops; this ablation). **DATA_ENGINE §1's thesis
+> ("the degradation model is THE lever") is REFUTED by this project's own measurements** — recorded as
+> DATA_ENGINE §13. The headline (+2.783) is unmoved: this is an attribution ablation, not a re-gate, and no
+> §8.1 attempt was spent.
+
+### `[SCOPE LIMIT — verified in the training code, not assumed]` What "degradation OFF" does and does not mean
+
+**Question asked before the claim was written: was vietocr's `image_aug` applied to the synthetic crops
+during training?** **YES — measured, not assumed.** `configs/vgg_transformer_pinned.yml` sets
+`aug.image_aug: true`; `third_party/vietocr/vietocr/model/trainer.py:80` passes `transform=augmentor` to
+the **train** generator only; `third_party/vietocr/vietocr/loader/dataloader.py:121` applies it to **every**
+training image **with no branch on real-vs-synthetic**. `scripts/train_budget.py` pools real + synthetic
+into ONE annotation file / LMDB, so **the clean-render crops received vietocr's default augmentation every
+epoch**: InvertImg (p=.2), ColorJitter (.2), MotionBlur (fixed 3-px, .2), RandomBrightnessContrast (±0.2,
+.2), Perspective (0.01–0.05, .5), RandomDottedLine (.5). (Absent from that default: rotation, shear,
+Gaussian/defocus blur, noise, JPEG, downsampling — measured at STEP 0.)
+
+**Consequence for the claim, stated rather than hidden:**
+- This floor is **identical in every arm** (same config, same loader, same pooled LMDB), so it is **not a
+  confound** for the shipped-vs-clean comparison. The 93.7% attribution stands.
+- But the licensed claim is *"**the engine's** degradation stack is not load-bearing **above a floor of
+  generic mild augmentation**"* — **NOT** *"pixel realism is irrelevant from zero."* A true zero-augmentation
+  arm was **never run** and that stronger claim is **not licensed.**

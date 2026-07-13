@@ -371,3 +371,31 @@ augment harder?"**
 > Attempt 1 of 2 spent; Attempt 2 held in reserve (ceiling, not quota). The project proceeds on the
 > pre-registered real-data-budget axis — EVAL_PROTOCOL §14/§14.1. The B−A augmentation-tradeoff pattern
 > (axes up, sequence metrics down) becomes a write-up claim only after the ins/del decomposition.
+
+---
+
+## §13. THE THESIS IN §1 IS REFUTED BY THIS PROJECT'S OWN MEASUREMENTS (2026-07-12)
+
+§1 locked: *"The degradation model is THE lever, not one lever."* **That is false at this operating point,
+and three independent measurements say so:**
+
+1. **§8.4 (full real):** at matched augmentation, synthetic adds nothing (C≈B). A real crop degraded hard
+   beats a rendered crop degraded hard.
+2. **C4 (mechanism at r=10%):** the gain concentrates in **long crops** (54.3%), not the tilted ones the
+   degradation stack was ordered around (**2.8%, not significant**). Severe truncation 24.7% → 6.9%.
+3. **Clean-render control (r=10%):** with the **entire degradation stack OFF** — identical corpus, fonts,
+   strict bank, seed, so only pixels differ — clean renders recover **93.7% of the CER gain** and 86.9% of
+   the tone gain. Shipped-minus-clean (Δ 0.174) is **not separable** from zero.
+
+**The synthesis, and it is the project's most useful finding:** what this engine actually supplies at a
+scarce label budget is **sequence-level training signal — (text, length) pairs that teach the decoder not
+to terminate early** — not domain realism. The font audit, the degradation stack, the background
+compositing, and the §7 distribution audit were built for a mechanism that is **not the one operating.**
+Pixel realism was ~6% of the gain and unresolvable from noise; the text was ~94% of it.
+
+**Practical consequence, stated for anyone reproducing this:** you do not need the elaborate generator. At
+a low label budget you need **text of the right length distribution, rendered legibly.** That is a much
+cheaper artifact than the one built here, and saying so is worth more than defending the machinery.
+
+*(Recorded, not rewritten. §1–§12 stand as the pre-registration they were; this section is the verdict on
+them.)*

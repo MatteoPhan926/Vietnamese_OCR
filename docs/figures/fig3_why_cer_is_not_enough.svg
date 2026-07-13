@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="701.28pt" height="335.485414pt" viewBox="0 0 701.28 335.485414" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-07-13T09:48:37.730786</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.0, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 335.485414 
+L 701.28 335.485414 
+L 701.28 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 102.6 260.464287 
+L 289.629249 260.464287 
+L 289.629249 24.844287 
+L 102.6 24.844287 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <path d="M 102.6 260.464287 
+L 102.6 24.844287 
+" clip-path="url(#pd98ee784c2)" style="fill: none; stroke: #e4e3de; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_2">
+      <defs>
+       <path id="m96fef9d18b" d="M 0 0 
+L 0 3.5 
+" style="stroke: #5c5b55; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#m96fef9d18b" x="102.6" y="260.464287" style="fill: #5c5b55; stroke: #5c5b55; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_1">
+      <text style="font-size: 8.5px; font-family: 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Computer Modern Typewriter', 'Andale Mono', 'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal', monospace; text-anchor: middle; fill: #5c5b55" x="102.6" y="273.922295" transform="rotate(-0 102.6 273.922295)">0</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_3">
+      <path d="M 164.943083 260.464287 
+L 164.943083 24.844287 
+" clip-path="url(#pd98ee784c2)" style="fill: none; stroke: #e4e3de; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_4">
+      <g>
+       <use xlink:href="#m96fef9d18b" x="164.943083" y="260.464287" style="fill: #5c5b55; stroke: #5c5b55; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_2">
+      <text style="font-size: 8.5px; font-family: 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Computer Modern Typewriter', 'Andale Mono', 'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal', monospace; text-anchor: middle; fill: #5c5b55" x="164.943083" y="273.922295" transform="rotate(-0 164.943083 273.922295)">10</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_5">
+      <path d="M 227.286166 260.464287 
+L 227.286166 24.844287 
+" clip-path="url(#pd98ee784c2)" style="fill: none; stroke: #e4e3de; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_6">
+      <g>
+       <use xlink:href="#m96fef9d18b" x="227.286166" y="260.464287" style="fill: #5c5b55; stroke: #5c5b55; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_3">
+      <text style="font-size: 8.5px; font-family: 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Computer Modern Typewriter', 'Andale Mono', 'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal', monospace; text-anchor: middle; fill: #5c5b55" x="227.286166" y="273.922295" transform="rotate(-0 227.286166 273.922295)">20</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_7">
+      <path d="M 289.629249 260.464287 
+L 289.629249 24.844287 
+" clip-path="url(#pd98ee784c2)" style="fill: none; stroke: #e4e3de; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_8">
+      <g>
+       <use xlink:href="#m96fef9d18b" x="289.629249" y="260.464287" style="fill: #5c5b55; stroke: #5c5b55; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_4">
+      <text style="font-size: 8.5px; font-family: 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Computer Modern Typewriter', 'Andale Mono', 'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal', monospace; text-anchor: middle; fill: #5c5b55" x="289.629249" y="273.922295" transform="rotate(-0 289.629249 273.922295)">30</text>
+     </g>
+    </g>
+    <g id="text_5">
+     <text style="font-size: 9px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #1a1a19" x="196.114625" y="288.516533" transform="rotate(-0 196.114625 288.516533)">CER  %   (lower is better)</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_9">
+      <defs>
+       <path id="mda3dde2137" d="M 0 0 
+L -3.5 0 
+" style="stroke: #5c5b55; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#mda3dde2137" x="102.6" y="114.379887" style="fill: #5c5b55; stroke: #5c5b55; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_6">
+      <text style="font-size: 9px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; fill: #5c5b55" transform="translate(47.577969 113.098134)">PaddleOCR</text>
+      <text style="font-size: 9px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; fill: #5c5b55" transform="translate(73.097187 122.893544)">(latin)</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_10">
+      <g>
+       <use xlink:href="#mda3dde2137" x="102.6" y="208.627887" style="fill: #5c5b55; stroke: #5c5b55; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_7">
+      <text style="font-size: 9px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; fill: #5c5b55" transform="translate(61.575781 207.343585)">pbcquoc</text>
+      <text style="font-size: 9px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; fill: #5c5b55" transform="translate(52.093437 217.138996)">(zero-shot)</text>
+     </g>
+    </g>
+   </g>
+   <g id="patch_3">
+    <path d="M 102.6 137.941887 
+L 243.036773 137.941887 
+L 243.036773 90.817887 
+L 102.6 90.817887 
+z
+" clip-path="url(#pd98ee784c2)" style="fill: #eb6834"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 102.6 232.189887 
+L 235.577796 232.189887 
+L 235.577796 185.065887 
+L 102.6 185.065887 
+z
+" clip-path="url(#pd98ee784c2)" style="fill: #2a78d6"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 102.6 260.464287 
+L 102.6 24.844287 
+" style="fill: none; stroke: #5c5b55; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 102.6 260.464287 
+L 289.629249 260.464287 
+" style="fill: none; stroke: #5c5b55; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 8.5px; font-family: 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Computer Modern Typewriter', 'Andale Mono', 'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal', monospace; text-anchor: start" x="245.842211" y="116.587895" transform="rotate(-0 245.842211 116.587895)">22.53</text>
+   </g>
+   <g id="text_9">
+    <text style="font-size: 8.5px; font-family: 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Computer Modern Typewriter', 'Andale Mono', 'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal', monospace; text-anchor: start" x="238.383235" y="210.835895" transform="rotate(-0 238.383235 210.835895)">21.33</text>
+   </g>
+   <g id="text_10">
+    <text style="font-size: 8.5px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #5c5b55" x="102.6" y="55.946127" transform="rotate(-0 102.6 55.946127)">a 1.2 pp difference — these look equivalent</text>
+   </g>
+   <g id="text_11">
+    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1a1a19" x="102.6" y="14.844287" transform="rotate(-0 102.6 14.844287)">CER says: the same</text>
+   </g>
+  </g>
+  <g id="axes_2">
+   <g id="patch_7">
+    <path d="M 366.778814 260.464287 
+L 694.08 260.464287 
+L 694.08 24.844287 
+L 366.778814 24.844287 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_3">
+    <g id="xtick_5">
+     <g id="line2d_11">
+      <g>
+       <use xlink:href="#m96fef9d18b" x="421.0373" y="260.464287" style="fill: #5c5b55; stroke: #5c5b55; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_12">
+      <text style="font-size: 9px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; fill: #5c5b55" transform="translate(408.783237 274.691094)">Axis 1</text>
+      <text style="font-size: 9px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; fill: #5c5b55" transform="translate(400.026518 284.486504)">base letter</text>
+     </g>
+    </g>
+    <g id="xtick_6">
+     <g id="line2d_12">
+      <g>
+       <use xlink:href="#m96fef9d18b" x="530.429407" y="260.464287" style="fill: #5c5b55; stroke: #5c5b55; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_13">
+      <text style="font-size: 9px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; fill: #5c5b55" transform="translate(518.175345 274.691094)">Axis 2</text>
+      <text style="font-size: 9px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; fill: #5c5b55" transform="translate(514.425579 284.486504)">modifier</text>
+     </g>
+    </g>
+    <g id="xtick_7">
+     <g id="line2d_13">
+      <g>
+       <use xlink:href="#m96fef9d18b" x="639.821515" y="260.464287" style="fill: #5c5b55; stroke: #5c5b55; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_14">
+      <text style="font-size: 9px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; fill: #5c5b55" transform="translate(627.567452 274.691094)">Axis 3</text>
+      <text style="font-size: 9px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; fill: #5c5b55" transform="translate(631.064093 284.486504)">tone</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_4">
+    <g id="ytick_3">
+     <g id="line2d_14">
+      <path d="M 366.778814 209.974287 
+L 694.08 209.974287 
+" clip-path="url(#pb4c3bbac5a)" style="fill: none; stroke: #e4e3de; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_15">
+      <g>
+       <use xlink:href="#mda3dde2137" x="366.778814" y="209.974287" style="fill: #5c5b55; stroke: #5c5b55; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_15">
+      <text style="font-size: 8.5px; font-family: 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Computer Modern Typewriter', 'Andale Mono', 'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal', monospace; text-anchor: end; fill: #5c5b55" x="359.778814" y="213.203291" transform="rotate(-0 359.778814 213.203291)">60</text>
+     </g>
+    </g>
+    <g id="ytick_4">
+     <g id="line2d_16">
+      <path d="M 366.778814 167.899287 
+L 694.08 167.899287 
+" clip-path="url(#pb4c3bbac5a)" style="fill: none; stroke: #e4e3de; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_17">
+      <g>
+       <use xlink:href="#mda3dde2137" x="366.778814" y="167.899287" style="fill: #5c5b55; stroke: #5c5b55; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_16">
+      <text style="font-size: 8.5px; font-family: 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Computer Modern Typewriter', 'Andale Mono', 'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal', monospace; text-anchor: end; fill: #5c5b55" x="359.778814" y="171.128291" transform="rotate(-0 359.778814 171.128291)">70</text>
+     </g>
+    </g>
+    <g id="ytick_5">
+     <g id="line2d_18">
+      <path d="M 366.778814 125.824287 
+L 694.08 125.824287 
+" clip-path="url(#pb4c3bbac5a)" style="fill: none; stroke: #e4e3de; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_19">
+      <g>
+       <use xlink:href="#mda3dde2137" x="366.778814" y="125.824287" style="fill: #5c5b55; stroke: #5c5b55; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_17">
+      <text style="font-size: 8.5px; font-family: 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Computer Modern Typewriter', 'Andale Mono', 'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal', monospace; text-anchor: end; fill: #5c5b55" x="359.778814" y="129.053291" transform="rotate(-0 359.778814 129.053291)">80</text>
+     </g>
+    </g>
+    <g id="ytick_6">
+     <g id="line2d_20">
+      <path d="M 366.778814 83.749287 
+L 694.08 83.749287 
+" clip-path="url(#pb4c3bbac5a)" style="fill: none; stroke: #e4e3de; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_21">
+      <g>
+       <use xlink:href="#mda3dde2137" x="366.778814" y="83.749287" style="fill: #5c5b55; stroke: #5c5b55; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_18">
+      <text style="font-size: 8.5px; font-family: 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Computer Modern Typewriter', 'Andale Mono', 'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal', monospace; text-anchor: end; fill: #5c5b55" x="359.778814" y="86.978291" transform="rotate(-0 359.778814 86.978291)">90</text>
+     </g>
+    </g>
+    <g id="ytick_7">
+     <g id="line2d_22">
+      <path d="M 366.778814 41.674287 
+L 694.08 41.674287 
+" clip-path="url(#pb4c3bbac5a)" style="fill: none; stroke: #e4e3de; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_23">
+      <g>
+       <use xlink:href="#mda3dde2137" x="366.778814" y="41.674287" style="fill: #5c5b55; stroke: #5c5b55; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_19">
+      <text style="font-size: 8.5px; font-family: 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Computer Modern Typewriter', 'Andale Mono', 'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal', monospace; text-anchor: end; fill: #5c5b55" x="359.778814" y="44.903291" transform="rotate(-0 359.778814 44.903291)">100</text>
+     </g>
+    </g>
+    <g id="text_20">
+     <text style="font-size: 9px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #1a1a19" x="338.532799" y="142.654287" transform="rotate(-90 338.532799 142.654287)">accuracy  %   (higher is better)</text>
+    </g>
+   </g>
+   <g id="patch_8">
+    <path d="M 381.656141 462.424287 
+L 421.0373 462.424287 
+L 421.0373 89.686234 
+L 381.656141 89.686234 
+z
+" clip-path="url(#pb4c3bbac5a)" style="fill: #eb6834"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 491.048248 462.424287 
+L 530.429407 462.424287 
+L 530.429407 184.621887 
+L 491.048248 184.621887 
+z
+" clip-path="url(#pb4c3bbac5a)" style="fill: #eb6834"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 600.440356 462.424287 
+L 639.821515 462.424287 
+L 639.821515 172.556132 
+L 600.440356 172.556132 
+z
+" clip-path="url(#pb4c3bbac5a)" style="fill: #eb6834"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 421.0373 462.424287 
+L 460.418458 462.424287 
+L 460.418458 98.854212 
+L 421.0373 98.854212 
+z
+" clip-path="url(#pb4c3bbac5a)" style="fill: #2a78d6"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 530.429407 462.424287 
+L 569.810566 462.424287 
+L 569.810566 90.102612 
+L 530.429407 90.102612 
+z
+" clip-path="url(#pb4c3bbac5a)" style="fill: #2a78d6"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 639.821515 462.424287 
+L 679.202673 462.424287 
+L 679.202673 101.084187 
+L 639.821515 101.084187 
+z
+" clip-path="url(#pb4c3bbac5a)" style="fill: #2a78d6"/>
+   </g>
+   <g id="patch_14">
+    <path d="M 366.778814 260.464287 
+L 366.778814 24.844287 
+" style="fill: none; stroke: #5c5b55; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_15">
+    <path d="M 366.778814 260.464287 
+L 694.08 260.464287 
+" style="fill: none; stroke: #5c5b55; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_21">
+    <text style="font-weight: 700; font-size: 8.5px; font-family: 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Computer Modern Typewriter', 'Andale Mono', 'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal', monospace; text-anchor: middle; fill: #eb6834" x="401.34672" y="85.057984" transform="rotate(-0 401.34672 85.057984)">88.6</text>
+   </g>
+   <g id="text_22">
+    <text style="font-weight: 700; font-size: 8.5px; font-family: 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Computer Modern Typewriter', 'Andale Mono', 'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal', monospace; text-anchor: middle; fill: #eb6834" x="510.738828" y="179.993637" transform="rotate(-0 510.738828 179.993637)">66.0</text>
+   </g>
+   <g id="text_23">
+    <text style="font-weight: 700; font-size: 8.5px; font-family: 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Computer Modern Typewriter', 'Andale Mono', 'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal', monospace; text-anchor: middle; fill: #eb6834" x="620.130935" y="167.927882" transform="rotate(-0 620.130935 167.927882)">68.9</text>
+   </g>
+   <g id="text_24">
+    <text style="font-weight: 700; font-size: 8.5px; font-family: 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Computer Modern Typewriter', 'Andale Mono', 'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal', monospace; text-anchor: middle; fill: #2a78d6" x="440.727879" y="94.225962" transform="rotate(-0 440.727879 94.225962)">86.4</text>
+   </g>
+   <g id="text_25">
+    <text style="font-weight: 700; font-size: 8.5px; font-family: 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Computer Modern Typewriter', 'Andale Mono', 'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal', monospace; text-anchor: middle; fill: #2a78d6" x="550.119986" y="85.474362" transform="rotate(-0 550.119986 85.474362)">88.5</text>
+   </g>
+   <g id="text_26">
+    <text style="font-weight: 700; font-size: 8.5px; font-family: 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Computer Modern Typewriter', 'Andale Mono', 'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal', monospace; text-anchor: middle; fill: #2a78d6" x="659.512094" y="96.455937" transform="rotate(-0 659.512094 96.455937)">85.9</text>
+   </g>
+   <g id="text_27">
+    <text style="font-weight: 700; font-size: 8.6px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #eb6834" x="372.904772" y="60.608037" transform="rotate(-0 372.904772 60.608037)">PaddleOCR reads the LETTERS better…</text>
+   </g>
+   <g id="patch_16">
+    <path d="M 567.906897 206.123021 
+Q 587.341541 184.699963 617.095543 177.483354 
+" style="fill: none; stroke: #5c5b55; stroke-linecap: round"/>
+    <path d="M 613.434225 176.642671 
+L 617.095543 177.483354 
+L 614.226205 179.907999 
+" style="fill: none; stroke: #5c5b55; stroke-linecap: round"/>
+   </g>
+   <g id="text_28">
+    <g id="patch_17">
+     <path d="M 450.830932 260.967127 
+L 648.778244 260.967127 
+L 648.778244 207.619908 
+L 450.830932 207.619908 
+z
+" style="fill: #ffffff; opacity: 0.9"/>
+    </g>
+    <text style="font-size: 8.4px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; fill: #1a1a19" transform="translate(453.854932 219.562592)">…and cannot write the MARKS.</text>
+    <text style="font-size: 8.4px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; fill: #1a1a19" transform="translate(453.854932 231.387396)">Its Latin charset contains 0 of the 90 Vietnamese</text>
+    <text style="font-size: 8.4px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; fill: #1a1a19" transform="translate(453.854932 243.068482)">precomposed vowels (ạ ả ấ ệ ự …): the tone axis is</text>
+    <text style="font-size: 8.4px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; fill: #1a1a19" transform="translate(453.854932 254.153037)">structurally capped, not inaccurate.</text>
+   </g>
+   <g id="text_29">
+    <text style="font-weight: 700; font-size: 10.5px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1a1a19" x="366.778814" y="14.844287" transform="rotate(-0 366.778814 14.844287)">The axes say: opposites</text>
+   </g>
+   <g id="legend_1">
+    <g id="patch_18">
+     <path d="M 495.520313 30.076831 
+L 513.520313 30.076831 
+L 513.520313 23.776831 
+L 495.520313 23.776831 
+z
+" style="fill: #eb6834"/>
+    </g>
+    <g id="text_30">
+     <text style="font-size: 9px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start" x="520.720313" y="30.076831" transform="rotate(-0 520.720313 30.076831)">PaddleOCR</text>
+    </g>
+    <g id="patch_19">
+     <path d="M 586.742344 30.076831 
+L 604.742344 30.076831 
+L 604.742344 23.776831 
+L 586.742344 23.776831 
+z
+" style="fill: #2a78d6"/>
+    </g>
+    <g id="text_31">
+     <text style="font-size: 9px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start" x="611.942344" y="30.076831" transform="rotate(-0 611.942344 30.076831)">pbcquoc zero-shot</text>
+    </g>
+   </g>
+  </g>
+  <g id="text_32">
+   <text style="font-size: 7.6px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; fill: #5c5b55" transform="translate(7.2 313.669033)">rec-only · VinText test-500 (10,068 instances / 37,254 chars) · NFC · k=1 (a single deterministic inference pass — these are not trained models, so there are no seeds and no CIs).</text>
+   <text style="font-size: 7.6px; font-family: 'Inter', 'Helvetica Neue', 'Arial', 'DejaVu Sans', sans-serif; fill: #5c5b55" transform="translate(7.2 324.724287)">Context, not a contest: neither system was trained on VinText. The point is not the ranking — it is that CER alone would have told you these two systems are equivalent.</text>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pd98ee784c2">
+   <rect x="102.6" y="24.844287" width="187.029249" height="235.62"/>
+  </clipPath>
+  <clipPath id="pb4c3bbac5a">
+   <rect x="366.778814" y="24.844287" width="327.301186" height="235.62"/>
+  </clipPath>
+ </defs>
+</svg>

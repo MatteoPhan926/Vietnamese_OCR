@@ -270,8 +270,88 @@ def fig2():
     return stats
 
 
+# ============================================================ FIG 3 — why CER is not enough
+def fig3():
+    """The practical takeaway the scorer exists for (EVAL_PROTOCOL §16, 'context, not a contest').
+
+    Two systems with nearly the SAME CER and INVERTED failure modes. A CER-only comparison calls
+    them equivalent; only the three-axis decomposition shows that one of them cannot represent the
+    language at all.
+    """
+    d = json.load(open("runs/context_baselines.json", encoding="utf-8"))
+    P, Z = d["paddleocr"], d["zeroshot_pbcquoc"]
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(10.6, 4.25),
+                                 gridspec_kw=dict(width_ratios=[1, 1.75], wspace=0.3))
+
+    # ---------- left: CER says they are the same
+    y = [1, 0]
+    vals = [P["cer"], Z["cer"]]
+    a1.barh(y, vals, height=0.5, color=[ORANGE, BLUE], zorder=2)
+    for yi, v in zip(y, vals):
+        a1.text(v + 0.45, yi, f"{v:.2f}", va="center", **MONO)
+    a1.set_yticks(y)
+    a1.set_yticklabels(["PaddleOCR\n(latin)", "pbcquoc\n(zero-shot)"], fontsize=9)
+    a1.set_xlim(0, 30)
+    a1.set_xticks([0, 10, 20, 30])
+    a1.set_xticklabels(["0", "10", "20", "30"], **MONO)
+    a1.set_xlabel("CER  %   (lower is better)", labelpad=6)
+    a1.grid(axis="x", color=GRID, lw=0.7, zorder=0)
+    a1.set_axisbelow(True)
+    for s in ("top", "right"):
+        a1.spines[s].set_visible(False)
+    a1.set_ylim(-0.55, 1.95)
+    a1.set_title("CER says: the same", fontsize=10.5, fontweight="bold", loc="left", pad=10)
+    a1.text(0, 1.62, "a 1.2 pp difference — these look equivalent",
+            fontsize=8.5, color=INK2, ha="left")
+
+    # ---------- right: the axes say they are opposites
+    axes = ["Axis 1\nbase letter", "Axis 2\nmodifier", "Axis 3\ntone"]
+    pv = [P["base"], P["mod"], P["tone"]]
+    zv = [Z["base"], Z["mod"], Z["tone"]]
+    x = np.arange(3)
+    w = 0.36
+    a2.bar(x - w / 2, pv, w, color=ORANGE, zorder=2, label="PaddleOCR")
+    a2.bar(x + w / 2, zv, w, color=BLUE, zorder=2, label="pbcquoc zero-shot")
+    for xi, v in zip(x - w / 2, pv):
+        a2.text(xi, v + 1.1, f"{v:.1f}", ha="center", color=ORANGE, fontweight="bold", **MONO)
+    for xi, v in zip(x + w / 2, zv):
+        a2.text(xi, v + 1.1, f"{v:.1f}", ha="center", color=BLUE, fontweight="bold", **MONO)
+    a2.set_xticks(x)
+    a2.set_xticklabels(axes, fontsize=9)
+    a2.set_ylim(48, 104)
+    a2.set_yticks([60, 70, 80, 90, 100])
+    a2.set_yticklabels(["60", "70", "80", "90", "100"], **MONO)
+    a2.set_ylabel("accuracy  %   (higher is better)")
+    despine(a2)
+    a2.set_title("The axes say: opposites", fontsize=10.5, fontweight="bold", loc="left", pad=10)
+    a2.text(-0.44, 95.5, "PaddleOCR reads the LETTERS better…", fontsize=8.6,
+            color=ORANGE, fontweight="bold")
+    a2.annotate("…and cannot write the MARKS.\nIts Latin charset contains 0 of the 90 Vietnamese\n"
+                "precomposed vowels (ạ ả ấ ệ ự …): the tone axis is\n"
+                "structurally capped, not inaccurate.",
+                xy=(2 - w / 2, P["tone"] - 1.0), xytext=(0.30, 49.5),
+                fontsize=8.4, color=INK, linespacing=1.5, ha="left",
+                bbox=dict(facecolor=SURFACE, edgecolor="none", alpha=0.9, pad=3),
+                arrowprops=dict(arrowstyle="->", color=INK2, lw=1,
+                                connectionstyle="arc3,rad=-0.25"))
+    a2.legend(loc="upper right", fontsize=9, ncol=2, bbox_to_anchor=(1.0, 1.04))
+
+    fig.text(0.0, -0.10,
+             "rec-only · VinText test-500 (10,068 instances / 37,254 chars) · NFC · k=1 (a single "
+             "deterministic inference pass — these are not trained models, so there are no seeds "
+             "and no CIs).\nContext, not a contest: neither system was trained on VinText. "
+             "The point is not the ranking — it is that CER alone would have told you these two "
+             "systems are equivalent.",
+             fontsize=7.6, color=INK2, linespacing=1.55)
+    save(fig, "fig3_why_cer_is_not_enough")
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     print("fig1 — label efficiency")
     fig1()
     print("fig2 — truncation mechanism")
     fig2()
+    print("fig3 — why CER is not enough (PaddleOCR vs zero-shot)")
+    fig3()

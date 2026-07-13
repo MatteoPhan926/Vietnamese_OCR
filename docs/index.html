@@ -122,17 +122,17 @@
 <div class="wrap">
 
   <p class="abstract">
-    I built a synthetic data engine for Vietnamese scene text — fonts, corpus, backgrounds, a degradation
-    stack, the usual pipeline — and then spent most of the project trying to find out whether it was worth
-    anything. <strong>At full real data (25,742 labelled crops) it was worth nothing</strong>: not when
-    the generator matched the real crops' image statistics, not when it over-represented the measured
-    failure strata, and not against a baseline whose augmentation was cranked up to manufacture those
-    same strata — the control arm almost nobody runs. <strong>At a 2,574-crop label budget it was worth
-    about 2,200 real annotations</strong> (rec-only CER <span class="num">16.51 → 13.73</span>,
-    non-overlapping 95% CIs over 5 seeds), decaying to nil by half the labels.
-    <strong>And the mechanism is not the one it was built for</strong>: the gain comes from repairing
-    premature decoder termination on long strings, not from the domain-realism machinery the engine's
-    design was organised around.
+    I built a synthetic data engine for Vietnamese scene text — fonts, corpus, degradation, background
+    compositing, the usual stack. <strong>At full real data (25,742 crops) it is worth nothing</strong>,
+    including against an augmentation-matched baseline: the control arm almost nobody runs. <strong>At a
+    2,574-crop label budget it is worth ≈2,200 real annotations</strong> (rec-only CER
+    <span class="num">16.51 → 13.73</span>, k=5, non-overlapping 95% CIs), decaying to nil by 50% of the
+    labels. <strong>And the machinery is not what paid.</strong> The gain repairs premature decoder
+    termination on long strings — severe truncation falls <span class="num">24.7% → 6.9%</span> — while
+    the geometric stratum the engine was ordered around carries 2.8% of it, not significantly.
+    <strong>Switching the entire degradation stack off recovers 94% of the gain.</strong> What the engine
+    actually supplies is sequence-level training signal, not domain realism. If you are label-poor, you
+    need text of the right length distribution rendered legibly — not this.
   </p>
 
   <figure>
@@ -155,8 +155,8 @@
       <li><strong>Scarce labels (10% of train) → synthetic ≈ 2,195 real crops</strong>
         [95% range <span class="num">+1,678 … +2,553</span>], decaying monotonically with the label
         budget: nil by 50%.</li>
-      <li><strong>The mechanism is not the realism stack</strong> — it is decoder-truncation repair.
-        The knobs I tuned are not the knobs that paid.</li>
+      <li><strong>The degradation stack contributed ~6% of the gain, not separable from zero.</strong>
+        The engine's own thesis is refuted by the engine's own measurements.</li>
     </ol>
     <div class="scope">
       every number: scope = rec-only (recognition given GT boxes) · real VinText test-500 held-out ·
@@ -394,24 +394,58 @@
 0913.889124 | 09.88        | 0913.889124</code></pre>
 
   <p>So the honest causal story is <strong>"at a scarce label budget, more crops of almost any kind fix
-    decoder under-training"</strong> — not "my domain-realism machinery transferred." The
-    <span class="num">+2.783</span> pp is real, survives the strict bank, and survives k=5. But the realism
-    knobs are precisely where it didn't pay.</p>
+    decoder under-training"</strong> — not "my domain-realism machinery transferred." Which raised the
+    obvious question, and it had a pre-registered answer rule waiting for it.</p>
+
+  <h3><span class="act">Act 7, concluded</span>Then I switched the whole thing off</h3>
+  <p>If the realism stack isn't what's paying, then rendering the same 10k crops with <strong>the entire
+    degradation stack disabled</strong> should cost me most of the gain. The rule was written before the
+    control was generated: <strong>≥80% of the gain recovered ⇒ the realism machinery is not load-bearing;
+    &lt;50% ⇒ it is.</strong></p>
+  <p>Same corpus, same fonts, same strict bank, same generation seed. The two sets' label sets are
+    <em>identical</em> — only the pixels differ.</p>
+
+  <div class="tw"><table>
+    <tr><th>arm (r=10%)</th><th>CER ↓</th><th>tone ↑</th><th>gain vs real-only</th></tr>
+    <tr><td>real-only (k=5)</td><td class="n">16.509 ± 0.933</td><td class="n">89.463 ± 0.641</td>
+      <td class="n">—</td></tr>
+    <tr><td>+ synthetic, <strong>degradation ON</strong> (k=5)</td><td class="n">13.726 ± 0.096</td>
+      <td class="n">91.497 ± 0.134</td><td class="n"><strong>+2.783</strong> / +2.033</td></tr>
+    <tr class="hl"><td>+ synthetic, <strong>degradation OFF</strong> (k=3)</td>
+      <td class="n">13.900 ± 0.155</td><td class="n">91.231 ± 0.242</td>
+      <td class="n"><strong>+2.609</strong> / +1.768</td></tr>
+  </table></div>
+
+  <p><strong>Clean renders bought 93.7% of the CER gain</strong> (and 86.9% of the tone gain).
+    Shipped-minus-clean is <span class="num">0.174</span> pp — <strong>not separable from zero</strong>,
+    CIs overlapping.</p>
+
+  <p class="kicker">Three independent measurements had been pointing at the same thing, and I had been
+    reading them one at a time: the augmentation-matched control, the stratum decomposition, and now this
+    ablation. <b>The realism machinery was never the lever. The text was.</b></p>
+
+  <p>The font-coverage gate, the degradation stack, the background compositing, the distribution audit —
+    all of it was built for a mechanism that is not the one operating. Pixel realism was ~6% of the gain
+    and unresolvable from noise. The text was ~94% of it.</p>
+
+  <p><strong>So the practical advice, for anyone about to build what I built: don't.</strong> At a low
+    label budget you do not need an elaborate generator. You need <strong>text of the right length
+    distribution, rendered legibly.</strong> That is a far cheaper artifact than this one, and saying so is
+    worth more than defending the machinery.</p>
 
   <div class="note">
-    <span class="h">[PENDING] the clean-render control</span>
-    The obvious next question — would 10k crops rendered with the <strong>degradation stack switched off
-    entirely</strong> buy the same gain? — has a pre-registered answer rule (≥80% of the gain recovered ⇒
-    the realism machinery is not load-bearing; &lt;50% ⇒ it is), written before the control was generated.
-    The control has now <strong>run</strong> (r=10%, k=3, same corpus / fonts / strict bank / seed; the two
-    sets' label sets are identical, so the only difference between them is pixels): clean-render reaches
-    CER <span class="num">13.900 ± 0.155</span> — it recovers <strong>93.7% of the CER gain and 86.9% of
-    the tone gain</strong>, and is <strong>not separable from the shipped arm</strong>
-    (Δ <span class="num">0.174</span>, CIs overlap). Under the pre-registered rule that is the ≥80% branch.
-    <strong>This is reported, not yet adjudicated</strong> — the reading and its consequences for the
-    framing above sit with the design brain, and this page will be updated with the ruling rather than
-    pre-empting it. The headline (<span class="num">+2.783</span>) does not move either way: this control
-    is an attribution ablation, not a re-gate.
+    <span class="h">scope limit, stated precisely</span>
+    "The entire degradation stack off" could be read too broadly, so: the control switches off <em>the
+    engine's</em> degradation stack (geometric, photometric, blur, JPEG — the heavy, strata-targeted one).
+    It does <strong>not</strong> make the crops pixel-pristine at training time. vietocr's default
+    <code>image_aug</code> is applied by the training loader to <strong>every</strong> sample, real and
+    synthetic alike, with no branch between them (<code>trainer.py:80</code> →
+    <code>dataloader.py:121</code>) — so the clean crops still received mild perspective (0.01–0.05), a
+    fixed 3-px motion blur, colour jitter and a dotted line, each at p ≤ 0.5. That floor is
+    <strong>identical in every arm</strong>, so it is not a confound for the shipped-vs-clean comparison.
+    But the honest claim is <em>"the engine's realism stack is not load-bearing <strong>above a floor of
+    generic mild augmentation</strong>"</em> — not <em>"pixel realism is irrelevant from zero."</em> The
+    latter was not tested and is not claimed.
   </div>
 
   <h2>Results</h2>
@@ -445,11 +479,13 @@
       <td class="n"><strong>16.509 ± 0.933</strong></td><td class="n"><strong>89.463 ± 0.641</strong></td><td></td></tr>
     <tr class="hl"><td class="n">11</td><td><strong>+ synthetic @ r=10% (strict bank)</strong></td><td class="n">2,574</td><td class="n">10k</td><td class="n">5</td>
       <td class="n"><strong>13.726 ± 0.096</strong></td><td class="n"><strong>91.497 ± 0.134</strong></td><td><span class="tag green">GREEN</span></td></tr>
-    <tr><td class="n">12</td><td>+ clean-render synthetic @ r=10%</td><td class="n">2,574</td><td class="n">10k</td><td class="n">3</td>
-      <td class="n">13.900 ± 0.155</td><td class="n">91.231 ± 0.242</td><td><span class="tag pending">[PENDING]</span></td></tr>
+    <tr class="hl"><td class="n">12</td><td><strong>+ clean-render synthetic @ r=10%</strong> (degradation OFF)</td>
+      <td class="n">2,574</td><td class="n">10k</td><td class="n">3</td>
+      <td class="n"><strong>13.900 ± 0.155</strong></td><td class="n"><strong>91.231 ± 0.242</strong></td>
+      <td><span class="tag green">94% of the gain</span></td></tr>
   </table></div>
 
-  <p>Rows 2–5 are the product as much as row 11 is.</p>
+  <p>Rows 2–5 are the product as much as row 11 is. Row 12 is what refutes the engine's own thesis.</p>
 
   <p><strong>Detection.</strong> An off-the-shelf English-pretrained detector scores
     <span class="num">48.0% F1 @ IoU 0.5</span> on VinText (probe, 20 images; input resolution ruled out as
@@ -505,19 +541,25 @@
   <p style="font-size:14px;color:var(--ink3)">k=1 — a single deterministic inference pass; these are not
     trained models, so there are no seeds and no CIs.</p>
 
-  <p><strong>And the scorer immediately found something a CER ranking would have buried.</strong> PaddleOCR
-    ships no Vietnamese recognizer; the nearest is its multilingual <em>latin</em> model. So I inspected its
-    output charset rather than reading its errors as accuracy: <strong>all 90 of the 90 Vietnamese
-    precomposed characters (U+1EA0–U+1EF9: ạ ả ấ ầ ệ ự …) are absent from it.</strong> It <strong>cannot
-    emit a toned vowel.</strong> Its tone axis is <em>structurally capped</em>, not inaccurate — and the
-    measured confusions confirm it exactly (<code>nang→ngang</code> 853, <code>huyen→ngang</code> 696,
-    <code>sac→ngang</code> 616). It is not mistaking one tone for another; it is unable to write one.</p>
+  <p><strong>And the scorer immediately found something a CER ranking would have buried.</strong></p>
 
-  <p class="kicker">Now compare it with the zero-shot pbcquoc checkpoint. <b>Their CERs are nearly identical
-    — 22.53 vs 21.33 — and a CER-only leaderboard would call them equivalent.</b> They are opposites:
-    PaddleOCR reads the <em>letters</em> better (base 88.59 vs 86.41) and cannot write the <em>marks</em>
-    (modifier 66.03 vs 88.49). Two systems, one CER, inverted failure modes. That is the entire argument
-    for the three axes, made on systems that are not mine.</p>
+  <figure>
+    <img src="figures/fig3_why_cer_is_not_enough.svg" alt="Left: PaddleOCR and the zero-shot checkpoint have nearly identical CER, 22.53 versus 21.33. Right: their three-axis breakdowns are inverted — PaddleOCR is better on base letters and far worse on modifiers and tones.">
+    <figcaption>
+      <b>Why CER is not enough.</b> Two systems, one CER, inverted failure modes. PaddleOCR ships no
+      Vietnamese recognizer; the nearest is its multilingual <em>latin</em> model, and <b>all 90 of the 90
+      Vietnamese precomposed characters (U+1EA0–U+1EF9: ạ ả ấ ầ ệ ự …) are absent from its output
+      charset.</b> It cannot emit a toned vowel. Its tone axis is <em>structurally capped, not
+      inaccurate</em> — and the measured confusions confirm it exactly (<code>nang→ngang</code> 853,
+      <code>huyen→ngang</code> 696, <code>sac→ngang</code> 616). It is not mistaking one tone for another;
+      it is unable to write one.
+    </figcaption>
+  </figure>
+
+  <p class="kicker">This is the takeaway the scorer exists for, and the one I would actually use tomorrow:
+    <b>if you are choosing an OCR engine for Vietnamese, CER will mislead you. It will not tell you that
+    the engine cannot represent the language.</b> You would have to decompose the error — or read the
+    charset — to find that out, and a leaderboard will never do either for you.</p>
 
   <p>The honest reading of the gap between the rows is <strong>not</strong> "my method beats EasyOCR and
     PaddleOCR." It is that <strong>in-domain training data matters</strong>, and that <strong>an

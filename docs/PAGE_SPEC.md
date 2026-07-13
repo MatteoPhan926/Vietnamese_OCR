@@ -137,3 +137,37 @@ alone:
   mechanism-mismatch are stated as plainly as the win.
 - **Aesthetic**: CVPR-ish project page is fine (clean typography, figure-first, monospace numbers). But
   the page must never *claim* to be a paper.
+
+---
+
+## 8. REVISED abstract + Act 7 (2026-07-12, after the clean-render control)
+
+The clean-render control fired the §14.4(A) **≥80% branch**. The narrative is not a slot-fill — it changes.
+
+**Abstract (replaces §1's):**
+> A synthetic data engine for Vietnamese scene text — fonts, corpus, degradation, background compositing,
+> the usual stack. **At full real data (25,742 crops) it is worth nothing**, including against an
+> augmentation-matched baseline: the control arm almost nobody runs. **At a 2,574-crop label budget it is
+> worth ≈2,200 real annotations** (CER 16.51 → 13.73, k=5, non-overlapping 95% CIs), decaying to nil by 50%
+> of the labels. **And the machinery is not what paid.** The gain repairs premature decoder termination on
+> long strings — severe truncation falls 24.7% → 6.9% — while the geometric stratum the engine was ordered
+> around carries 2.8% of it, not significantly. Switching the **entire degradation stack off recovers 94%
+> of the gain.** What the engine actually supplies is sequence-level training signal, not domain realism.
+> If you are label-poor, you need text of the right length distribution rendered legibly — not this.
+
+**Act 7 (replaces the pending one):** *"Then I switched the whole thing off."* Same corpus, same fonts,
+same strict bank, same seed — only the pixels differ. Clean renders bought 93.7% of the CER gain. Three
+independent measurements (the augmentation-matched control, the stratum decomposition, this ablation) had
+been pointing at the same thing, and I had been reading them one at a time: **the realism machinery was
+never the lever. The text was.**
+
+**TL;DR bullet 3 (replaces):** *The degradation stack contributed ~6% of the gain, not separable from zero.
+The engine's own thesis is refuted by the engine's own measurements.*
+
+**The PaddleOCR row is promoted to a figure, not a table row.** It is the strongest existing argument for
+the three-axis scorer: PaddleOCR (CER 22.53) and zero-shot pbcquoc (CER 21.33) look equivalent under CER
+and have **inverted** failure modes (base 88.59 / mod 66.03 vs base 86.41 / mod 88.49). PaddleOCR's Latin
+charset **cannot emit any of the 90 Vietnamese precomposed vowels** — its tone axis is *structurally
+capped, not inaccurate* (measured: nang→ngang 853, huyen→ngang 696). Frame it as the **practical takeaway
+the scorer exists for**: *if you are choosing an OCR engine for Vietnamese, CER will mislead you — it will
+not tell you the engine cannot represent the language.* Keep "context, not a contest" verbatim.
