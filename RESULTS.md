@@ -838,3 +838,69 @@ character is all-axes-wrong), which is exactly why **all three axes rise togethe
 > domain-transfer framing — including the possibility that a **cheap non-scene control** (e.g. the same 10k
 > rendered without the degradation stack) would buy much of the same gain. That control was **not run**;
 > whether to run it is the brain's call.
+
+---
+
+## §16 — CONTEXT BASELINES: off-the-shelf Vietnamese OCR on the same test set `[2026-07-13]`
+
+**CONTEXT, NOT A CONTEST.** These systems were **not trained on VinText**; ours was. This table measures
+**the task's difficulty** and demonstrates the three-axis scorer on systems that are not mine. It is
+**not** a superiority claim and must never be written as one.
+
+**Protocol (EVAL_PROTOCOL §16, pre-registered and committed BEFORE the first run — commit `1f8b6bf`).**
+Scope **rec-only** on GT-box crops via `scripts.infer.crops_for` (**the eval's own crop code path**;
+degenerate quads become empty predictions, never exclusions) · same **test-500**, frozen denominator
+**10,068 instances / 37,254 chars** (asserted at run time) · NFC · scored by **our** three-axis scorer ·
+`scripts/context_baselines.py` · single deterministic inference pass per system (**k=1** — no training
+seeds involved, so no CI: these are not trained models).
+
+**§16 smoke test (20 easy high-contrast crops) — PASS.** 0/20 empty returns from both systems before the
+full run, so the recognition-only API mode is correct and no system is being strawmanned by being fed a
+word crop through an end-to-end pipeline.
+
+| system | version / model | CER ↓ | exact ↑ | Axis1 base ↑ | Axis2 modifier ↑ | Axis3 tone ↑ | empty |
+|---|---|---|---|---|---|---|---|
+| **EasyOCR** | 1.7.2, `vi` (latin_g2 rec) | 38.46 | 37.95 | 68.11 | 74.02 | 72.75 | 51 |
+| **PaddleOCR** | 3.7.0, `latin_PP-OCRv5_mobile_rec` | 22.53 | 43.55 | **88.59** | **66.03** | **68.89** | 55 |
+| **Tesseract-vie** | — | **[FAILED]** | | | | | |
+| pbcquoc `vgg_transformer` **zero-shot** (the free row) | no fine-tune | 21.33 | 60.83 | 86.41 | 88.49 | 85.88 | — |
+| **ours** @ r=10% (2,574 real + 10k synth) | k=5 mean | 13.73 | — | — | — | 91.50 | — |
+| **ours** @ full real data (25,742 crops) | k=3 mean | **9.38** | 81.87 | 94.11 | 96.25 | 94.41 | — |
+
+### `[FAILURE, reported as a failure — no row is faked]` Tesseract-vie
+Not run. The `pytesseract` wrapper installs from pip but the **Tesseract binary does not**: it needs a
+system installer, and both `winget install UB-Mannheim.TesseractOCR` and a direct silent install of the
+NSIS package failed with **installer exit code 2 (requires elevation)** in this non-interactive shell.
+§16 says report install failures as failures. It is reported. An elevated
+`winget install UB-Mannheim.TesseractOCR` would close it.
+
+### `[THE FINDING — and it is the scorer's, not the CER's]` PaddleOCR cannot *represent* Vietnamese tones
+
+PaddleOCR ships **no Vietnamese recognizer**; the nearest available is the multilingual **latin** model.
+I inspected its output charset instead of reading its errors as if they were accuracy:
+
+> **`latin_PP-OCRv5_mobile_rec` output charset = 772 characters. ALL 90/90 of the Vietnamese precomposed
+> block (U+1EA0–U+1EF9: ạ ả ấ ầ ệ ự …) are ABSENT from it.** Those characters **cannot be emitted**. Its
+> tone axis is **structurally capped, not merely inaccurate.**
+
+The measured error confirms the charset exactly: PaddleOCR's tone confusions are overwhelmingly
+**tone → `ngang`** (the unmarked tone) or outright deletion — `nang→ngang` 853, `huyen→ngang` 696,
+`sac→ngang` 616, `nang→<del>` 368. It is not *mistaking* one tone for another; it is *unable to write one*.
+
+**This is exactly the failure a single CER hides, and exactly what the three axes exist to expose.**
+Compare PaddleOCR with the zero-shot pbcquoc checkpoint. Their **CERs are nearly the same** (22.53 vs
+21.33) — a CER-only leaderboard would call them equivalent. They are not remotely equivalent:
+
+| | base | modifier | tone | what it actually is |
+|---|---|---|---|---|
+| PaddleOCR (latin) | **88.59** | 66.03 | 68.89 | **reads the letters better, cannot write the marks** |
+| pbcquoc zero-shot | 86.41 | **88.49** | **85.88** | reads the marks, weaker on letters (domain gap) |
+
+Two systems, one CER, opposite failure modes. **A single number would have reported them as the same
+result.** That is the entire argument for the three-axis metric, made on systems that are not mine.
+
+> **Scope, stated plainly:** ours is the only system here trained on VinText, and the only one measured
+> with seeds and CIs. The gap between rows is **not** evidence that our method is better than EasyOCR's or
+> PaddleOCR's — it is evidence that **in-domain training data matters**, and that **an off-the-shelf
+> multilingual model may not even encode the language you are pointing it at.** The second of those is the
+> more useful warning.
