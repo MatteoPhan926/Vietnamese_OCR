@@ -194,12 +194,36 @@ STAGE 5 — PUBLIC LAYER ☑ BUILT (2026-07-13, this session; obeys docs/PAGE_SP
       C: and died with ENOSPC (which LOOKS like a broken system and would tempt a fake row).
       scripts/context_baselines.py now redirects HF_HOME/MODELSCOPE_CACHE/PADDLE_PDX_CACHE_HOME/TMP/
       TEMP/XDG_CACHE_HOME -> E:/ocr_cache BEFORE importing them.
+  ☑ §14.4(A) ADJUDICATED BY BRAIN (2026-07-13, 7th checkpoint) — the **>=80% BRANCH FIRED**. The realism
+    machinery is NOT load-bearing; what the engine supplies at a scarce budget is SEQUENCE-LEVEL TRAINING
+    SIGNAL, not domain realism. DATA_ENGINE §1's thesis ("the degradation model is THE lever") is REFUTED
+    by this project's own measurements -> recorded as DATA_ENGINE §13 (brain-authored). Headline
+    (+2.783) unmoved; no §8.1 attempt spent.
+    NARRATIVE REWRITTEN PER PAGE_SPEC §8 (not a slot-fill — the story changed):
+      • abstract (README + site) -> leads with the null, then the label-efficiency win, then "the
+        machinery is not what paid; switching the entire degradation stack off recovers 94% of the gain."
+      • TL;DR bullet 3 -> "the degradation stack contributed ~6% of the gain, not separable from zero.
+        The engine's own thesis is refuted by the engine's own measurements."
+      • Act 7 concluded -> "Then I switched the whole thing off." + the practical advice: DON'T build
+        this; at a low label budget you need text of the right length distribution, rendered legibly.
+      • PaddleOCR PROMOTED from a table row to **fig3 (why CER is not enough)** — the strongest existing
+        argument for the three-axis scorer. "Context, not a contest" kept verbatim.
+  ☑ IMAGE_AUG QUESTION — VERIFIED IN CODE BEFORE THE CLAIM WAS WRITTEN (the brain asked; do NOT assume):
+    config `aug.image_aug: true` · vietocr trainer.py:80 passes transform=augmentor to the TRAIN gen only ·
+    dataloader.py:121 applies it to EVERY training image with NO real-vs-synth branch · train_budget.py
+    pools real+synth into ONE annotation/LMDB. => vietocr's DEFAULT aug WAS applied to the clean-render
+    crops every epoch (InvertImg .2 / ColorJitter .2 / MotionBlur 3px .2 / RandomBrightnessContrast ±0.2 .2
+    / Perspective 0.01-0.05 .5 / RandomDottedLine .5; NO rotation/shear/gaussian/noise/JPEG/downsample).
+    CONSEQUENCE, now stated on the page + RESULTS: the floor is IDENTICAL IN EVERY ARM so it is NOT a
+    confound for shipped-vs-clean (the 93.7% attribution stands), but the licensed claim is "the ENGINE's
+    stack is not load-bearing ABOVE A FLOOR of generic mild augmentation" — NOT "pixel realism is
+    irrelevant from zero." A true zero-aug arm was NEVER RUN and is NOT claimed.
   [PENDING] SLOTS ON THE PAGE (marked as such, nothing fabricated):
     1. GOLD noise floor — the manual double-pass (tools/gold_tool.py, 2,437 rows, still EMPTY). The
        page states plainly that no noise-floor number exists and none is claimed.
-    2. CLEAN-RENDER control — numbers ARE on the page; the READING is marked awaiting adjudication.
-    3. Tesseract-vie row — blocked on an elevated install (reported as a failure, not faked).
-    4. e2e / detection number — deferred by design (un-fine-tuned detector = wrong-side bound).
+    2. Tesseract-vie row — blocked on an elevated install (reported as a failure, not faked).
+    3. e2e / detection number — deferred by design (un-fine-tuned detector = wrong-side bound).
+    (The clean-render slot is CLOSED — adjudicated, above.)
 IN-FLIGHT     : nothing on GPU.
 PARALLEL/LATER: (a) GOLD manual double-pass (sheet ready, empty) — blocks the FINAL curve numbers +
                 the model-vs-label artifact (§4). (b) DBNet fine-tune -> e2e (§5) — deferred.
