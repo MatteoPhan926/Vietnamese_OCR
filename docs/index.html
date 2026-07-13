@@ -473,13 +473,56 @@
     first six crops it is handed.
   </div>
 
-  <div class="note">
-    <span class="h">[PENDING, optional] context baselines</span>
-    Right now a reader cannot tell whether 9.4% CER is good. Running Tesseract-vie / EasyOCR / PaddleOCR on
-    the same test-500, rec-only, scored by the same three-axis scorer would fix that — and would double as
-    a demonstration of the scorer on systems that are not mine. It would be <strong>context, not a
-    contest</strong> (different training data, different design scopes).
-  </div>
+  <h2>Context, not a contest</h2>
+  <p>A reader cannot tell whether 9.4% CER is good without a yardstick, so I ran off-the-shelf Vietnamese
+    OCR on the <strong>same test-500, at the same rec-only scope, scored by the same three-axis
+    scorer</strong> — recognition-only mode enforced (feeding a word crop to a full detect-then-read
+    pipeline and scoring its empty return would be a strawman), with a 20-crop smoke test first to prove I
+    was calling each system correctly (0/20 empty returns). The protocol for this was pre-registered and
+    committed <em>before</em> the first run.</p>
+  <p><strong>These systems were not trained on VinText; mine was.</strong> This table measures the
+    <em>task's difficulty</em> and demonstrates the scorer on systems that are not mine. It is not a
+    superiority claim.</p>
+
+  <div class="tw"><table>
+    <tr><th>system</th><th>CER ↓</th><th>exact ↑</th><th>base ↑</th><th>modifier ↑</th><th>tone ↑</th></tr>
+    <tr><td>EasyOCR 1.7.2 (<code>vi</code>, latin_g2)</td><td class="n">38.46</td><td class="n">37.95</td>
+      <td class="n">68.11</td><td class="n">74.02</td><td class="n">72.75</td></tr>
+    <tr><td>PaddleOCR 3.7.0 (<code>latin_PP-OCRv5_mobile_rec</code>)</td><td class="n">22.53</td>
+      <td class="n">43.55</td><td class="n"><strong>88.59</strong></td>
+      <td class="n"><strong>66.03</strong></td><td class="n"><strong>68.89</strong></td></tr>
+    <tr><td>Tesseract-vie</td><td colspan="5"><span class="tag pending">[INSTALL FAILED]</span> binary
+      needs elevation — reported as a failure, no row faked</td></tr>
+    <tr><td>pbcquoc <code>vgg_transformer</code>, <strong>zero-shot</strong></td><td class="n">21.33</td>
+      <td class="n">60.83</td><td class="n">86.41</td><td class="n">88.49</td><td class="n">85.88</td></tr>
+    <tr class="hl"><td><strong>ours</strong> @ r=10% (2,574 real + 10k synth)</td>
+      <td class="n">13.73</td><td class="n">—</td><td class="n">—</td><td class="n">—</td>
+      <td class="n">91.50</td></tr>
+    <tr class="hl"><td><strong>ours</strong> @ full real data (25,742 crops)</td>
+      <td class="n"><strong>9.38</strong></td><td class="n">81.87</td><td class="n">94.11</td>
+      <td class="n">96.25</td><td class="n">94.41</td></tr>
+  </table></div>
+  <p style="font-size:14px;color:var(--ink3)">k=1 — a single deterministic inference pass; these are not
+    trained models, so there are no seeds and no CIs.</p>
+
+  <p><strong>And the scorer immediately found something a CER ranking would have buried.</strong> PaddleOCR
+    ships no Vietnamese recognizer; the nearest is its multilingual <em>latin</em> model. So I inspected its
+    output charset rather than reading its errors as accuracy: <strong>all 90 of the 90 Vietnamese
+    precomposed characters (U+1EA0–U+1EF9: ạ ả ấ ầ ệ ự …) are absent from it.</strong> It <strong>cannot
+    emit a toned vowel.</strong> Its tone axis is <em>structurally capped</em>, not inaccurate — and the
+    measured confusions confirm it exactly (<code>nang→ngang</code> 853, <code>huyen→ngang</code> 696,
+    <code>sac→ngang</code> 616). It is not mistaking one tone for another; it is unable to write one.</p>
+
+  <p class="kicker">Now compare it with the zero-shot pbcquoc checkpoint. <b>Their CERs are nearly identical
+    — 22.53 vs 21.33 — and a CER-only leaderboard would call them equivalent.</b> They are opposites:
+    PaddleOCR reads the <em>letters</em> better (base 88.59 vs 86.41) and cannot write the <em>marks</em>
+    (modifier 66.03 vs 88.49). Two systems, one CER, inverted failure modes. That is the entire argument
+    for the three axes, made on systems that are not mine.</p>
+
+  <p>The honest reading of the gap between the rows is <strong>not</strong> "my method beats EasyOCR and
+    PaddleOCR." It is that <strong>in-domain training data matters</strong>, and that <strong>an
+    off-the-shelf multilingual model may not even encode the language you are pointing it at</strong> —
+    which is the more useful warning of the two.</p>
 
   <h2>What I'd do differently</h2>
   <ul class="tight">

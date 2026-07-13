@@ -316,10 +316,43 @@ The noise is real, though, and you can see it without the gold pass: the first t
 labelled `VỰ` demonstrably encloses **`VỰC`**. A model that reads it *correctly* is charged an error.
 [`demo.py`](demo.py) rediscovers exactly this case on the first six crops it is handed.
 
-**Context baselines** — `[PENDING, optional]`. Right now a reader cannot tell whether 9.4% CER is good.
-Running Tesseract-vie / EasyOCR / PaddleOCR on the same test-500, rec-only, scored by the same three-axis
-scorer would fix that — and would double as a demonstration of the scorer on systems that are not mine.
-It would be **context, not a contest** (different training data, different design scopes).
+### Context, not a contest
+
+A reader cannot tell whether 9.4% CER is good without a yardstick, so I ran off-the-shelf Vietnamese OCR
+on the **same test-500, at the same rec-only scope, scored by the same three-axis scorer** — recognition-only
+mode enforced (feeding a word crop to a full detect-then-read pipeline and scoring its empty return would
+be a strawman), with a 20-crop smoke test first to prove I was calling each system correctly (0/20 empty
+returns). The protocol for this was [pre-registered and committed before the first run](docs/EVAL_PROTOCOL.md).
+
+**These systems were not trained on VinText; mine was.** This table measures the *task's difficulty* and
+demonstrates the scorer on systems that are not mine. It is not a superiority claim.
+
+| system | CER ↓ | exact ↑ | base ↑ | modifier ↑ | tone ↑ |
+|---|---|---|---|---|---|
+| EasyOCR 1.7.2 (`vi`, latin_g2) | 38.46 | 37.95 | 68.11 | 74.02 | 72.75 |
+| PaddleOCR 3.7.0 (`latin_PP-OCRv5_mobile_rec`) | 22.53 | 43.55 | **88.59** | **66.03** | **68.89** |
+| Tesseract-vie | **[install failed](RESULTS.md)** — binary needs elevation; reported, not faked | | | | |
+| pbcquoc `vgg_transformer`, **zero-shot** | 21.33 | 60.83 | 86.41 | 88.49 | 85.88 |
+| **ours** @ r=10% (2,574 real + 10k synth) | 13.73 | — | — | — | 91.50 |
+| **ours** @ full real data (25,742 crops) | **9.38** | 81.87 | 94.11 | 96.25 | 94.41 |
+
+*(k=1 — single deterministic inference pass; these are not trained models, so there are no seeds and no CIs.)*
+
+**And the scorer immediately found something a CER ranking would have buried.** PaddleOCR ships no
+Vietnamese recognizer; the nearest is its multilingual *latin* model. So I inspected its output charset
+rather than reading its errors as accuracy: **all 90 of the 90 Vietnamese precomposed characters
+(U+1EA0–U+1EF9: ạ ả ấ ầ ệ ự …) are absent from it.** It **cannot emit a toned vowel**. Its tone axis is
+*structurally capped*, not inaccurate — and the measured confusions confirm it exactly (`nang→ngang` 853,
+`huyen→ngang` 696, `sac→ngang` 616). It is not mistaking one tone for another; it is unable to write one.
+
+Now compare it with the zero-shot pbcquoc checkpoint. **Their CERs are nearly identical — 22.53 vs 21.33 —
+and a CER-only leaderboard would call them equivalent.** They are opposites: PaddleOCR reads the *letters*
+better (base 88.59 vs 86.41) and cannot write the *marks* (modifier 66.03 vs 88.49). Two systems, one CER,
+inverted failure modes. That is the entire argument for the three axes, made on systems that are not mine.
+
+The honest reading of the gap between the rows is **not** "my method beats EasyOCR and PaddleOCR." It is
+that **in-domain training data matters**, and that **an off-the-shelf multilingual model may not even
+encode the language you are pointing it at** — which is the more useful warning of the two.
 
 ---
 

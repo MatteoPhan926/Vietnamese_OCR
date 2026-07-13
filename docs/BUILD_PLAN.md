@@ -169,12 +169,36 @@ STAGE 5 — PUBLIC LAYER ☑ BUILT (2026-07-13, this session; obeys docs/PAGE_SP
   ☑ SITE: docs/index.html (static, no framework, CVPR-ish, never claims to be a paper) + docs/.nojekyll.
     GitHub Pages source = branch master, /docs. REPO_URL in the page's one <script> constant =
     https://github.com/MatteoPhan926/ocr_engine (the user's account is MatteoPhan926).
+  ☑ §16 CONTEXT BASELINES — DONE (user greenlit; §16 PRE-REGISTERED + COMMITTED FIRST, commit 1f8b6bf,
+    BEFORE any baseline ran). scripts/context_baselines.py · runs/context_baselines.{json,log} ·
+    rec-only, test-500, frozen denominator asserted, OUR scorer, k=1 (no training seeds -> no CI).
+    §16 SMOKE TEST PASS: 0/20 empty returns on easy crops from both systems BEFORE the full run
+    (so no system is strawmanned by being fed a word crop through an e2e pipeline).
+      EasyOCR 1.7.2 (vi/latin_g2)          CER 38.46  exact 37.95  base 68.11  mod 74.02  tone 72.75
+      PaddleOCR 3.7.0 (latin_PP-OCRv5)     CER 22.53  exact 43.55  base 88.59  mod 66.03  tone 68.89
+      pbcquoc ZERO-SHOT (free row)         CER 21.33  exact 60.83  base 86.41  mod 88.49  tone 85.88
+      ours r=10% (2,574 real + 10k synth)  CER 13.73                                      tone 91.50
+      ours FULL real (25,742)              CER  9.38  exact 81.87  base 94.11  mod 96.25  tone 94.41
+    ⛔ Tesseract-vie: INSTALL FAILED (binary needs elevation; winget exit 2 + silent NSIS exit 2).
+      REPORTED AS A FAILURE, NO ROW FAKED (§16). Closes with an elevated `winget install
+      UB-Mannheim.TesseractOCR`.
+    ★ THE FINDING (and it is the SCORER's, not the CER's): PaddleOCR ships NO Vietnamese recognizer;
+      the nearest is the multilingual LATIN model, whose output charset is MISSING ALL 90/90 of the
+      Vietnamese precomposed block (U+1EA0-U+1EF9). It CANNOT EMIT a toned vowel -> its tone axis is
+      STRUCTURALLY CAPPED, not inaccurate. Measured confusions confirm exactly that (nang->ngang 853,
+      huyen->ngang 696, sac->ngang 616). => PaddleOCR (CER 22.53) and zero-shot pbcquoc (CER 21.33)
+      have nearly the SAME CER and OPPOSITE failure modes (base 88.59/mod 66.03 vs base 86.41/mod
+      88.49). A CER-only table calls them equivalent. This is the three-axis argument demonstrated on
+      systems that are NOT ours. Framing on the page is "context, not a contest", verbatim per §16.
+    HOST NOTE: C: is FULL (0 GB). easyocr/paddle/HF/modelscope all default their weight+temp caches to
+      C: and died with ENOSPC (which LOOKS like a broken system and would tempt a fake row).
+      scripts/context_baselines.py now redirects HF_HOME/MODELSCOPE_CACHE/PADDLE_PDX_CACHE_HOME/TMP/
+      TEMP/XDG_CACHE_HOME -> E:/ocr_cache BEFORE importing them.
   [PENDING] SLOTS ON THE PAGE (marked as such, nothing fabricated):
     1. GOLD noise floor — the manual double-pass (tools/gold_tool.py, 2,437 rows, still EMPTY). The
        page states plainly that no noise-floor number exists and none is claimed.
     2. CLEAN-RENDER control — numbers ARE on the page; the READING is marked awaiting adjudication.
-    3. CONTEXT baselines (Tesseract-vie / EasyOCR / PaddleOCR, same test-500, rec-only, our scorer) —
-       optional, ~2h inference, ASKED THE USER, not started.
+    3. Tesseract-vie row — blocked on an elevated install (reported as a failure, not faked).
     4. e2e / detection number — deferred by design (un-fine-tuned detector = wrong-side bound).
 IN-FLIGHT     : nothing on GPU.
 PARALLEL/LATER: (a) GOLD manual double-pass (sheet ready, empty) — blocks the FINAL curve numbers +
