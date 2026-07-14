@@ -1,914 +1,1471 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
 <meta charset="utf-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>Is synthetic data worth generating? — A pre-registered study on Vietnamese scene-text OCR</title>
+
 <meta name="description" content="A pre-registered, controlled study: synthetic data buys nothing at full real data, ~2,200 labels' worth when labels are scarce, and the mechanism is not the one the engine was built for.">
+
 <style>
-/* Minimal stylesheet for the project page. No JS, no webfonts, no external requests. */
 
-:root {
-  --fg: #1a1c1f;
-  --dim: #6b7280;
-  --bg: #ffffff;
-  --line: #e4e6ea;
-  --accent: #0b5fff;
-  --code-bg: #f6f7f9;
-  --best: #0a7a3f;
-  --maxw: 46rem;
+  :root{
 
-  /* Extended semantic colours */
-  --surface: #f7f7f5;
-  --ink2: #55555f;
-  --ink3: #84848e;
-  --green: #0a7a3f;
-  --red: #b23b39;
-  --orange: #c94f20;
-  --card: #ffffff;
-}
+    --bg:#ffffff; --surface:#f7f7f5; --ink:#16161a; --ink2:#55555f; --ink3:#84848e;
 
-* { box-sizing: border-box; }
+    --rule:#e4e3de; --blue:#2a78d6; --orange:#c94f20; --green:#0f7a4d; --red:#b23b39;
 
-body {
-  margin: 0;
-  padding: 0 1.25rem 4rem;
-  background: var(--bg);
-  color: var(--fg);
-  font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  -webkit-text-size-adjust: 100%;
-}
+    --accent:#2a78d6; --card:#ffffff;
 
-header, main, footer { max-width: var(--maxw); margin: 0 auto; }
+    --mono:"SF Mono",'JetBrains Mono',Menlo,Consolas,monospace;
 
-header {
-  padding: 3.5rem 0 2rem;
-  border-bottom: 1px solid var(--line);
-  margin-bottom: 2.5rem;
-}
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
 
-h1 {
-  font-size: 1.9rem;
-  line-height: 1.25;
-  margin: 0 0 0.9rem;
-  letter-spacing: -0.015em;
-}
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
 
-h2 {
-  font-size: 1.25rem;
-  margin: 2.75rem 0 0.75rem;
-  letter-spacing: -0.01em;
-}
+  }
 
-h3 {
-  font-size: 1.02rem;
-  margin: 1.75rem 0 0.4rem;
-  color: var(--fg);
-}
+  @media (prefers-color-scheme:dark){
 
-p { margin: 0 0 1rem; }
+    :root{
 
-.sub { color: var(--dim); margin-bottom: 1.5rem; }
+      --bg:#131315; --surface:#1c1c1f; --ink:#ececeb; --ink2:#a9a9b0; --ink3:#7c7c85;
 
-.note { color: var(--dim); font-size: 0.92rem; }
+      --rule:#2e2e33; --blue:#5c9ae8; --orange:#e5794f; --green:#4cb98a; --red:#e07b79;
 
-.dim { color: var(--dim); font-weight: 400; }
+      --accent:#5c9ae8; --card:#f7f7f5;
 
-a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
+    }
 
-.links { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; }
+  }
 
-.btn {
-  display: inline-block;
-  padding: 0.35rem 0.85rem;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  font-size: 0.9rem;
-  color: var(--fg);
-}
-.btn:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+  *{box-sizing:border-box}
 
-.tablewrap { overflow-x: auto; margin: 1rem 0 1.25rem; }
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
 
-table {
-  border-collapse: collapse;
-  width: 100%;
-  font-size: 0.92rem;
-  min-width: 32rem;
-}
+       font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
 
-th, td {
-  text-align: left;
-  padding: 0.5rem 0.7rem;
-  border-bottom: 1px solid var(--line);
-  vertical-align: top;
-}
+  .wrap{max-width:820px;margin:0 auto;padding:0 24px}
 
-thead th {
-  font-weight: 600;
-  border-bottom: 2px solid var(--line);
-  white-space: nowrap;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--dim);
-}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent}
 
-tbody tr:last-child td { border-bottom: none; }
+  a:hover{border-bottom-color:var(--accent)}
 
-td.best { color: var(--best); font-weight: 600; }
-td.n { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; white-space: nowrap; }
-tr.hl td { background: color-mix(in srgb, var(--accent) 7%, transparent); }
-tr.reverted td { color: var(--dim); }
+  code,.num{font-family:var(--mono);font-size:.9em;font-variant-numeric:tabular-nums}
 
-.tag {
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-}
-.tag.green { color: var(--green); }
-.tag.red { color: var(--red); }
-.tag.null { color: var(--dim); }
-.tag.pending { color: var(--orange); }
+  code{background:var(--surface);padding:.12em .38em;border-radius:3px}
 
-pre {
-  background: var(--code-bg);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 0.9rem 1rem;
-  overflow-x: auto;
-  font-size: 0.85rem;
-  line-height: 1.5;
-  margin: 1rem 0 1.25rem;
-}
+  pre{background:var(--surface);border:1px solid var(--rule);border-radius:6px;
 
-code {
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 0.9em;
-}
+      padding:16px 18px;overflow-x:auto;font-size:14px;line-height:1.55}
 
-p code, li code, span code {
-  background: var(--code-bg);
-  padding: 0.1em 0.35em;
-  border-radius: 3px;
-}
+  pre code{background:none;padding:0}
 
-pre code { background: none; padding: 0; }
+  h2{font-size:15px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink2);
 
-.placeholder {
-  border: 1px dashed var(--line);
-  border-radius: 8px;
-  padding: 2rem 1.25rem;
-  text-align: center;
-  color: var(--dim);
-  background: var(--code-bg);
-}
-.placeholder strong { display: block; color: var(--fg); margin-bottom: 0.35rem; font-weight: 600; }
-.placeholder span { font-size: 0.9rem; }
+     font-weight:600;margin:64px 0 6px;padding-bottom:10px;border-bottom:1px solid var(--rule)}
 
-figure { margin: 1.5rem 0; }
-figure img { width: 100%; display: block; border: 1px solid var(--line); border-radius: 6px; padding: 6px; background: var(--bg); }
+  h3{font-size:22px;font-weight:650;margin:38px 0 2px;letter-spacing:-.01em}
 
-figcaption {
-  color: var(--dim);
-  font-size: 0.88rem;
-  line-height: 1.55;
-  margin-top: 0.6rem;
-}
-figcaption b { color: var(--fg); font-weight: 600; }
+  h3 .act{font-family:var(--mono);font-size:13px;color:var(--ink3);font-weight:400;
 
-/* ---------- custom components ---------- */
+          display:block;letter-spacing:.05em;margin-bottom:4px;text-transform:uppercase}
 
-/* tldr / callout box */
-.tldr {
-  background: var(--code-bg);
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--accent);
-  border-radius: 6px;
-  padding: 1.4rem 1.6rem;
-  margin: 2rem 0;
-}
-.tldr h4 {
-  margin: 0 0 0.75rem;
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--dim);
-  font-weight: 500;
-}
-.tldr ol { margin: 0; padding-left: 1.4rem; }
-.tldr li { margin: 0.6rem 0; }
+  p{margin:14px 0}
 
-.scope {
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 0.78rem;
-  color: var(--dim);
-  line-height: 1.6;
-  margin-top: 1rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--line);
-}
+  em{font-style:italic}
 
-/* kicker / pull quote */
-.kicker {
-  font-size: 1.12rem;
-  line-height: 1.6;
-  color: var(--fg);
-  border-left: 3px solid var(--line);
-  padding-left: 1rem;
-  margin: 1.5rem 0;
-}
+  strong{font-weight:650}
 
-/* note with orange border — keep for visual distinction */
-.note-box {
-  border-left: 3px solid var(--orange);
-  background: var(--code-bg);
-  border-radius: 0 6px 6px 0;
-  padding: 1.1rem 1.4rem;
-  margin: 1.8rem 0;
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-.note-box .h {
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
-  color: var(--orange);
-  font-weight: 600;
-  display: block;
-  margin-bottom: 0.4rem;
-  text-transform: uppercase;
-}
 
-/* abstract */
-.abstract {
-  font-size: 1.05rem;
-  line-height: 1.7;
-  margin: 0 0 2.5rem;
-  color: var(--fg);
-}
 
-/* byline & notpaper */
-.byline {
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 0.78rem;
-  color: var(--dim);
-  letter-spacing: 0.04em;
-  margin-bottom: 1.5rem;
-}
-.notpaper {
-  display: inline-block;
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
-  color: var(--dim);
-  border: 1px dashed var(--line);
-  border-radius: 99px;
-  padding: 0.3rem 0.9rem;
-  margin-bottom: 1.8rem;
-}
+  /* ---------- hero ---------- */
 
-/* tight lists */
-ul.tight li { margin: 0.6rem 0; }
+  header{padding:78px 0 8px;text-align:center;border-bottom:1px solid var(--rule)}
 
-footer {
-  margin-top: 3.5rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--line);
-  color: var(--dim);
-  font-size: 0.88rem;
-}
-footer a { color: var(--dim); text-decoration: underline; }
-footer a:hover { color: var(--accent); }
+  h1{font-family:var(--serif);font-size:44px;line-height:1.16;font-weight:600;
 
-@media (max-width: 34rem) {
-  h1 { font-size: 1.55rem; }
-  body { padding: 0 1rem 3rem; }
-  header { padding-top: 2.5rem; }
-}
+     margin:0 0 14px;letter-spacing:-.015em}
+
+  .sub{font-size:20px;color:var(--ink2);margin:0 0 26px;font-family:var(--serif);font-style:italic}
+
+  .byline{font-family:var(--mono);font-size:12.5px;color:var(--ink3);letter-spacing:.04em;
+
+          margin-bottom:30px}
+
+  .notpaper{display:inline-block;font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;
+
+            color:var(--ink3);border:1px dashed var(--rule);border-radius:99px;
+
+            padding:5px 14px;margin-bottom:34px}
+
+  .links{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:40px}
+
+  .links a{font-family:var(--mono);font-size:13px;padding:8px 16px;border-radius:5px;
+
+           border:1px solid var(--rule);color:var(--ink);background:var(--surface)}
+
+  .links a:hover{border-color:var(--accent);color:var(--accent)}
+
+  .abstract{text-align:left;font-size:17.5px;line-height:1.68;margin:0 0 46px;color:var(--ink)}
+
+
+
+  /* ---------- figure ---------- */
+
+  figure{margin:34px 0}
+
+  figure img{width:100%;display:block;background:#fff;border:1px solid var(--rule);
+
+             border-radius:6px;padding:10px}
+
+  figcaption{font-size:14px;color:var(--ink2);margin-top:12px;line-height:1.55}
+
+  figcaption b{color:var(--ink);font-weight:600}
+
+
+
+  /* ---------- tldr ---------- */
+
+  .tldr{background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--accent);
+
+        border-radius:6px;padding:22px 26px;margin:40px 0}
+
+  .tldr h4{margin:0 0 12px;font-family:var(--mono);font-size:12px;letter-spacing:.1em;
+
+           text-transform:uppercase;color:var(--ink3);font-weight:500}
+
+  .tldr ol{margin:0;padding-left:22px}
+
+  .tldr li{margin:9px 0}
+
+  .scope{font-family:var(--mono);font-size:12.5px;color:var(--ink3);line-height:1.6;
+
+         margin-top:16px;padding-top:14px;border-top:1px solid var(--rule)}
+
+
+
+  /* ---------- tables ---------- */
+
+  .tw{overflow-x:auto;margin:26px 0}
+
+  table{border-collapse:collapse;width:100%;font-size:14.5px}
+
+  th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);
+
+     font-weight:600;border-bottom:1px solid var(--ink3);white-space:nowrap}
+
+  td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+  tr.hl td{background:color-mix(in srgb,var(--accent) 7%,transparent)}
+
+  .tag{font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.04em}
+
+  .green{color:var(--green)} .red{color:var(--red)} .null{color:var(--ink3)}
+
+  .pending{color:var(--orange)}
+
+
+
+  /* ---------- callouts ---------- */
+
+  .note{border-left:3px solid var(--orange);background:var(--surface);border-radius:0 6px 6px 0;
+
+        padding:18px 22px;margin:30px 0;font-size:15.5px;line-height:1.6}
+
+  .note .h{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--orange);
+
+           font-weight:600;display:block;margin-bottom:8px}
+
+  .kicker{font-size:19px;line-height:1.6;color:var(--ink);border-left:3px solid var(--rule);
+
+          padding-left:20px;margin:26px 0;font-family:var(--serif)}
+
+  ul.tight li{margin:10px 0}
+
+
+
+  footer{margin:80px 0 60px;padding-top:26px;border-top:1px solid var(--rule);
+
+         font-family:var(--mono);font-size:12.5px;color:var(--ink3);line-height:1.8}
+
+  @media (max-width:640px){
+
+    h1{font-size:31px} .sub{font-size:17px} body{font-size:16px}
+
+    header{padding-top:48px}
+
+  }
+
 </style>
+
 </head>
+
 <body>
 
+
+
 <header>
-  <h1>Is synthetic data worth generating?</h1>
-  <p class="sub">A pre-registered study on Vietnamese scene-text OCR.</p>
-  <p class="byline">MATTEOPHAN926 · 2026</p>
-  <div class="notpaper">not a paper · no new architecture · no SOTA number · the negatives are the product</div>
-  <p class="links">
-    <a class="btn" href="#">↗ Code &amp; data ledger</a>
-    <a class="btn" href="#">↗ The pre-registration</a>
-    <a class="btn" href="#">↗ The scorer (one file)</a>
-  </p>
+
+  <div class="wrap">
+
+    <h1>Is synthetic data worth generating?</h1>
+
+    <p class="sub">A pre-registered study on Vietnamese scene-text OCR.</p>
+
+    <div class="byline">MATTEOPHAN926 · 2026</div>
+
+    <div class="notpaper">not a paper · no new architecture · no SOTA number · the negatives are the product</div>
+
+    <div class="links">
+
+      <a class="repo" href="#">↗ Code &amp; data ledger</a>
+
+      <a class="repo" data-path="/tree/master/docs" href="#">↗ The pre-registration</a>
+
+      <a class="repo" data-path="/blob/master/vi_three_axis_scorer.py" href="#">↗ The scorer (one file)</a>
+
+    </div>
+
+  </div>
+
 </header>
 
-<main>
+
+
+<div class="wrap">
+
+
 
   <p class="abstract">
+
     I built a synthetic data engine for Vietnamese scene text — fonts, corpus, degradation, background
+
     compositing, the usual stack. <strong>At full real data (25,742 crops) it is worth nothing</strong>,
+
     including against an augmentation-matched baseline: the control arm almost nobody runs. <strong>At a
+
     2,574-crop label budget it is worth ≈2,200 real annotations</strong> (rec-only CER
-    <span class="dim">16.51 → 13.73</span>, k=5, non-overlapping 95% CIs), decaying to nil by 50% of the
+
+    <span class="num">16.51 → 13.73</span>, k=5, non-overlapping 95% CIs), decaying to nil by 50% of the
+
     labels. <strong>And the machinery is not what paid.</strong> The gain repairs premature decoder
-    termination on long strings — severe truncation falls <span class="dim">24.7% → 6.9%</span> — while
+
+    termination on long strings — severe truncation falls <span class="num">24.7% → 6.9%</span> — while
+
     the geometric stratum the engine was ordered around carries 2.8% of it, not significantly.
+
     <strong>Switching the entire degradation stack off recovers 94% of the gain.</strong> What the engine
+
     actually supplies is sequence-level training signal, not domain realism. If you are label-poor, you
+
     need text of the right length distribution rendered legibly — not this.
+
   </p>
 
+
+
   <figure>
+
     <img src="figures/fig1_label_efficiency.svg" alt="Left: CER versus real-label budget for the real-only and +synthetic arms, with 95% confidence intervals; the two arms converge at full data. Right: the CER gap by budget — +2.78 at 10%, +0.75 at 25%, and null at 50% and 100%.">
+
     <figcaption>
+
       <b>The money figure.</b> The synthetic-vs-real gap is monotone in the real-label budget and dies
+
       before full data. rec-only · VinText test-500 (10,068 instances / 37,254 chars) · NFC ·
+
       mean ± 95% CI over k training seeds. GREEN is the pre-registered rule: 95% CIs must separate on
+
       <em>both</em> CER and tone accuracy. r=25% separates on CER but not on tone, so it does not clear
+
       the bar.
+
     </figcaption>
+
   </figure>
 
+
+
   <div class="tldr">
+
     <h4>TL;DR</h4>
+
     <ol>
-      <li><strong>Full real data → synthetic buys 0.</strong> ΔCER <span class="dim">−0.038</span> pp,
+
+      <li><strong>Full real data → synthetic buys 0.</strong> ΔCER <span class="num">−0.038</span> pp,
+
         CIs overlap (k=3). Holds even against an augmentation-matched control arm
-        (<span class="dim">|Δ| &lt; 0.17</span> pp on every metric).</li>
+
+        (<span class="num">|Δ| &lt; 0.17</span> pp on every metric).</li>
+
       <li><strong>Scarce labels (10% of train) → synthetic ≈ 2,195 real crops</strong>
-        [95% range <span class="dim">+1,678 … +2,553</span>], decaying monotonically with the label
+
+        [95% range <span class="num">+1,678 … +2,553</span>], decaying monotonically with the label
+
         budget: nil by 50%.</li>
+
       <li><strong>The degradation stack contributed ~6% of the gain, not separable from zero.</strong>
+
         The engine's own thesis is refuted by the engine's own measurements.</li>
+
     </ol>
+
     <div class="scope">
+
       every number: scope = rec-only (recognition given GT boxes) · real VinText test-500 held-out ·
+
       10,068 instances / 37,254 chars (frozen denominator) · NFC · mean ± 95% CI over k training seeds
+
     </div>
+
   </div>
+
+
 
   <h2>What I measured it with</h2>
 
+
+
   <p>Vietnamese puts two orthogonal mark systems on one letter: a <strong>modifier</strong>
+
     (ă â ê ô ơ ư, and đ's stroke) and a <strong>tone</strong> (á à ả ã ạ). A single CER — or even a
+
     single "diacritic accuracy" — cannot tell you which one broke, and they break for different reasons.
+
     So the first thing I built was a <strong>three-axis scorer</strong>: base letter / modifier / tone,
+
     each with its own denominator, on Levenshtein-aligned positions after NFD decomposition.</p>
 
+
+
   <p class="kicker">On tone-stripped text (<code>tiếng Việt có dấu</code> → <code>tiêng Viêt co dâu</code>)
+
     it reports <b>CER 23.53% while the tone axis sits at 42.86%</b> and the base axis is a perfect 100%.
+
     Overall CER understates the tone damage by more than double. That is the entire reason the three axes
+
     exist — and it is a unit test, not a claim.</p>
 
+
+
   <p>Two Unicode facts the scorer is built around, both found by measuring rather than by reading the
+
     spec:</p>
+
   <ul class="tight">
+
     <li><strong><code>đ</code>/<code>Đ</code> have no NFD decomposition.</strong> Treat the stroke as a
+
       combining mark and you will never once observe it — the modifier axis then reports a silent, perfect
+
       score on every <code>đ</code> in your corpus.</li>
+
     <li><strong>NFD returns marks in canonical order, not modifier-then-tone.</strong> <code>ệ</code>
+
       decomposes to <code>e</code> + dot-below + circumflex — the <em>tone</em> comes first. Reading
+
       <code>nfd[1]</code> as "the modifier" mislabels <code>ệ</code>'s tone as a modifier: one axis
+
       inflated, the other deflated, and the total still looks plausible.</li>
+
   </ul>
 
+
+
   <p>The scorer is
-    <a href="#">a single dependency-free file</a> that works on anyone's Vietnamese OCR output. It is the
-    most reusable thing this project produced.</p>
+
+    <a class="repo" data-path="/blob/master/vi_three_axis_scorer.py" href="#">a single dependency-free
+
+    file</a> that works on anyone's Vietnamese OCR output. It is the most reusable thing this project
+
+    produced.</p>
+
+
 
   <h2>The story</h2>
 
-  <h3><span class="dim" style="display:block;font-family:ui-monospace;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.2rem;">Act 0</span>The setup</h3>
+
+
+  <h3><span class="act">Act 0</span>The setup</h3>
+
   <p>A document-pretrained VietOCR recognizer (<code>vgg_transformer</code>), 25,742 real VinText
+
     scene-text crops, and one question: can synthetic data close what's left? The architecture was locked
+
     before any code was written, precisely so that any gain could be attributed to the <em>data</em>
+
     rather than to a stronger model. The evaluation protocol — metrics, normalization, splits, gate
+
     thresholds — was frozen first too, and the git history shows the ordering.</p>
-  <p>Zero-shot, the checkpoint reads scene text at <span class="dim">21.33%</span> CER. Fine-tuned on the
-    full real train split it reaches <span class="dim">9.381 ± 0.368</span> CER (k=3), tone
-    <span class="dim">94.410 ± 0.281</span>. That fine-tune is the vehicle, not the result. Everything
+
+  <p>Zero-shot, the checkpoint reads scene text at <span class="num">21.33%</span> CER. Fine-tuned on the
+
+    full real train split it reaches <span class="num">9.381 ± 0.368</span> CER (k=3), tone
+
+    <span class="num">94.410 ± 0.281</span>. That fine-tune is the vehicle, not the result. Everything
+
     after this is measured against it.</p>
 
-  <h3><span class="dim" style="display:block;font-family:ui-monospace;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.2rem;">Act 1</span>My hypothesis died first</h3>
+
+
+  <h3><span class="act">Act 1</span>My hypothesis died first</h3>
+
   <p>I predicted diacritics would dominate the error, and built the three-axis scorer to prove it. It
+
     refuted me. Decomposing every character edit the baseline makes on the real test set:</p>
-  <div class="tablewrap"><table>
+
+  <div class="tw"><table>
+
     <tr><th>share of all character edits</th><th></th></tr>
+
     <tr><td>base-letter-only substitutions (case-insensitive)</td><td class="n"><strong>39.48%</strong></td></tr>
+
     <tr><td>diacritic-only substitutions (tone or modifier wrong, base right)</td><td class="n"><strong>16.12%</strong></td></tr>
+
   </table></div>
+
   <p><strong>Base errors outweigh diacritic errors ~2.5×.</strong> Three more pre-registered expectations
+
     died with it: the canonical <code>hỏi</code>↔<code>ngã</code> tone confusion is essentially
+
     <em>absent</em> (4 instances each way — tone failure is presence/absence, not confusion, which points
+
     at resolution and blur rather than mark similarity); the horn (<code>ơ ư</code>) is the <em>most</em>
+
     accurate modifier class, not the predicted failure case; and tone does not fall off a cliff at small
+
     sizes — <em>base</em> falls hardest.</p>
+
   <p>But the instrument survived its own verdict. Tone is still the most fragile axis <em>per position</em>
-    (<span class="dim">5.577%</span> error vs base's <span class="dim">4.881%</span>) exactly as predicted
+
+    (<span class="num">5.577%</span> error vs base's <span class="num">4.881%</span>) exactly as predicted
+
     — base positions simply outnumber tone-bearing ones 2.5:1 (32,267 vs 12,875), so base contributes more
+
     total error. Both facts are true, and <strong>only the decomposition shows both</strong>. A single CER
+
     shows neither.</p>
+
   <p>The error analysis, not my intuition, then set the engine's priorities: geometric distortion (tilt
-    ≥20°: <span class="dim">30.34%</span> CER), photometric (contrast &lt;0.20:
-    <span class="dim">27.55%</span>), resolution (height &lt;12px: <span class="dim">22.86%</span>). Font
+
+    ≥20°: <span class="num">30.34%</span> CER), photometric (contrast &lt;0.20:
+
+    <span class="num">27.55%</span>), resolution (height &lt;12px: <span class="num">22.86%</span>). Font
+
     coverage — the thing I assumed would matter most — is a correctness prerequisite, not where the error
+
     lives.</p>
 
-  <h3><span class="dim" style="display:block;font-family:ui-monospace;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.2rem;">Act 2</span>The gate said no</h3>
+
+
+  <h3><span class="act">Act 2</span>The gate said no</h3>
+
   <p>10,000 synthetic crops, matched to the real crops' image statistics (a distribution audit passed on
+
     all six stats before training), on top of the full real train set. Everything else fixed: same
+
     hyperparameters, same 12,000 iterations, k=3 seeds.</p>
-  <div class="tablewrap"><table>
+
+  <div class="tw"><table>
+
     <tr><th></th><th>baseline</th><th>+ 10k synthetic</th><th>Δ</th></tr>
+
     <tr><td>CER ↓</td><td class="n">9.381 ± 0.368</td><td class="n">9.521 ± 0.895</td>
+
         <td class="n"><strong>+0.140</strong> (worse)</td></tr>
+
     <tr><td>Axis 3 tone ↑</td><td class="n">94.410 ± 0.281</td><td class="n">94.374 ± 0.553</td>
+
         <td class="n">−0.036 (flat)</td></tr>
+
   </table></div>
+
   <p>The pre-registered Gate-A condition — non-overlapping 95% CIs on <em>both</em> CER and tone — was
+
     written before the baseline's seed variance had even been measured. Neither metric separated.
+
     <strong class="red">RED.</strong> And the protocol's consequence for a red gate is not "try harder":
+
     it is <em>stop, do not scale to 200k</em>.</p>
 
-  <h3><span class="dim" style="display:block;font-family:ui-monospace;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.2rem;">Act 3</span>First I suspected my code, not the world</h3>
+
+
+  <h3><span class="act">Act 3</span>First I suspected my code, not the world</h3>
+
   <p>Before touching the engine's design I ran the pre-declared bug-checks. One came back loud: I eyeballed
+
     50 random synthetic crops against their labels and <strong>~26% were degraded past legibility</strong>
+
     — labels correct, signal destroyed. I was training on noise. It also explained a specific signature:
+
     the synthetic arm's seed variance was 2.4× the baseline's, which is what unlearnable noise does.</p>
+
   <p>I fixed the degradation stack (a per-crop severity budget: mild-or-hard, never every axis maxed at
+
     once). Illegible crops fell from ~26% to ~6%, and the predicted signature vanished exactly as
-    predicted: <strong>CER 95% CI <span class="dim">±0.895 → ±0.237</span></strong>, tighter than the
+
+    predicted: <strong>CER 95% CI <span class="num">±0.895 → ±0.237</span></strong>, tighter than the
+
     baseline's own. Every axis flipped from negative to positive.</p>
-  <p>And it was still <strong class="red">RED</strong>: ΔCER <span class="dim">+0.038</span>, CIs
+
+  <p>And it was still <strong class="red">RED</strong>: ΔCER <span class="num">+0.038</span>, CIs
+
     overlapping. The hygiene fix worked; it just didn't move the result. Which is the useful outcome — it
+
     means the red was never a bug.</p>
 
-  <h3><span class="dim" style="display:block;font-family:ui-monospace;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.2rem;">Act 4</span>Then I suspected my comparator</h3>
+
+
+  <h3><span class="act">Act 4</span>Then I suspected my comparator</h3>
+
   <p>Here is the arm almost nobody builds. My baseline already ran vietocr's default augmentation, so I
+
     measured what that actually applies (from the installed package, not from the docs): mild perspective,
+
     motion blur, colour jitter, a dotted line. <strong>No rotation, no shear, no Gaussian blur, no noise,
+
     no JPEG, no resolution loss.</strong> The baseline was under-augmented <em>on exactly the strata I had
+
     measured as the failure drivers</em> — so a "+X% from synthetic" claim measured against it would have
+
     been a strawman.</p>
+
   <p>So I built three arms, k=3 seeds each, with <strong>B and C sharing the identical augmentor</strong>
+
     so that <code>C − B</code> isolates the synthetic:</p>
-  <div class="tablewrap"><table>
+
+  <div class="tw"><table>
+
     <tr><th></th><th>A — baseline</th><th>B — strata-aug, no synth</th><th>C — strata-aug + synth</th><th>C − B</th></tr>
+
     <tr><td>CER ↓</td><td class="n">9.381 ± 0.368</td><td class="n">9.637 ± 0.074</td>
+
         <td class="n">9.620 ± 0.191</td><td class="n"><strong>−0.017</strong></td></tr>
+
     <tr><td>Axis 3 tone ↑</td><td class="n">94.410 ± 0.281</td><td class="n">94.542 ± 0.142</td>
+
         <td class="n">94.493 ± 0.117</td><td class="n"><strong>−0.049</strong></td></tr>
+
   </table></div>
+
   <p class="kicker">At matched augmentation the synthetic contributed <b>nothing</b>. Every metric moves by
+
     |Δ| &lt; 0.17 pp with every CI overlapping. Aggressive augmentation of <em>real</em> crops captures
+
     everything this synthetic engine provides. A real crop degraded hard beats a rendered crop degraded
+
     hard.</p>
+
   <p>A second finding hides in that table, and it cuts against the "just augment harder" advice too.
+
     <strong>B is not uniformly better than A</strong>: strata augmentation improves all three per-position
-    axes (tone <span class="dim">+0.132</span>) while <em>worsening</em> CER
-    (<span class="dim">+0.256</span>) and WER (<span class="dim">+0.335</span>). Decomposing the edits
+
+    axes (tone <span class="num">+0.132</span>) while <em>worsening</em> CER
+
+    (<span class="num">+0.256</span>) and WER (<span class="num">+0.335</span>). Decomposing the edits
+
     shows the regression is <strong>92% insertions</strong>. Heavy augmentation makes the recognizer less
+
     willing to drop a character and more willing to hallucinate one: it buys per-character robustness and
+
     pays in hallucinated characters.</p>
+
   <p>That is the full-data answer, and it is a null: <strong>for a document-pretrained recognizer with
+
     25.7k real crops, generating the synthetic data was not worth it.</strong></p>
 
-  <h3><span class="dim" style="display:block;font-family:ui-monospace;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.2rem;">Act 5</span>The pivot was pre-registered, not invented</h3>
+
+
+  <h3><span class="act">Act 5</span>The pivot was pre-registered, not invented</h3>
+
   <p>The real-label-budget axis was reserved in the protocol <em>before</em> Gate A ran — it is the written
+
     branch for exactly this outcome, not a post-hoc rescue. The question changes from "does synthetic add
+
     on top of all my real data?" (answered: no) to <strong>"how much real annotation can synthetic
+
     replace?"</strong></p>
-  <div class="tablewrap"><table>
+
+  <div class="tw"><table>
+
     <tr><th>r</th><th>n real</th><th>real-only CER</th><th>+ synth CER</th><th>ΔCER</th><th>Δtone</th><th>pre-registered rule</th></tr>
+
     <tr class="hl"><td class="n"><strong>10%</strong></td><td class="n">2,574</td>
+
       <td class="n">16.509 ± 0.933</td><td class="n"><strong>13.726 ± 0.096</strong></td>
+
       <td class="n"><strong>+2.783</strong></td><td class="n"><strong>+2.033</strong></td>
+
       <td><span class="tag green">GREEN</span> (k=5)</td></tr>
+
     <tr><td class="n">25%</td><td class="n">6,436</td><td class="n">12.373 ± 0.337</td>
+
       <td class="n">11.621 ± 0.374</td><td class="n">+0.752</td><td class="n">+0.515</td>
+
       <td><span class="tag red">red</span> — tone overlaps (k=3)</td></tr>
+
     <tr><td class="n">50%</td><td class="n">12,871</td><td class="n">10.430 ± 0.200</td>
+
       <td class="n">10.478 ± 0.807</td><td class="n">−0.047</td><td class="n">−0.013</td>
+
       <td><span class="tag null">null</span> (k=3)</td></tr>
+
     <tr><td class="n">100%</td><td class="n">25,742</td><td class="n">9.381 ± 0.368</td>
+
       <td class="n">9.419 ± 0.237</td><td class="n">−0.038</td><td class="n">+0.158</td>
+
       <td><span class="tag null">null</span> (k=3)</td></tr>
+
   </table></div>
+
   <p><strong>The gap is monotone in the budget.</strong> Synthetic data substitutes for real labels, and
+
     only when real labels are scarce.</p>
 
-  <h3><span class="dim" style="display:block;font-family:ui-monospace;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.2rem;">Act 6</span>Then I attacked my own green, twice</h3>
+
+
+  <h3><span class="act">Act 6</span>Then I attacked my own green, twice</h3>
+
   <p><strong>First attack: the corpus was cheating.</strong> My generator drew 65% of its text from the
+
     VinText train transcripts. But <em>transcripts are labels</em> — a practitioner at a 10% label budget
+
     does not have the other 90% of them. The eval firewall was intact (no test text anywhere), but the arm
+
     was using label-derived text beyond its stated budget. I regenerated with a <strong>strict bank</strong>
+
     (the r-subset's own transcripts only). Beyond-budget text among the synthetic labels fell from
-    <span class="dim">37.0%</span> to <span class="dim">11.0%</span>, and I verified the residual is not
+
+    <span class="num">37.0%</span> to <span class="num">11.0%</span>, and I verified the residual is not
+
     leakage — every remaining label is explained by the r-subset's own bank, free wiki_vi tokens, or
+
     generated 1–2-character strings.</p>
+
   <p>The result <strong>split</strong>. At r=10% the green survived at 84% of its original size
-    (like-for-like at k=3: <span class="dim">+3.357 → +2.810</span>). At r=25% it <strong
-    class="red">died</strong>: CER still separates (<span class="dim">+0.752</span>) but tone does not
-    (<span class="dim">+0.515</span>, CIs overlap), and the pre-registered rule requires both. The
+
+    (like-for-like at k=3: <span class="num">+3.357 → +2.810</span>). At r=25% it <strong
+
+    class="red">died</strong>: CER still separates (<span class="num">+0.752</span>) but tone does not
+
+    (<span class="num">+0.515</span>, CIs overlap), and the pre-registered rule requires both. The
+
     two-metric green dies somewhere in (10%, 25%]. That negative is reported here at the same weight as
+
     the win, and the ledger's numbers were <em>corrected in place</em> rather than quietly replaced —
+
     including a retraction of my own first over-reading of them.</p>
+
   <p><strong>Second attack: more seeds.</strong> The protocol pre-committed that k=5 numbers
+
     <strong>replace</strong> k=3 numbers <em>regardless of direction</em> — the only condition under which
+
     adding seeds to a positive result is honest rather than seed-shopping. It could have killed the green.
-    It didn't: the means barely moved (real-only <span class="dim">−0.03</span>, +synth
-    <span class="dim">−0.00</span>) and the anchor's spread collapsed from
-    <span class="dim">±2.350 → ±0.933</span> — the k=3 anchor was under-sampled, not biased. The nearest CI
-    edges (<span class="dim">15.58</span> vs <span class="dim">13.82</span>) sit
+
+    It didn't: the means barely moved (real-only <span class="num">−0.03</span>, +synth
+
+    <span class="num">−0.00</span>) and the anchor's spread collapsed from
+
+    <span class="num">±2.350 → ±0.933</span> — the k=3 anchor was under-sampled, not biased. The nearest CI
+
+    edges (<span class="num">15.58</span> vs <span class="num">13.82</span>) sit
+
     <strong>1.75 pp apart</strong>. The separation is not marginal.</p>
+
   <p class="kicker"><b>The headline, in full.</b> At a real-label budget of <b>2,574 crops</b> (10% of
+
     VinText train), adding 10k crops from the synthetic engine cuts <b>rec-only CER on real VinText
+
     held-out from 16.509 ± 0.933 to 13.726 ± 0.096</b> (k=5 seeds, non-overlapping 95% CIs) and tone
+
     accuracy from 89.463 to 91.497 (+2.033 pp) — <b>worth ≈ 2,195 additional real annotations</b>
+
     (95% range [+1,678 … +2,553], propagating both arms' CIs). The effect decays monotonically with the
+
     real budget and <b>is nil at full real data.</b></p>
 
-  <h3><span class="dim" style="display:block;font-family:ui-monospace;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.2rem;">Act 7</span>And the mechanism isn't what I built</h3>
-  <p>A curve without a mechanism is half a result, so I decomposed the <span class="dim">+2.783</span> pp.
+
+
+  <h3><span class="act">Act 7</span>And the mechanism isn't what I built</h3>
+
+  <p>A curve without a mechanism is half a result, so I decomposed the <span class="num">+2.783</span> pp.
+
     The fork was pre-stated so the answer could not be shopped: if the gain concentrates on tone and on the
+
     small / low-contrast / tilted crops, the engine hit the failure strata it was designed around. If it is
+
     broad and uniform, the synthetic is acting as a generic prior at a scarce budget — a real gain, but a
+
     <em>different</em> mechanism, and the write-up has to say so.</p>
+
   <p>It was the second one.</p>
-  <div class="tablewrap"><table>
+
+  <div class="tw"><table>
+
     <tr><th>stratum</th><th>ΔCER</th><th>share of the gain</th></tr>
+
     <tr><td><strong>tilt ≥20°</strong> — the #1 measured failure driver, the reason the geometric stack exists</td>
-      <td class="n"><strong>+1.60 ± 1.94</strong><br><span class="dim">does not clear noise</span></td>
+
+      <td class="n"><strong>+1.60 ± 1.94</strong><br><span class="null">does not clear noise</span></td>
+
       <td class="n"><strong>2.8%</strong></td></tr>
+
     <tr><td>contrast &lt;0.20</td><td class="n">+4.89 ± 2.97</td><td class="n">8.4%</td></tr>
+
     <tr><td>height &lt;12px</td><td class="n">+5.30 ± 2.47</td><td class="n">18.3%</td></tr>
+
     <tr class="hl"><td><strong>length 9–12 chars</strong> — never a targeted knob</td>
+
       <td class="n"><strong>+16.79 ± 4.13</strong></td><td class="n"><strong>41.9%</strong></td></tr>
+
     <tr class="hl"><td><strong>length ≥13 chars</strong> — never a targeted knob</td>
+
       <td class="n"><strong>+17.66 ± 3.30</strong></td><td class="n"><strong>12.4%</strong></td></tr>
+
   </table></div>
+
   <p><strong>The stratum the engine was built for did not significantly improve.</strong> Over half the
+
     gain lives in 296 long crops — phone numbers, URLs, multi-word signs — out of 10,068. So I looked at
+
     what the model actually does to them.</p>
 
+
+
   <figure>
+
     <img src="figures/fig2_truncation.svg" alt="Left: mean predicted length versus ground-truth length; the real-only arm falls far below the identity line while the +synthetic arm tracks it. Right: histogram of predicted-over-ground-truth length ratio; severe truncation falls from 24.7% to 6.9%.">
+
     <figcaption>
+
       <b>The mechanism, measured.</b> At a 2,574-crop budget the decoder terminates early — it emits
+
       <code>&lt;eos&gt;</code> before finishing long strings, losing about a quarter of the sequence.
+
       Adding 10k synthetic crops of almost <em>any</em> kind supplies the decoder training signal that
+
       fixes it. Because a deletion is wrong on every axis a character bears, that single failure is also
+
       why all three axes rise together rather than tone alone.
+
     </figcaption>
+
   </figure>
 
-  <div class="tablewrap"><table>
+
+
+  <div class="tw"><table>
+
     <tr><th>long crops (≥9 chars, n=296, k=5)</th><th>mean GT length</th><th>mean predicted length</th><th>severely truncated (&lt;60% of GT)</th></tr>
+
     <tr><td>real-only (2,574 crops)</td><td class="n">11.19</td><td class="n"><strong>8.37</strong></td>
+
       <td class="n"><strong>24.7%</strong></td></tr>
+
     <tr><td>+ synthetic</td><td class="n">11.19</td><td class="n"><strong>10.25</strong></td>
+
       <td class="n"><strong>6.9%</strong></td></tr>
+
   </table></div>
+
+
 
 <pre><code>GT            real-only      + synthetic
+
 0583.871197 | 0587.87      | 0583.871197
+
 0905.871198 | 09.87        | 0905.87198
+
 0913.889124 | 09.88        | 0913.889124</code></pre>
 
+
+
   <p>So the honest causal story is <strong>"at a scarce label budget, more crops of almost any kind fix
+
     decoder under-training"</strong> — not "my domain-realism machinery transferred." Which raised the
+
     obvious question, and it had a pre-registered answer rule waiting for it.</p>
 
-  <h3><span class="dim" style="display:block;font-family:ui-monospace;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.2rem;">Act 7, concluded</span>Then I switched the whole thing off</h3>
+
+
+  <h3><span class="act">Act 7, concluded</span>Then I switched the whole thing off</h3>
+
   <p>If the realism stack isn't what's paying, then rendering the same 10k crops with <strong>the entire
+
     degradation stack disabled</strong> should cost me most of the gain. The rule was written before the
+
     control was generated: <strong>≥80% of the gain recovered ⇒ the realism machinery is not load-bearing;
+
     &lt;50% ⇒ it is.</strong></p>
+
   <p>Same corpus, same fonts, same strict bank, same generation seed. The two sets' label sets are
+
     <em>identical</em> — only the pixels differ.</p>
 
-  <div class="tablewrap"><table>
+
+
+  <div class="tw"><table>
+
     <tr><th>arm (r=10%)</th><th>CER ↓</th><th>tone ↑</th><th>gain vs real-only</th></tr>
+
     <tr><td>real-only (k=5)</td><td class="n">16.509 ± 0.933</td><td class="n">89.463 ± 0.641</td>
+
       <td class="n">—</td></tr>
+
     <tr><td>+ synthetic, <strong>degradation ON</strong> (k=5)</td><td class="n">13.726 ± 0.096</td>
+
       <td class="n">91.497 ± 0.134</td><td class="n"><strong>+2.783</strong> / +2.033</td></tr>
+
     <tr class="hl"><td>+ synthetic, <strong>degradation OFF</strong> (k=3)</td>
+
       <td class="n">13.900 ± 0.155</td><td class="n">91.231 ± 0.242</td>
+
       <td class="n"><strong>+2.609</strong> / +1.768</td></tr>
+
   </table></div>
+
+
 
   <p><strong>Clean renders bought 93.7% of the CER gain</strong> (and 86.9% of the tone gain).
-    Shipped-minus-clean is <span class="dim">0.174</span> pp — <strong>not separable from zero</strong>,
+
+    Shipped-minus-clean is <span class="num">0.174</span> pp — <strong>not separable from zero</strong>,
+
     CIs overlapping.</p>
 
+
+
   <p class="kicker">Three independent measurements had been pointing at the same thing, and I had been
+
     reading them one at a time: the augmentation-matched control, the stratum decomposition, and now this
+
     ablation. <b>The realism machinery was never the lever. The text was.</b></p>
 
+
+
   <p>The font-coverage gate, the degradation stack, the background compositing, the distribution audit —
+
     all of it was built for a mechanism that is not the one operating. Pixel realism was ~6% of the gain
+
     and unresolvable from noise. The text was ~94% of it.</p>
 
+
+
   <p><strong>So the practical advice, for anyone about to build what I built: don't.</strong> At a low
+
     label budget you do not need an elaborate generator. You need <strong>text of the right length
+
     distribution, rendered legibly.</strong> That is a far cheaper artifact than this one, and saying so is
+
     worth more than defending the machinery.</p>
 
+
+
   <p><strong>What the control actually measures — and it is the more useful quantity.</strong> "Degradation
+
     off" does not mean the crops were pixel-pristine at training time. vietocr's default
+
     <code>image_aug</code> is applied by the training loader to <strong>every</strong> sample, real and
+
     synthetic alike, with no branch between them (<code>trainer.py:80</code> →
+
     <code>dataloader.py:121</code>), so the clean crops still received it. Which means the two arms differ
+
     by exactly one thing — <strong>mild versus aggressive</strong>:</p>
 
-  <div class="tablewrap"><table>
+
+
+  <div class="tw"><table>
+
     <tr><th></th><th>the floor — vietocr <code>image_aug</code>, in <em>both</em> arms</th>
+
       <th>the engine's stack — <em>shipped arm only</em></th></tr>
+
     <tr><td>character</td><td>mild, generic, <strong>document</strong>-oriented</td>
+
       <td>aggressive <strong>scene-realism</strong></td></tr>
+
     <tr><td>geometry</td><td class="n">perspective 0.01–0.05<br>no rotation, no shear</td>
+
       <td class="n">rotation ±15°, perspective 0.08<br>shear 0.18</td></tr>
+
     <tr><td>blur</td><td class="n">fixed 3-px motion blur</td>
+
       <td class="n">motion blur len 8, defocus σ 1.5</td></tr>
+
     <tr><td>photometric</td><td class="n">brightness/contrast ±0.2</td>
+
       <td class="n">illumination gradients, contrast floor 0.42,<br>glare, shadow</td></tr>
+
     <tr><td>sensor</td><td class="n">—</td><td class="n">JPEG q34–93, Gaussian noise σ 9</td></tr>
+
     <tr><td>background</td><td class="n">—</td>
+
       <td class="n">composited onto real scene backgrounds (p=0.82)</td></tr>
+
   </table></div>
+
+
 
   <p>So the licensed sentence is the one a practitioner actually has to decide:</p>
+
   <p class="kicker"><b>A mild, generic, document-oriented augmentation floor is sufficient. The aggressive
+
     scene-realism stack on top of it bought ~6% of the gain — not separable from zero.</b></p>
+
   <p>That marginal <em>mild → aggressive</em> value is more informative than a zero-augmentation arm would
+
     have been: nobody trains an OCR model with no augmentation at all, so "is realism worth it <em>from
+
     zero</em>" is not a question anyone faces. <strong>A true zero-augmentation arm was not run, and that
+
     stronger claim is not made.</strong></p>
 
+
+
   <h2>Results</h2>
+
   <p>Everything, one table. Scope is <strong>rec-only</strong> on <strong>real VinText test-500</strong>
+
     (10,068 instances / 37,254 chars), <strong>NFC</strong>, mean ± 95% CI over k seeds. Negative rows are
+
     not smaller or greyer than the positive one.</p>
 
-  <div class="tablewrap"><table>
+
+
+  <div class="tw"><table>
+
     <tr><th>#</th><th>arm</th><th>real crops</th><th>synth</th><th>k</th><th>CER ↓</th><th>tone ↑</th><th>verdict</th></tr>
+
     <tr><td class="n">0</td><td>zero-shot (no fine-tune)</td><td class="n">0</td><td class="n">—</td><td class="n">1</td>
-      <td class="n">21.33</td><td class="n">85.88</td><td class="dim">the domain gap</td></tr>
+
+      <td class="n">21.33</td><td class="n">85.88</td><td class="null">the domain gap</td></tr>
+
     <tr><td class="n">1</td><td><strong>A — real-only baseline</strong></td><td class="n">25,742</td><td class="n">—</td><td class="n">3</td>
-      <td class="n"><strong>9.381 ± 0.368</strong></td><td class="n"><strong>94.410 ± 0.281</strong></td><td class="dim">the comparator</td></tr>
+
+      <td class="n"><strong>9.381 ± 0.368</strong></td><td class="n"><strong>94.410 ± 0.281</strong></td><td class="null">the comparator</td></tr>
+
     <tr><td class="n">2</td><td>+ 10k synthetic (marginal-matched)</td><td class="n">25,742</td><td class="n">10k</td><td class="n">3</td>
+
       <td class="n">9.521 ± 0.895</td><td class="n">94.374 ± 0.553</td><td><span class="tag red">RED</span></td></tr>
+
     <tr><td class="n">3</td><td>+ 10k synthetic (legibility-fixed)</td><td class="n">25,742</td><td class="n">10k</td><td class="n">3</td>
+
       <td class="n">9.419 ± 0.237</td><td class="n">94.568 ± 0.463</td><td><span class="tag red">RED</span></td></tr>
+
     <tr><td class="n">4</td><td>B — strata-aug, no synthetic</td><td class="n">25,742</td><td class="n">—</td><td class="n">3</td>
-      <td class="n">9.637 ± 0.074</td><td class="n">94.542 ± 0.142</td><td class="dim">the control</td></tr>
+
+      <td class="n">9.637 ± 0.074</td><td class="n">94.542 ± 0.142</td><td class="null">the control</td></tr>
+
     <tr><td class="n">5</td><td>C — strata-aug + strata-synthetic</td><td class="n">25,742</td><td class="n">10k</td><td class="n">3</td>
+
       <td class="n">9.620 ± 0.191</td><td class="n">94.493 ± 0.117</td><td><span class="tag red">RED</span> (C−B ≈ 0)</td></tr>
+
     <tr><td class="n">6</td><td>real-only @ r=50%</td><td class="n">12,871</td><td class="n">—</td><td class="n">3</td>
+
       <td class="n">10.430 ± 0.200</td><td class="n">93.869 ± 0.535</td><td></td></tr>
+
     <tr><td class="n">7</td><td>+ synthetic @ r=50%</td><td class="n">12,871</td><td class="n">10k</td><td class="n">3</td>
+
       <td class="n">10.478 ± 0.807</td><td class="n">93.856 ± 0.408</td><td><span class="tag null">null</span></td></tr>
+
     <tr><td class="n">8</td><td>real-only @ r=25%</td><td class="n">6,436</td><td class="n">—</td><td class="n">3</td>
+
       <td class="n">12.373 ± 0.337</td><td class="n">92.432 ± 0.357</td><td></td></tr>
+
     <tr><td class="n">9</td><td>+ synthetic @ r=25% (strict bank)</td><td class="n">6,436</td><td class="n">10k</td><td class="n">3</td>
+
       <td class="n">11.621 ± 0.374</td><td class="n">92.948 ± 0.403</td><td><span class="tag red">red</span> (tone overlaps)</td></tr>
+
     <tr class="hl"><td class="n">10</td><td><strong>real-only @ r=10%</strong></td><td class="n">2,574</td><td class="n">—</td><td class="n">5</td>
+
       <td class="n"><strong>16.509 ± 0.933</strong></td><td class="n"><strong>89.463 ± 0.641</strong></td><td></td></tr>
+
     <tr class="hl"><td class="n">11</td><td><strong>+ synthetic @ r=10% (strict bank)</strong></td><td class="n">2,574</td><td class="n">10k</td><td class="n">5</td>
+
       <td class="n"><strong>13.726 ± 0.096</strong></td><td class="n"><strong>91.497 ± 0.134</strong></td><td><span class="tag green">GREEN</span></td></tr>
+
     <tr class="hl"><td class="n">12</td><td><strong>+ clean-render synthetic @ r=10%</strong> (degradation OFF)</td>
+
       <td class="n">2,574</td><td class="n">10k</td><td class="n">3</td>
+
       <td class="n"><strong>13.900 ± 0.155</strong></td><td class="n"><strong>91.231 ± 0.242</strong></td>
+
       <td><span class="tag green">94% of the gain</span></td></tr>
+
   </table></div>
+
+
 
   <p>Rows 2–5 are the product as much as row 11 is. Row 12 is what refutes the engine's own thesis.</p>
 
+
+
   <p><strong>Detection.</strong> An off-the-shelf English-pretrained detector scores
-    <span class="dim">48.0% F1 @ IoU 0.5</span> on VinText (probe, 20 images; input resolution ruled out as
+
+    <span class="num">48.0% F1 @ IoU 0.5</span> on VinText (probe, 20 images; input resolution ruled out as
+
     the cause). It is <em>not</em> this system's detector, and an un-fine-tuned detector is a lower bound
+
     on detection quality — so the end-to-end gap it produces would be an <em>upper</em> bound on
+
     detection-induced error, which is the wrong side for any decision. <strong>No end-to-end number is
+
     reported.</strong> Producing one from that detector would have manufactured a large, false "detection
+
     is the bottleneck" finding.</p>
 
-  <div class="note-box">
+
+
+  <div class="note">
+
     <span class="h">[PENDING] the gold reference set</span>
+
     Public VinText labels contain annotation noise, so CER against them measures model error <em>plus</em>
+
     label error, entangled. A 2,437-instance stratified gold subset is sampled, its crops are extracted
+
     through the eval's own code path, and the transcription tool is built and smoke-tested — but
+
     <strong>the manual double-pass is not done, so no noise-floor number exists and none is claimed.</strong>
+
     When it lands it will be quoted as a <strong>lower bound</strong> ("public labels contain ≥ X%
+
     disagreement"), with the blind-vs-assisted rate stated, because prefilling with the public label
+
     undercounts noise. The noise is real, though, and visible without the gold pass: the first test image's
+
     polygon labelled <code>VỰ</code> demonstrably encloses <code>VỰC</code>. A model that reads it
+
     <em>correctly</em> is charged an error — and <code>demo.py</code> rediscovers exactly this case on the
+
     first six crops it is handed.
+
   </div>
 
+
+
   <h2>Context, not a contest</h2>
+
   <p>A reader cannot tell whether 9.4% CER is good without a yardstick, so I ran off-the-shelf Vietnamese
+
     OCR on the <strong>same test-500, at the same rec-only scope, scored by the same three-axis
+
     scorer</strong> — recognition-only mode enforced (feeding a word crop to a full detect-then-read
+
     pipeline and scoring its empty return would be a strawman), with a 20-crop smoke test first to prove I
+
     was calling each system correctly (0/20 empty returns). The protocol for this was pre-registered and
+
     committed <em>before</em> the first run.</p>
+
   <p><strong>These systems were not trained on VinText; mine was.</strong> This table measures the
+
     <em>task's difficulty</em> and demonstrates the scorer on systems that are not mine. It is not a
+
     superiority claim.</p>
 
-  <div class="tablewrap"><table>
+
+
+  <div class="tw"><table>
+
     <tr><th>system</th><th>CER ↓</th><th>exact ↑</th><th>base ↑</th><th>modifier ↑</th><th>tone ↑</th></tr>
+
     <tr><td>EasyOCR 1.7.2 (<code>vi</code>, latin_g2)</td><td class="n">38.46</td><td class="n">37.95</td>
+
       <td class="n">68.11</td><td class="n">74.02</td><td class="n">72.75</td></tr>
+
     <tr><td>PaddleOCR 3.7.0 (<code>latin_PP-OCRv5_mobile_rec</code>)</td><td class="n">22.53</td>
+
       <td class="n">43.55</td><td class="n"><strong>88.59</strong></td>
+
       <td class="n"><strong>66.03</strong></td><td class="n"><strong>68.89</strong></td></tr>
+
     <tr><td>Tesseract 5.4.0 (<code>vie</code>, <code>--psm 8</code>)</td><td class="n">57.18</td>
+
       <td class="n">32.28</td><td class="n"><strong>62.14</strong></td>
+
       <td class="n"><strong>75.29</strong></td><td class="n">70.19</td></tr>
+
     <tr><td>pbcquoc <code>vgg_transformer</code>, <strong>zero-shot</strong></td><td class="n">21.33</td>
+
       <td class="n">60.83</td><td class="n">86.41</td><td class="n">88.49</td><td class="n">85.88</td></tr>
+
     <tr class="hl"><td><strong>ours</strong> @ full real data (25,742 crops)</td>
+
       <td class="n"><strong>9.40</strong></td><td class="n">81.94</td><td class="n">94.08</td>
+
       <td class="n">96.21</td><td class="n">94.42</td></tr>
+
   </table></div>
-  <p style="font-size:0.88rem;color:var(--dim);">External systems and the zero-shot checkpoint: k=1 — a single
+
+  <p style="font-size:14px;color:var(--ink3)">External systems and the zero-shot checkpoint: k=1 — a single
+
     deterministic inference pass; they are not trained here, so there are no seeds and no CIs. The
+
     <strong>ours</strong> row is the median over k=3 seeds, the same statistic §0.5 reports. Every row is
+
     computed from a run artifact by <code>scripts/context_baselines.py</code>; none is transcribed by hand.</p>
 
+
+
   <p>The r=10% arm is <strong>not</strong> in this table. It is one of my own study arms, not an external
+
     yardstick — it lives in the results tables, where its comparison is to my own baseline. This table
+
     exists to answer one question: <strong>is 9.4% CER any good?</strong></p>
+
+
 
   <p><strong>And the scorer immediately found something a CER ranking would have buried.</strong></p>
 
+
+
   <figure>
+
     <img src="figures/fig3_why_cer_is_not_enough.svg" alt="Left: PaddleOCR and the zero-shot checkpoint have nearly identical CER, 22.53 versus 21.33. Right: their three-axis breakdowns are inverted — PaddleOCR is better on base letters and far worse on modifiers and tones.">
+
     <figcaption>
+
       <b>Why CER is not enough.</b> Two systems, one CER, inverted failure modes. PaddleOCR ships no
+
       Vietnamese recognizer; the nearest is its multilingual <em>latin</em> model, and <b>all 90 of the 90
+
       Vietnamese precomposed characters (U+1EA0–U+1EF9: ạ ả ấ ầ ệ ự …) are absent from its output
+
       charset.</b> It cannot emit a toned vowel. Its tone axis is <em>structurally capped, not
+
       inaccurate</em> — and the measured confusions confirm it exactly (<code>nang→ngang</code> 853,
+
       <code>huyen→ngang</code> 696, <code>sac→ngang</code> 616). It is not mistaking one tone for another;
+
       it is unable to write one.
+
     </figcaption>
+
   </figure>
 
+
+
   <p><strong>And Tesseract, now that it runs, makes the same point a second time — from the other
+
     direction.</strong> It is the worst system here on CER (57.18), and the axes say <em>why</em>: its
+
     <b>base</b> score is the worst in the table (62.14) while its <b>modifier</b> score (75.29) <em>beats
+
     PaddleOCR's</em> (66.03). Its <code>vie</code> model has the full charset, so it can write the marks;
+
     what it cannot do is <em>read the glyphs</em> on in-the-wild scene text (its top tone error is
+
     <code>ngang → &lt;del&gt;</code> — dropping the character outright). The two engines fail at
+
     <strong>different levels of the problem</strong>:</p>
 
-  <div class="tablewrap"><table>
+
+
+  <div class="tw"><table>
+
     <tr><th></th><th>base</th><th>modifier</th><th>the actual failure</th></tr>
+
     <tr><td>PaddleOCR (latin)</td><td class="n"><strong>88.59</strong></td><td class="n">66.03</td>
+
       <td>reads the letters, <strong>cannot represent</strong> the marks — <em>charset</em></td></tr>
+
     <tr><td>Tesseract (<code>vie</code>)</td><td class="n">62.14</td><td class="n"><strong>75.29</strong></td>
+
       <td>can represent the marks, <strong>cannot read</strong> the letters — <em>domain</em></td></tr>
+
   </table></div>
 
+
+
   <p>A CER ranking says "57.18 is worse than 22.53" and stops. The axes say one engine is failing at
+
     <em>representation</em> and the other at <em>perception</em> — which are not the same problem and do not
+
     have the same fix.</p>
 
+
+
   <p class="kicker">This is the takeaway the scorer exists for, and the one I would actually use tomorrow:
+
     <b>if you are choosing an OCR engine for Vietnamese, CER will mislead you. It will not tell you that
+
     the engine cannot represent the language.</b> You would have to decompose the error — or read the
+
     charset — to find that out, and a leaderboard will never do either for you.</p>
 
+
+
   <p>The honest reading of the gap between the rows is <strong>not</strong> "my method beats EasyOCR and
+
     PaddleOCR." It is that <strong>in-domain training data matters</strong>, and that <strong>an
+
     off-the-shelf multilingual model may not even encode the language you are pointing it at</strong> —
+
     which is the more useful warning of the two.</p>
 
+
+
   <h2>What I'd do differently</h2>
+
   <p>Two real lessons, and neither one is "I picked the wrong technique."</p>
 
+
+
   <h3>1. The order was wrong, not the choice</h3>
+
   <p>The budget sweep is the <em>cheapest</em> thing in this project — it is just the baseline retrained on
+
     subsets — and it is what locates <strong>which regime holds the value</strong>. I ran it last, as a
+
     contingency, after building an entire engine. Run first, it would have shown me in an afternoon that
+
     the value lives at a scarce label budget and that there is nothing at full data, and I would have known
+
     <strong>before building the generator</strong> that I was building it for a regime that could not use
+
     it. Find the regime, then build for the regime. I did it backwards and got the right answer anyway,
+
     which is luck, not method.</p>
 
+
+
   <h3>2. Ablation-first, not ablation-last</h3>
+
   <p>I built the whole stack — the font-coverage gate, geometric degradation, photometric degradation,
+
     sensor noise, real-background compositing, the distribution audit — and then ablated it at the very
+
     end, where it told me ~94% of the gain survives without any of it. The right shape is the reverse:
+
     <strong>build the minimum generator that could possibly work (text → legible render), measure it, then
+
     add each piece of machinery with an ablation attached to it.</strong> Each component would have had to
+
     earn its place against a measurement at the moment it was added, for about an hour of compute each.
+
     Instead every one of them was justified by a <em>plausible story</em> about scene-text realism — and
+
     the stories were all coherent, and they were collectively worth ~6%, not separable from zero.</p>
+
   <p class="kicker"><b>Coherence is not evidence.</b></p>
 
+
+
   <p>The narrower ones, stated so they are not buried:</p>
+
   <ul class="tight">
+
     <li><strong>The degradation stack was organised around a stratum ranking that turned out not to drive
+
       the gain.</strong> I ranked geometric distortion #1 from the error analysis and built the generator
+
       around it; that stratum contributed 2.8% of the eventual gain, not significantly. The error analysis
+
       told me where the model <em>fails</em>. I assumed that was the same as where synthetic data
+
       <em>helps</em>. It isn't — and that single assumption is the most expensive line of reasoning in the
+
       project.</li>
+
     <li><strong>One subset draw per budget point.</strong> The curve carries training-seed variance only;
+
       <strong>subset-draw variance is unquantified</strong>. Standard for label-efficiency curves, still a
+
       real limitation.</li>
+
   </ul>
+
+
 
   <h2>What this does not claim</h2>
+
   <ul class="tight">
+
     <li><strong>Not an end-to-end promise.</strong> Every headline number is <strong>rec-only</strong>
+
       (recognition given ground-truth boxes). Detection is deferred and its ceiling is unstated,
+
       deliberately.</li>
+
     <li><strong>Not that synthetic data teaches Vietnamese.</strong> The document-pretrained prior does.
+
       This measures what synthetic adds <em>on top of</em> that prior, at a given real-label budget.</li>
+
     <li><strong>Not a curve beyond the measured budgets.</strong> Four points on one dataset, one
+
       architecture, one 10k synthetic set. The "worth ≈2,195 real crops" readout is an interpolation
+
       <em>between measured points only</em>, never an extrapolation.</li>
+
     <li><strong>Not other languages, datasets, or architectures.</strong> The architecture was locked so
+
       the data could be the only variable; that lock is also the limit of the claim.</li>
+
     <li><strong>Not a claim that synthetic data is useless.</strong> It is a claim that <em>this</em>
+
       engine, at <em>this</em> operating point, with <em>this</em> comparator, bought nothing at full data
+
       and bought ~2,200 labels' worth when labels were scarce — and that the reason it worked is not the
+
       reason I built it.</li>
+
   </ul>
+
+
 
   <h2>The pre-registration</h2>
+
   <p>The protocol, the gates, the metric definitions, the attempt budget, and the branch that became Act 5
+
     were all written <strong>before the experiments they govern</strong>, and the git history proves the
+
     ordering. That is what makes the negatives above worth anything: <em>a gate you can move after seeing
+
     the result is not a gate.</em></p>
+
   <ul class="tight">
-    <li><a href="#"><code>docs/CLAUDE.md</code></a> —
+
+    <li><a class="repo" data-path="/blob/master/docs/CLAUDE.md" href="#"><code>docs/CLAUDE.md</code></a> —
+
       the anchor: locked decisions, firewalls, and the design bets, each with a kill-test. Several are
+
       refuted above.</li>
-    <li><a href="#"><code>docs/EVAL_PROTOCOL.md</code></a>
+
+    <li><a class="repo" data-path="/blob/master/docs/EVAL_PROTOCOL.md" href="#"><code>docs/EVAL_PROTOCOL.md</code></a>
+
       — the ruler: metrics, scopes, the frozen denominator, the Gate-A condition, the k=5 pre-commitment,
+
       the budget axis, the clean-render control's readings.</li>
-    <li><a href="#"><code>docs/DATA_ENGINE.md</code></a>
+
+    <li><a class="repo" data-path="/blob/master/docs/DATA_ENGINE.md" href="#"><code>docs/DATA_ENGINE.md</code></a>
+
       — the generator's design, and the <strong>budget of two re-gate attempts</strong> that stops a red
+
       gate from being iterated into a green one.</li>
-    <li><a href="#"><code>RESULTS.md</code></a> — the
+
+    <li><a class="repo" data-path="/blob/master/RESULTS.md" href="#"><code>RESULTS.md</code></a> — the
+
       measured-evidence ledger. Every number above, with its provenance, including the ones that were
+
       retracted and corrected in place.</li>
+
   </ul>
+
   <p>They are reproduced unedited, wrong predictions and all. Verify the ordering yourself:</p>
+
 <pre><code>git log --follow --format='%ad %s' --date=short -- docs/EVAL_PROTOCOL.md
+
 git log --format='%ad %s' --date=short -- RESULTS.md</code></pre>
 
+
+
   <h2>How this was built</h2>
+
   <p>Design partner (a separate reasoning thread) + agentic implementation, with a hard rule: <strong>the
+
     implementation never adjudicates its own gate.</strong> Every gate — Gate A, the strict-bank
+
     correction, the k=5 re-run, the mechanism fork, the clean-render control — was reported with its number
+
     and its provenance and then <em>stopped</em>, and a separate pass ruled on it. That is why "RED"
+
     survived in this repo instead of quietly becoming "promising." The manual gold transcription pass is
+
     the author's own work and is not delegated to a model: a model-prefilled gold set inherits the model's
+
     errors and biases the comparison in the one direction that would void the artifact.</p>
 
+
+
   <h2>Reproducing it</h2>
+
   <p>VinText is licensed for research use and cannot be redistributed, so "clone and rerun the study" is
+
     not something I can hand you. What <em>is</em> runnable stands alone.</p>
 
+
+
   <p><strong>1. The three-axis scorer</strong> — no dataset, no dependencies, one file. It works on any
+
     Vietnamese OCR system's output.</p>
+
 <pre><code>python -m unittest test_vi_three_axis_scorer -v      # 26 tests, stdlib only
+
 python vi_three_axis_scorer.py your_predictions.tsv --confusion</code></pre>
+
 <pre><code>from vi_three_axis_scorer import score
 
+
+
 s = score([("giá", "gia"), ("Việt Nam", "Viet Nam")])   # (ground_truth, prediction)
+
 print(s.report())
+
 print(s.cer, s.tone_acc, s.base_acc)</code></pre>
 
+
+
   <p><strong>2. The demo</strong> — any image, the shipped checkpoint, the three-axis breakdown.</p>
+
 <pre><code>python demo.py crop.jpg --gt "Việt Nam"
+
 python demo.py path/to/crops/ --gt-tsv labels.tsv --confusion</code></pre>
 
+
+
   <p><strong>3. The generator</strong> runs without VinText (wiki_vi is public; the font manifest and its
+
     per-font diacritic-coverage gate ship with it). <strong>4. The figures</strong> rebuild from the run
+
     artifacts, not from hand-typed numbers (<code>python scripts/make_figures.py</code>).</p>
 
+
+
   <p><strong>Environment.</strong> RTX 4060 Laptop (8 GB), Python 3.13, torch 2.13+cu126. One training run
+
     ≈ 27 min. Every result in the ledger cites its script, config, seed, and data manifest.</p>
 
+
+
   <footer>
+
     Vietnamese scene text · DBNet + VietOCR (vgg_transformer) · rec-only headline · VinText test-500 ·
+
     NFC · three-axis diacritic scoring.<br>
+
     This is a project page, not a paper. There is no new architecture here and no state-of-the-art claim —
+
     only a question, a protocol written before the answer, and the answer that came back.
+
   </footer>
-</main>
+
+</div>
+
+
+
+<script>
+
+  // The one place to set this. Every ↗ link on the page is derived from it.
+
+  const REPO_URL = "https://github.com/MatteoPhan926/ocr_engine";
+
+  for (const a of document.querySelectorAll("a.repo")) {
+
+    a.href = REPO_URL + (a.dataset.path || "");
+
+  }
+
+</script>
 
 </body>
+
 </html>
