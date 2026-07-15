@@ -483,8 +483,6 @@ were all written in [`docs/`](docs/) **before the experiments they govern**, and
 the ordering. That is what makes the negatives above worth anything: a gate you can move after seeing the
 result is not a gate.
 
-- [`docs/CLAUDE.md`](docs/CLAUDE.md) — the anchor: locked decisions, firewalls, and the design bets, each
-  with a kill-test. Several of them are refuted in this README.
 - [`docs/EVAL_PROTOCOL.md`](docs/EVAL_PROTOCOL.md) — the ruler: metrics, scopes, the frozen denominator,
   the Gate-A condition, the k=5 pre-commitment, the budget axis, the clean-render control's readings.
 - [`docs/DATA_ENGINE.md`](docs/DATA_ENGINE.md) — the generator's design, and the **budget of two re-gate
